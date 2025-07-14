@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Инициализация приложения
     async function init() {
-        console.log("init() called."); // Debugging: Проверка вызова init()
+        console.log("init() called."); // Отладка: Проверка вызова init()
 
         // Инициализация Telegram Web App
         if (window.Telegram && window.Telegram.WebApp) {
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     function setupCalendar() {
         const daySelect = document.getElementById('day');
         const monthSelect = document.getElementById('month');
-        console.log("setupCalendar() called. daySelect:", daySelect, "monthSelect:", monthSelect); // Debugging
+        console.log("setupCalendar() called. daySelect:", daySelect, "monthSelect:", monthSelect); // Отладка: Проверка наличия элементов
 
         if (!daySelect || !monthSelect) {
             console.error("Элементы выбора даты или месяца не найдены в DOM. Убедитесь, что index.html содержит <select id='day'> и <select id='month'>.");
@@ -139,12 +139,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
         ];
         
-        monthSelect.innerHTML = months.map((month, index) => 
+        // Заполняем выбор месяца
+        const monthOptionsHtml = months.map((month, index) => 
             `<option value="${index}">${month}</option>`
         ).join('');
+        monthSelect.innerHTML = monthOptionsHtml;
+        console.log("monthSelect.innerHTML установлено:", monthOptionsHtml); // Отладка: Проверка содержимого месяца
         
         monthSelect.value = today.getMonth();
-        updateDays();
+        console.log("monthSelect.value установлено на:", monthSelect.value); // Отладка: Проверка установленного значения месяца
+
+        updateDays(); // Первоначальный вызов для заполнения дней
         
         monthSelect.addEventListener('change', updateDays);
         daySelect.addEventListener('change', function() {
@@ -152,6 +157,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
         
         function updateDays() {
+            console.log("updateDays() called."); // Отладка: Проверка вызова updateDays()
             const selectedMonth = parseInt(monthSelect.value);
             const year = today.getFullYear();
             const daysInMonth = new Date(year, selectedMonth + 1, 0).getDate();
@@ -164,15 +170,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             daySelect.innerHTML = options;
+            console.log("daySelect.innerHTML установлено:", options); // Отладка: Проверка содержимого дня
             updateBookingDate();
         }
         
         function updateBookingDate() {
+            console.log("updateBookingDate() called."); // Отладка: Проверка вызова updateBookingDate()
             const day = daySelect.value;
             const month = parseInt(monthSelect.value) + 1;
             const year = today.getFullYear();
             bookingData.date = `${day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
             document.getElementById('toTimePage').disabled = false;
+            console.log("bookingData.date обновлено до:", bookingData.date); // Отладка: Проверка bookingData.date
         }
     }
 
