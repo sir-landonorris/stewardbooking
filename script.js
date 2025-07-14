@@ -55,10 +55,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Инициализация Supabase
         try {
-            const supabaseUrl = typeof __SUPABASE_URL !== 'undefined' ? __SUPABASE_URL : 'YOUR_SUPABASE_URL';
-            const supabaseAnonKey = typeof __SUPABASE_ANON_KEY !== 'undefined' ? __SUPABASE_ANON_KEY : 'YOUR_SUPABASE_ANON_KEY';
+            const supabaseUrl = typeof __SUPABASE_URL !== 'undefined' ? __SUPABASE_URL : 'https://jvzogsjammwaityyqfjq.supabase.co';
+            const supabaseAnonKey = typeof __SUPABASE_ANON_KEY !== 'undefined' ? __SUPABASE_ANON_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw';
             
-            if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+            if (supabaseUrl === 'https://jvzogsjammwaityyqfjq.supabase.co' || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw') {
                 console.warn("Supabase URL или Anon Key являются заполнителями. Функции Supabase будут отключены.");
                 supabase = null; // Убедимся, что supabase остается null
             } else {
