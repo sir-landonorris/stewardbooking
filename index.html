@@ -6,6 +6,8 @@
     <title>Бронирование автосимулятора</title>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         #booking-form { all: unset; display: block; width: 100%; }
         .step-page { display: none; }
@@ -24,6 +26,7 @@
     </div>
 
     <div class="container">
+        <!-- Шаг 1: Выбор даты (без изменений) -->
         <div id="date-select-container" class="step-page active">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
@@ -50,6 +53,7 @@
             </div>
         </div>
 
+        <!-- Шаг 2: Выбор симулятора (изменен) -->
         <div id="simulator-step" class="step-page">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
@@ -98,6 +102,7 @@
             </div>
         </div>
 
+        <!-- Шаг 3: Выбор пакета времени (новый шаг) -->
         <div id="package-step" class="step-page">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
@@ -118,6 +123,7 @@
             </div>
         </div>
 
+        <!-- Шаг 4: Выбор времени (изменен, переименован с 'time-step' на 'time-select-step') -->
         <div id="time-select-step" class="step-page">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
@@ -137,6 +143,7 @@
             </div>
         </div>
 
+        <!-- Шаг 5: Выбор руля (изменен с 4 на 5 шаг) -->
         <div id="wheel-step" class="step-page">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
@@ -173,6 +180,7 @@
             </div>
         </div>
 
+        <!-- Шаг 6: Форма данных (изменен с 5 на 6 шаг) -->
         <div id="form-step" class="step-page">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
@@ -202,6 +210,7 @@
             </div>
         </div>
 
+        <!-- Шаг 7: Подтверждение (изменен с 6 на 7 шаг) -->
         <div id="confirmation-step" class="step-page">
             <div class="header-container">
                 <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
