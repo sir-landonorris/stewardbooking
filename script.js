@@ -1,15 +1,11 @@
 // Импорт Supabase клиента
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-document.addEventListener('DOMContentLoaded', async function() {
-    // Переменные Supabase (предоставляются средой Canvas)
-    // Замените 'YOUR_SUPABASE_URL' и 'YOUR_SUPABASE_ANON_KEY' на ваши реальные значения
-    const supabaseUrl = typeof __SUPABASE_URL !== 'undefined' ? __SUPABASE_URL : 'YOUR_SUPABASE_URL';
-    const supabaseAnonKey = typeof __SUPABASE_ANON_KEY !== 'undefined' ? __SUPABASE_ANON_KEY : 'YOUR_SUPABASE_ANON_KEY';
-    
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    let currentSupabaseUser = null; // Будет хранить аутентифицированного пользователя Supabase
+// Supabase клиент, инициализируется как null и будет создан в init()
+let supabase = null;
+let currentSupabaseUser = null; // Будет хранить аутентифицированного пользователя Supabase
 
+document.addEventListener('DOMContentLoaded', async function() {
     // Все данные бронирования
     const bookingData = {
         date: null,
@@ -36,55 +32,66 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Инициализация приложения
     async function init() {
-        try {
-            // Инициализация Telegram Web App
-            if (window.Telegram && window.Telegram.WebApp) {
-                Telegram.WebApp.ready();
-                Telegram.WebApp.expand();
-                console.log("Telegram Web App ready.");
+        console.log("init() called."); // Debugging: Проверка вызова init()
 
-                const userTg = Telegram.WebApp.initDataUnsafe.user;
-                if (userTg) {
-                    bookingData.telegramId = userTg.id.toString(); // Сохраняем Telegram ID
-                    bookingData.telegram = userTg.username || ''; // Сохраняем ник Telegram
-                    console.log("Telegram User Data:", userTg);
-                }
-            } else {
-                console.warn("Telegram Web App SDK не найден или не готов.");
-                // Для тестирования без Telegram Web App, можно использовать заглушку
-                bookingData.telegramId = 'test_telegram_id_123';
-                bookingData.telegram = 'testuser';
+        // Инициализация Telegram Web App
+        if (window.Telegram && window.Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            console.log("Telegram Web App ready.");
+
+            const userTg = Telegram.WebApp.initDataUnsafe.user;
+            if (userTg) {
+                bookingData.telegramId = userTg.id.toString(); // Сохраняем Telegram ID
+                bookingData.telegram = userTg.username || ''; // Сохраняем ник Telegram
+                console.log("Telegram User Data:", userTg);
             }
-
-            // Аутентификация Supabase (анонимно)
-            const { data, error } = await supabase.auth.signInAnonymously();
-            if (error) {
-                console.error("Ошибка анонимной аутентификации Supabase:", error);
-                return;
-            }
-            currentSupabaseUser = data.user;
-            console.log("Supabase аутентифицирован. User ID:", currentSupabaseUser.id);
-
-            // Загрузка данных пользователя после аутентификации
-            if (currentSupabaseUser && bookingData.telegramId) {
-                await loadUserData(currentSupabaseUser.id, bookingData.telegramId);
-            }
-
-            // Настройка всех шагов интерфейса
-            setupCalendar();
-            setupSimulatorSelection();
-            setupPackageSelection();
-            setupTimeSlotsGenerator(); // Будет вызван снова после выбора пакета
-            setupWheelSelection();
-            setupForm();
-            setupNavigation();
-            setupConfirmationActions();
-            setupMapButtons();
-            showStep(0); // Начинаем с первого шага
-
-        } catch (error) {
-            console.error("Ошибка инициализации приложения:", error);
+        } else {
+            console.warn("Telegram Web App SDK не найден или не готов. Используются тестовые данные.");
+            // Для тестирования без Telegram Web App, можно использовать заглушку
+            bookingData.telegramId = 'test_telegram_id_123';
+            bookingData.telegram = 'testuser';
         }
+
+        // Инициализация Supabase
+        try {
+            const supabaseUrl = typeof __SUPABASE_URL !== 'undefined' ? __SUPABASE_URL : 'YOUR_SUPABASE_URL';
+            const supabaseAnonKey = typeof __SUPABASE_ANON_KEY !== 'undefined' ? __SUPABASE_ANON_KEY : 'YOUR_SUPABASE_ANON_KEY';
+            
+            if (supabaseUrl === 'YOUR_SUPABASE_URL' || supabaseAnonKey === 'YOUR_SUPABASE_ANON_KEY') {
+                console.warn("Supabase URL или Anon Key являются заполнителями. Функции Supabase будут отключены.");
+                supabase = null; // Убедимся, что supabase остается null
+            } else {
+                supabase = createClient(supabaseUrl, supabaseAnonKey); // Присваиваем глобальной переменной
+                const { data, error } = await supabase.auth.signInAnonymously();
+                if (error) {
+                    console.error("Ошибка анонимной аутентификации Supabase:", error);
+                    supabase = null; // Если аутентификация не удалась, Supabase не будет использоваться
+                } else {
+                    currentSupabaseUser = data.user;
+                    console.log("Supabase аутентифицирован. User ID:", currentSupabaseUser.id);
+                    // Загрузка данных пользователя только если аутентификация Supabase прошла успешно
+                    if (currentSupabaseUser && bookingData.telegramId) {
+                        await loadUserData(currentSupabaseUser.id, bookingData.telegramId);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Ошибка инициализации Supabase:", error);
+            supabase = null; // Убедимся, что supabase остается null при ошибке создания клиента
+        }
+
+        // Настройка всех шагов интерфейса (эти функции всегда должны запускаться)
+        setupCalendar();
+        setupSimulatorSelection();
+        setupPackageSelection();
+        setupTimeSlotsGenerator(); // Будет вызван снова после выбора пакета
+        setupWheelSelection();
+        setupForm();
+        setupNavigation();
+        setupConfirmationActions();
+        setupMapButtons();
+        showStep(0); // Начинаем с первого шага
     }
 
     // Показываем нужный шаг и скрываем остальные
@@ -117,6 +124,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     function setupCalendar() {
         const daySelect = document.getElementById('day');
         const monthSelect = document.getElementById('month');
+        console.log("setupCalendar() called. daySelect:", daySelect, "monthSelect:", monthSelect); // Debugging
+
+        if (!daySelect || !monthSelect) {
+            console.error("Элементы выбора даты или месяца не найдены в DOM. Убедитесь, что index.html содержит <select id='day'> и <select id='month'>.");
+            return; // Выходим, если элементы не найдены
+        }
+
         const today = new Date();
         
         const months = [
