@@ -2,272 +2,457 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Бронирование автосимулятора</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <!-- Telegram Web App SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бронирование симулятора</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        #booking-form { all: unset; display: block; width: 100%; }
-        .step-page { display: none; }
-        .step-page.active { display: block; animation: fadeIn 0.3s ease; }
-        #submit-booking { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
-        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Изменено на flex-start, чтобы контент был сверху */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            position: relative;
+            padding: 25px;
+            box-sizing: border-box;
+        }
+        .step-page {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .step-page.active {
+            display: block;
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.4s ease-in-out;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .header p {
+            font-size: 16px;
+            color: #666;
+        }
+        .button-primary {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            border: none;
+        }
+        .button-primary:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        .button-primary:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+        }
+        .button-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            border: none;
+        }
+        .button-secondary:hover {
+            background-color: #d0d0d0;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .grid-item {
+            background-color: #f9f9f9;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+            position: relative;
+        }
+        .grid-item.selected {
+            border-color: #4CAF50;
+            background-color: #e8f5e9;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
+        }
+        .grid-item:hover:not(.selected) {
+            border-color: #b0b0b0;
+        }
+        .remove-selection {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            display: none; /* Скрыто по умолчанию */
+        }
+        .grid-item.selected .remove-selection {
+            display: flex; /* Показываем при выборе */
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .modal-buttons button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            border: none;
+        }
+        .modal-buttons .confirm {
+            background-color: #f44336;
+            color: white;
+        }
+        .modal-buttons .cancel {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .message-box {
+            display: none;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .message-box.success {
+            background-color: #e8f5e9;
+            color: #4CAF50;
+        }
+        .message-box.info {
+            background-color: #e3f2fd;
+            color: #2196F3;
+        }
     </style>
 </head>
 <body>
-    <div class="progress-bar">
-        <div class="progress" id="booking-progress"></div>
+    <!-- Fallback для открытия вне Telegram Web App -->
+    <div id="web-app-fallback" class="hidden fixed inset-0 bg-gray-900 flex items-center justify-center p-4 z-50">
+        <div class="flex flex-col items-center justify-center p-6 text-center text-gray-100 bg-gray-800 rounded-lg shadow-lg max-w-md w-full">
+            <h1 class="text-3xl font-bold mb-4">Рад тебя видеть — стюард на связи 🏁</h1>
+            <p class="text-lg mb-4">
+                Готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
+            </p>
+            <p class="text-lg mb-4">
+                Если что-то упустил — загляни в наше сообщество 
+                <a href="https://t.me/+HMtd8NyqvWE2ZjZi" target="_blank" class="text-blue-400 hover:underline">Sim Racing Клуб</a>,<br>
+                там всегда свежие новости, обсуждения и планы на заезды.
+            </p>
+            <p class="text-base text-gray-300 mb-6">
+                📍 <i>Ростов-на-Дону, Б. Садовая, 70 (киберклуб Бункер)</i>
+            </p>
+            <div class="w-full max-w-md">
+                <video autoplay loop muted playsinline class="w-full rounded-lg shadow-md mb-4">
+                    <source src="Video-main.mp4" type="video/mp4">
+                    Ваш браузер не поддерживает видео.
+                </video>
+            </div>
+            <p class="text-sm text-gray-400 mt-4">
+                Пожалуйста, откройте это приложение через Telegram для полноценного бронирования.
+            </p>
+        </div>
     </div>
 
-    <div class="container">
-        <!-- Шаг 1: Выбор даты (без изменений) -->
+    <!-- Основной контент приложения -->
+    <div id="main-booking-content" class="container">
+        <!-- Видео в шапке основного приложения -->
+        <video autoplay loop muted playsinline class="w-full h-24 object-cover rounded-lg mb-4 shadow-md">
+            <source src="Video-main.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+        </video>
+        <div class="header">
+            <h1>Бронирование симулятора</h1>
+            <p>Шаг за шагом к вашему идеальному заезду</p>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="booking-progress"></div>
+        </div>
+
+        <!-- Шаг 1: Выбор даты -->
         <div id="date-select-container" class="step-page active">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
+            <h2 class="text-xl font-bold mb-4">Выберите дату</h2>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="form-group">
+                    <label for="month">Месяц</label>
+                    <select id="month" class="w-full p-2 border rounded-md"></select>
                 </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
-            </div>
-            <div class="date-selectors">
-                <div class="selector-group">
-                    <label for="day">День:</label>
-                    <select id="day"></select>
-                </div>
-                <div class="selector-group">
-                    <label for="month">Месяц:</label>
-                    <select id="month"></select>
+                <div class="form-group">
+                    <label for="day">День</label>
+                    <select id="day" class="w-full p-2 border rounded-md"></select>
                 </div>
             </div>
-            <div class="navigation-buttons">
-                <button class="button next-btn active" id="toTimePage">Далее</button>
-            </div>
-            <div class="address-info">
-                📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70
-            </div>
+            <button id="toTimePage" class="button-primary" disabled>Далее</button>
         </div>
 
-        <!-- Шаг 2: Выбор симулятора (изменен) -->
+        <!-- Шаг 2: Выбор симулятора -->
         <div id="simulator-step" class="step-page">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
+            <h2 class="text-xl font-bold mb-4">Выберите симулятор(ы)</h2>
+            <div class="grid-container">
+                <div class="grid-item simulator-box" data-id="1">
+                    Симулятор #1
+                    <div class="remove-selection">✕</div>
                 </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
-            </div>
-            <h2>Выберите симулятор(ы)</h2>
-            <div class="simulator-grid">
-                <div class="simulator full" data-id="any">
-                    Любой симулятор
-                    <div class="remove-selection">&times;</div>
+                <div class="grid-item simulator-box" data-id="2">
+                    Симулятор #2
+                    <div class="remove-selection">✕</div>
                 </div>
-                <div class="simulator-container">
-                    <div class="simulator-box" data-id="1">
-                        <div class="simulator-title">Симулятор #1</div>
-                        <div class="simulator-description">
-                            База Moza R9 – прямой привод с усилием 9 Нм<br>
-                            Педали Moza SRP – педали<br>
-                            Кресло полуковш Bright<br>
-                            MOZA HBP Handbrake – ручной тормоз<br>
-                            MOZA SGP Sequential Shifter
-                        </div>
-                        <div class="remove-selection">&times;</div>
-                    </div>
-                    <div class="simulator-box" data-id="2">
-                        <div class="simulator-title">Симулятор #2</div>
-                        <div class="simulator-description">
-                            База Moza R9 – прямой привод с усилием 9 Нм<br>
-                            Педали Moza SRP – педали<br>
-                            Кресло полуковш Bright<br>
-                            MOZA HBP Handbrake – ручной тормоз<br>
-                            MOZA SGP Sequential Shifter
-                        </div>
-                        <div class="remove-selection">&times;</div>
-                    </div>
+                <div class="grid-item simulator-box" data-id="3">
+                    Симулятор #3
+                    <div class="remove-selection">✕</div>
+                </div>
+                <div class="grid-item simulator-box" data-id="4">
+                    Симулятор #4
+                    <div class="remove-selection">✕</div>
+                </div>
+                <div class="grid-item simulator-box full" data-id="any">
+                    Любой
+                    <div class="remove-selection">✕</div>
                 </div>
             </div>
-            <div class="navigation-buttons">
-                <button class="button" id="backToCalendarPage">Назад</button>
-                <button class="button next-btn" id="toPackagePage" disabled>Далее</button>
-            </div>
-            <div class="address-info">
-                📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70
+            <div class="flex justify-between gap-4 mt-6">
+                <button id="backToCalendarPage" class="button-secondary w-1/2">Назад</button>
+                <button id="toPackagePage" class="button-primary w-1/2" disabled>Далее</button>
             </div>
         </div>
 
-        <!-- Шаг 3: Выбор пакета времени (новый шаг) -->
+        <!-- Шаг 3: Выбор пакета времени -->
         <div id="package-step" class="step-page">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
-                </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
+            <h2 class="text-xl font-bold mb-4">Выберите пакет времени</h2>
+            <div id="package-grid" class="grid-container">
+                <!-- Пакеты будут сгенерированы JS -->
             </div>
-            <h2>Выберите пакет времени</h2>
-            <div class="package-grid" id="package-grid"></div>
-            <div class="summary" id="package-summary"></div>
-            <div class="navigation-buttons">
-                <button class="button" id="backToSimulatorPage">Назад</button>
-                <button class="button next-btn" id="toTimePageNew" disabled>Далее</button>
-            </div>
-            <div class="address-info">
-                📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70
+            <p id="package-summary" class="text-center text-gray-700 mb-6"></p>
+            <div class="flex justify-between gap-4 mt-6">
+                <button id="backToSimulatorPage" class="button-secondary w-1/2">Назад</button>
+                <button id="toTimePageNew" class="button-primary w-1/2" disabled>Далее</button>
             </div>
         </div>
 
-        <!-- Шаг 4: Выбор времени (изменен, переименован с 'time-step' на 'time-select-step') -->
+        <!-- Шаг 4: Выбор времени -->
         <div id="time-select-step" class="step-page">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
-                </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
+            <h2 class="text-xl font-bold mb-4">Выберите время</h2>
+            <div id="time-grid" class="grid-container">
+                <!-- Временные слоты будут сгенерированы JS -->
             </div>
-            <h2>Выберите время</h2>
-            <div class="time-grid" id="time-grid"></div>
-            <div class="navigation-buttons">
-                <button class="button" id="backToPackagePage">Назад</button>
-                <button class="button next-btn" id="toWheelPage" disabled>Далее</button>
-            </div>
-            <div class="address-info">
-                📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70
+            <div class="flex justify-between gap-4 mt-6">
+                <button id="backToPackagePage" class="button-secondary w-1/2">Назад</button>
+                <button id="toWheelPage" class="button-primary w-1/2" disabled>Далее</button>
             </div>
         </div>
 
-        <!-- Шаг 5: Выбор руля (изменен с 4 на 5 шаг) -->
+        <!-- Шаг 5: Выбор руля -->
         <div id="wheel-step" class="step-page">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
-                </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
+            <h2 class="text-xl font-bold mb-4">Выберите руль</h2>
+            <div class="grid-container">
+                <div class="grid-item wheel" data-id="ks">Штурвал KS</div>
+                <div class="grid-item wheel" data-id="cs">Круглый CS</div>
+                <div class="grid-item wheel" data-id="nobutton">Круглый без кнопок</div>
+                <div class="grid-item wheel" data-id="any">Выберу на месте</div>
             </div>
-            <h2>Выберите руль</h2>
-            <div class="wheel-grid">
-                <div class="wheel" data-id="ks">
-                    <img src="images/wheel-ks.png" alt="Штурвал KS" width="100" height="100">
-                    <div class="wheel-name">Штурвал KS</div>
-                </div>
-                <div class="wheel" data-id="cs">
-                    <img src="images/wheel-cs.png" alt="Круглый CS" width="100" height="100">
-                    <div class="wheel-name">Круглый CS</div>
-                </div>
-                <div class="wheel" data-id="nobutton">
-                    <img src="images/wheel-nobutton.png" alt="Круглый без кнопок" width="100" height="100">
-                    <div class="wheel-name">Круглый без кнопок</div>
-                </div>
-                <div class="wheel" data-id="any">
-                    <img src="images/wheel-any.png" alt="Выберу на месте" width="100" height="100">
-                    <div class="wheel-name">Выберу на месте</div>
-                </div>
-            </div>
-            <div class="navigation-buttons">
-                <button class="button" id="backToTimePageNew">Назад</button>
-                <button class="button next-btn" id="toFormPage" disabled>Далее</button>
-            </div>
-            <div class="address-info">
-                📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70
+            <div class="flex justify-between gap-4 mt-6">
+                <button id="backToTimePageNew" class="button-secondary w-1/2">Назад</button>
+                <button id="toFormPage" class="button-primary w-1/2" disabled>Далее</button>
             </div>
         </div>
 
-        <!-- Шаг 6: Форма данных (изменен с 5 на 6 шаг) -->
+        <!-- Шаг 6: Заполнение формы -->
         <div id="form-step" class="step-page">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
+            <h2 class="text-xl font-bold mb-4">Ваши данные</h2>
+            <form id="booking-form">
+                <div class="form-group">
+                    <label for="name">Ваше имя</label>
+                    <input type="text" id="name" name="name" required placeholder="Иван Иванов">
                 </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
-            </div>
-            <h2>Ваши данные</h2>
-            <div class="summary" id="final-summary"></div>
-            <form id="booking-form" novalidate>
-                <input type="text" placeholder="Ваше имя" required aria-label="Ваше имя">
-                <input type="tel" placeholder="+7 (___) ___-__-__" id="phone" required aria-label="Телефон">
-                <div class="telegram-input">
-                    <span class="telegram-prefix">@</span>
-                    <input type="text" placeholder="Ник в Telegram" id="telegram" required aria-label="Telegram username" pattern="[A-Za-z0-9_]+" title="Только буквы, цифры и подчеркивания">
+                <div class="form-group">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+7 (XXX) XXX-1234">
                 </div>
-                <textarea placeholder="Комментарий к записи (необязательно)" aria-label="Комментарий"></textarea>
-                <label><input type="checkbox" required aria-label="Согласие на обработку данных"> Я согласен на обработку персональных данных</label>
-                <div class="navigation-buttons">
-                    <button type="button" class="button" id="backToWheelPage">Назад</button>
-                    <button type="submit" class="button submit-btn" id="submit-booking">Записаться</button>
+                <div class="form-group">
+                    <label for="telegram">Telegram (ник без @)</label>
+                    <input type="text" id="telegram" name="telegram" placeholder="ваш_ник" required>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Комментарий (необязательно)</label>
+                    <textarea id="comment" name="comment" rows="3" placeholder="Особые пожелания"></textarea>
+                </div>
+                
+                <!-- Новый текст согласия -->
+                <p class="text-sm text-gray-500 text-center mt-4 mb-4">
+                    Нажимая кнопку далее вы соглашаетесь на обработку ваших данных
+                </p>
+
+                <div class="flex justify-between gap-4 mt-6">
+                    <button id="backToWheelPage" type="button" class="button-secondary w-1/2">Назад</button>
+                    <button type="submit" class="button-primary w-1/2">Далее</button>
                 </div>
             </form>
-            <div class="address-info">
-                📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70
-            </div>
         </div>
 
-        <!-- Шаг 7: Подтверждение (изменен с 6 на 7 шаг) -->
+        <!-- Шаг 7: Подтверждение -->
         <div id="confirmation-step" class="step-page">
-            <div class="header-container">
-                <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
-                <div class="header-text">
-                    <h1>Бронирование автосимуляторов</h1>
-                </div>
-                <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
+            <h2 class="text-xl font-bold mb-4">Ваша заявка принята!</h2>
+            <p class="text-center text-gray-700 mb-6">Мы свяжемся с вами в ближайшее время для подтверждения.</p>
+            <div id="confirmation-details" class="bg-gray-50 p-4 rounded-lg mb-6">
+                <!-- Детали бронирования будут сгенерированы JS -->
             </div>
-            <h2>Вы записаны ✅</h2>
-            <p class="confirmation-notice">Администратор клуба свяжется с вами для подтверждения брони</p>
-            <div id="confirmation-details" class="confirmation-details"></div>
-            
-            <div class="action-circles">
-                <div class="circle" id="book-again" tabindex="0" role="button" aria-label="Новое бронирование">
-                    <img src="images/again.svg" alt="Новое бронирование" width="30" height="30">
-                </div>
-                <div class="circle" id="reschedule" tabindex="0" role="button" aria-label="Изменить запись">
-                    <img src="images/reschedule.svg" alt="Изменить запись" width="30" height="30">
-                </div>
-                <div class="circle" id="cancel-booking" tabindex="0" role="button" aria-label="Отмена">
-                    <img src="images/cancel.svg" alt="Отмена" width="30" height="30">
-                </div>
+            <div class="flex flex-col gap-4">
+                <button id="book-again" class="button-primary">Забронировать еще раз</button>
+                <button id="reschedule" class="button-secondary">Перенести бронирование</button>
+                <button id="cancel-booking" class="button-secondary">Отменить бронирование</button>
+                <button id="route-btn" class="button-secondary">Построить маршрут</button>
+                <button id="taxi-btn" class="button-secondary">Вызвать такси</button>
             </div>
-            
-            <div class="action-labels">
-                <div>Новая бронь</div>
-                <div>Изменить запись</div>
-                <div>Отмена</div>
+            <div id="reschedule-message" class="message-box info mt-4">
+                Для переноса свяжитесь со стюардом.
             </div>
-            
-            <div id="reschedule-message" class="status-message">
-                Заявка на перенос записи принята, с вами свяжется администратор клуба
+            <div id="cancel-message" class="message-box info mt-4">
+                Заявка на отмену отправлена стюарду.
             </div>
-            
-            <div id="cancel-modal" class="modal">
-                <div class="modal-content">
-                    <p>Вы хотите отменить запись?</p>
-                    <div class="modal-buttons">
-                        <button class="button" id="confirm-cancel">Да</button>
-                        <button class="button" id="cancel-cancel">Нет</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="cancel-message" class="status-message">
-                Заявка отменена
-            </div>
-            
-            <div class="confirmation-footer">
-                <p>Стоимость: <span id="final-price">2000</span> ₽</p>
-                <p>📍 Адрес: Ростов-на-Дону, ул. Б. Садовая, 70</p>
-                <button class="button route-btn" id="route-btn">Проложить маршрут</button>
-                <button class="button taxi-btn" id="taxi-btn">Вызвать такси через Яндекс Go</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно отмены -->
+    <div id="cancel-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4">Подтвердите отмену</h3>
+            <p class="mb-6">Вы уверены, что хотите отменить бронирование?</p>
+            <div class="modal-buttons">
+                <button id="confirm-cancel" class="confirm">Да, отменить</button>
+                <button id="cancel-cancel" class="cancel">Нет, оставить</button>
             </div>
         </div>
     </div>
 
     <script src="script.js" type="module"></script>
+    <!-- Скрипт для определения Telegram Web App -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fallbackDiv = document.getElementById('web-app-fallback');
+            const mainContentDiv = document.getElementById('main-booking-content');
+
+            if (window.Telegram && window.Telegram.WebApp && Telegram.WebApp.initData) {
+                // Если Telegram Web App доступен, показываем основной контент
+                fallbackDiv.classList.add('hidden');
+                mainContentDiv.classList.remove('hidden');
+                document.body.style.alignItems = 'flex-start'; // Вернуть выравнивание для основного контента
+            } else {
+                // Если Telegram Web App НЕ доступен, показываем заглушку
+                fallbackDiv.classList.remove('hidden');
+                mainContentDiv.classList.add('hidden');
+                document.body.style.alignItems = 'center'; // Выровнять заглушку по центру
+            }
+        });
+    </script>
 </body>
 </html>
