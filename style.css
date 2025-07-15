@@ -139,17 +139,17 @@ body {
     display: block;
     width: 100%;
     padding: 16px;
-    background-color: #d9d9d9; /* Светло-серый */
-    color: #000000; /* Черный */
-    text-align: center;
-    font-weight: bold;
     border: none; /* УДАЛЕНО: обводка */
     cursor: not-allowed;
     border-radius: 0;
     box-shadow: none;
-    text-transform: none; /* Убран капслок */
     font-size: 18px; /* Крупнее, чем основной текст */
     margin: 0; /* УДАЛЕНО: margin-bottom */
+    background-color: #d9d9d9; /* Светло-серый */
+    color: #000000; /* Черный */
+    text-align: center;
+    font-weight: bold;
+    text-transform: none; /* Убран капслок */
 }
 .button.active {
     background-color: #000000; /* Черный */
@@ -207,11 +207,11 @@ body {
 }
 #web-app-fallback h1 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;
-    text-transform: none; /* Убран капслок */
     font-weight: bold;
     font-size: 28px;
     margin-bottom: 16px;
     color: #ffffff;
+    text-transform: none; /* Убран капслок */
 }
 #web-app-fallback p {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
@@ -319,7 +319,7 @@ body {
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
     font-size: 20px; /* Крупные цифры */
     font-weight: bold;
-    text-transform: uppercase; /* Цифры остаются в верхнем регистре */
+    text-transform: none; /* Убран капслок для всего текста, кроме цифр */
 }
 
 .date-carousel .date-item small {
@@ -339,12 +339,12 @@ body {
 /* Заголовки шагов */
 h2 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;
-    text-transform: uppercase;
     font-weight: bold;
     font-size: 24px;
     text-align: center;
     margin-bottom: 16px;
     color: #000000;
+    text-transform: none; /* Убран капслок */
 }
 
 /* Стилизация заголовков (например, "ВЫБЕРИТЕ СИМУЛЯТОР(Ы)") */
@@ -376,7 +376,6 @@ h2 {
     border-radius: 0;
     box-shadow: none;
     font-size: 16px;
-    text-transform: uppercase;
     font-family: 'Helvetica Neue', system-ui, sans-serif;
     border: none; /* УДАЛЕНО: обводка */
     margin: 0; /* Плотное прилегание */
@@ -405,7 +404,7 @@ h2 {
     margin-top: 4px;
     position: absolute; /* Позиционирование */
     bottom: 8px; /* Отступ снизу */
-    left: 8px; /* Отступ слева */
+    left: 32px; /* Выравнивание по левому краю с цифрой */
     text-transform: none; /* Убран капслок */
 }
 .grid-item.selected {
@@ -579,10 +578,10 @@ textarea {
 }
 .modal-content h3 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;
-    text-transform: uppercase; /* Заголовок остается в верхнем регистре */
     font-weight: bold;
     font-size: 20px;
     margin-bottom: 16px;
+    text-transform: none; /* Убран капслок */
 }
 .modal-content p {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
@@ -615,6 +614,7 @@ textarea {
     }
     .grid-item small {
         font-size: 14px;
+        left: 24px; /* Адаптивное выравнивание по левому краю */
     }
     #package-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 столбца */
