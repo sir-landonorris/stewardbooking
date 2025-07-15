@@ -168,8 +168,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Обновляем прогресс-бар
     function updateProgress(step) {
-        const progress = (step / (document.querySelectorAll('.step-page').length - 1)) * 100;
-        document.getElementById('booking-progress').style.width = `${progress}%`;
+        // Целевой глобальный прогресс-бар
+        const progressElement = document.getElementById('booking-progress-global');
+        if (progressElement) {
+            const progress = (step / (document.querySelectorAll('.step-page').length - 1)) * 100;
+            progressElement.style.width = `${progress}%`;
+        } else {
+            console.error("Элемент прогресс-бара 'booking-progress-global' не найден.");
+        }
     }
 
     // Настройка выбора даты
@@ -343,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const { data: bookings, error } = await supabase
                     .from('bookings')
-                    .select('time_range, simulator_ids, duration_hours')
+                    .select('time_range, simulator, hours') // Changed simulator_ids to simulator, duration_hours to hours
                     .eq('date', selectedDate)
                     .neq('status', 'rejected'); // Исключаем отклоненные заявки
 
@@ -352,7 +358,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 } else {
                     occupiedSlots = bookings.filter(booking => {
                         // Проверяем, пересекается ли хотя бы один симулятор
-                        const simulatorOverlap = booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim));
+                        const simulatorOverlap = booking.simulator.some(bookedSim => bookingData.simulator.includes(bookedSim));
                         return simulatorOverlap;
                     });
                     console.log("Занятые слоты для выбранной даты и симуляторов:", occupiedSlots);
@@ -381,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             const isOccupied = occupiedSlots.some(occupied => {
                 // Извлекаем только начальное время из строки "ЧЧ:ММ – ЧЧ:ММ"
-                const occupiedStartTimeStr = occupied.time_range.split(' ')[0];
+                const occupiedStartTimeStr = occupied.time.split(' ')[0]; // Changed time_range to time
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 
                 const currentStartTimeStr = currentTimeSlot.split(' ')[0];
@@ -402,7 +408,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (bookingData.duration === 'Ночь') {
             const nightSlot = '00:00 – 08:00';
             const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const occupiedStartTimeStr = occupied.time_range.split(' ')[0];
+                const occupiedStartTimeStr = occupied.time.split(' ')[0]; // Changed time_range to time
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 return occupiedStartHour === 0; // Проверка на начало в 00:00
             });
@@ -659,10 +665,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                         telegram_id: bookingData.telegramId, // Telegram user ID (гарантированно не null)
                         date: bookingData.date,
                         time_range: bookingData.time,
-                        simulator_ids: bookingData.simulator, // Массив строк
+                        simulator: bookingData.simulator, // Changed simulator_ids to simulator
                         wheel: bookingData.wheel,
                         duration_text: bookingData.duration,
-                        duration_hours: bookingData.hours,
+                        hours: bookingData.hours, // Changed duration_hours to hours
                         price: parseInt(bookingData.price), // Убедимся, что это число
                         name: bookingData.name,
                         phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null, // Сохраняем только последние 4 цифры

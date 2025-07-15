@@ -16,6 +16,12 @@ body {
     margin: 0 auto;
     padding: 16px;
     box-sizing: border-box;
+    background-color: #1A222E; /* Темный фон для основного контейнера */
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    padding-top: 20px; /* Отступ сверху для глобального прогресс-бара */
 }
 
 /* Шаги */
@@ -35,22 +41,24 @@ body {
     height: auto;
 }
 
-/* Прогресс-бар */
-.progress-bar {
+/* Прогресс-бар (глобальный) */
+.progress-bar-container-global {
     height: 4px;
     background: #1A222E;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 1000; /* Убедитесь, что он поверх всего */
+    border-radius: 2px;
 }
 
-.progress {
+.progress-bar-global { /* Это сам заполняющийся бар */
     height: 100%;
     background: #1756E2;
     transition: width 0.3s ease;
     width: 0%;
+    border-radius: 2px;
 }
 
 /* Заголовок */
@@ -77,6 +85,116 @@ body {
     margin: 0;
     line-height: 1.3;
 }
+
+/* Header Video Styling */
+.header-video {
+    width: calc(100% + 32px); /* Adjust for container's padding */
+    margin-left: -16px; /* Align to container's left edge */
+    margin-right: -16px; /* Align to container's right edge */
+    height: 120px; /* Increased height for better visual */
+    object-fit: cover;
+    display: block;
+    border-top-left-radius: 15px; /* Match container's top radius */
+    border-top-right-radius: 15px; /* Match container's top radius */
+    border-bottom-left-radius: 0; /* No bottom radius */
+    border-bottom-right-radius: 0; /* No bottom radius */
+    margin-top: -16px; /* Shift up to align with container's top edge */
+    box-shadow: none; /* Remove any shadow */
+}
+
+/* Общие стили для кнопок */
+.button-primary {
+    background-color: #1756E2;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    border: none;
+}
+.button-primary:hover:not(:disabled) {
+    background-color: #1A70F0;
+}
+.button-primary:disabled {
+    background-color: #0A2B6F;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.button-secondary {
+    background-color: #1A222E;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    border: 1px solid #333;
+}
+.button-secondary:hover {
+    background-color: #2A323E;
+}
+
+/* Стили для заглушки */
+#web-app-fallback {
+    background-color: #1a222e; /* Темный фон для заглушки */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000; /* Убедитесь, что она поверх всего */
+}
+#web-app-fallback .content {
+    background-color: #000; /* Еще более темный фон для внутреннего блока заглушки */
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+#web-app-fallback video {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+#web-app-fallback h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+#web-app-fallback p {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #ccc;
+}
+#web-app-fallback a {
+    color: #1756E2;
+    text-decoration: none;
+}
+#web-app-fallback a:hover {
+    text-decoration: underline;
+}
+#web-app-fallback .address {
+    font-size: 14px;
+    color: #888;
+    margin-top: 20px;
+}
+
 
 /* Выбор даты */
 .date-selectors {
@@ -282,33 +400,6 @@ h2 {
     margin-top: 5px;
 }
 
-/* Выбор времени */
-.time-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.time-slot {
-    background-color: #1A222E;
-    border: 2px solid #333;
-    border-radius: 10px;
-    padding: 15px 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: border-color 0.2s ease, background-color 0.2s ease;
-    font-size: 14px;
-}
-
-.time-slot:hover:not(.selected) {
-    border-color: #1756E2;
-}
-
-.time-slot.selected {
-    border-color: #1756E2;
-    background-color: #0A2B6F;
-}
 
 /* Выбор руля */
 .wheel-grid {
