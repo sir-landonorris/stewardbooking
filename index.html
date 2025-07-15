@@ -234,6 +234,34 @@
             background-color: #e3f2fd;
             color: #2196F3;
         }
+
+        /* Styles for AI Chat Modal */
+        #ai-chat-modal .modal-content {
+            max-width: 500px;
+            text-align: left;
+            padding: 25px;
+        }
+        #ai-chat-modal #ai-chat-response {
+            background-color: #f0f2f5;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 100px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            max-height: 200px;
+            color: #333;
+        }
+        #ai-chat-modal #ai-chat-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        #ai-chat-modal .button-group {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -246,7 +274,7 @@
             </p>
             <p class="text-lg mb-4">
                 Если что-то упустил — загляни в наше сообщество 
-                <a href="https://t.me/+HMtd8NyqvWE2ZjZi" target="_blank" class="text-blue-400 hover:underline">Sim Racing Клуб</a>,<br>
+                <a href="https://t.me/c/2381161383/2" target="_blank" class="text-blue-400 hover:underline">Sim Racing Клуб</a>,<br>
                 там всегда свежие новости, обсуждения и планы на заезды.
             </p>
             <p class="text-base text-gray-300 mb-6">
@@ -410,6 +438,7 @@
                 <button id="book-again" class="button-primary">Забронировать еще раз</button>
                 <button id="reschedule" class="button-secondary">Перенести бронирование</button>
                 <button id="cancel-booking" class="button-secondary">Отменить бронирование</button>
+                <button id="ask-ai-steward" class="button-secondary">✨ Спросить Стюарда (AI)</button>
                 <button id="route-btn" class="button-secondary">Построить маршрут</button>
                 <button id="taxi-btn" class="button-secondary">Вызвать такси</button>
             </div>
@@ -434,6 +463,21 @@
         </div>
     </div>
 
+    <!-- Модальное окно AI Чата -->
+    <div id="ai-chat-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-lg font-bold mb-4">Спросить Стюарда (AI)</h3>
+            <div id="ai-chat-response" class="mb-4 text-gray-700">
+                Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!
+            </div>
+            <input type="text" id="ai-chat-input" placeholder="Введите ваш вопрос..." class="mb-4">
+            <div class="button-group">
+                <button id="ai-chat-submit" class="button-primary w-1/2">Задать вопрос</button>
+                <button id="ai-chat-close" class="button-secondary w-1/2">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js" type="module"></script>
     <!-- Скрипт для определения Telegram Web App -->
     <script>
@@ -441,7 +485,7 @@
             const fallbackDiv = document.getElementById('web-app-fallback');
             const mainContentDiv = document.getElementById('main-booking-content');
 
-            if (window.Telegram && window.Telegram.WebApp && Telegram.WebApp.initData) {
+            if (window.Telegram && window.Telegram.WebApp) { // Условие изменено
                 // Если Telegram Web App доступен, показываем основной контент
                 fallbackDiv.classList.add('hidden');
                 mainContentDiv.classList.remove('hidden');

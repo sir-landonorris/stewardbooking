@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
-        phone: null,
+        phone: null, // Теперь будет хранить полный отформатированный номер для отображения
         telegram: '', // Инициализируем как пустую строку
         telegramId: '', // Инициализируем как пустую строку
         comment: null
@@ -69,7 +69,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log("Supabase URL:", supabaseUrl); // Отладка: Проверка URL
             console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...'); // Отладка: Проверка ключа
 
-            // Простая проверка на пустые ключи. createClient сам выдаст ошибку, если ключи невалидны.
+            // Теперь здесь нет проверки на заглушки.
+            // Если supabaseUrl или supabaseAnonKey пусты, это вызовет ошибку в createClient.
+            // Убедитесь, что вы вставили реальные ключи выше.
             if (!supabaseUrl || !supabaseAnonKey) {
                  console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase URL или Anon Key не могут быть пустыми. Пожалуйста, вставьте ваши фактические ключи Supabase в script.js.");
                  supabase = null;
@@ -111,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         setupNavigation();
         setupConfirmationActions();
         setupMapButtons();
+        setupAIChatFeature(); // Новая функция для настройки AI чата
         showStep(0); // Начинаем с первого шага
     }
 
@@ -426,24 +429,29 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const nameInput = document.querySelector('#form-step input[type="text"]');
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
+                const phonePrefix = '+7 (XXX) XXX-'; // Префикс для отображения
 
                 if (nameInput && userData.name) nameInput.value = userData.name;
                 if (phoneInput && userData.phone_last_4_digits) {
-                    phoneInput.value = `+7 (XXX) XXX-${userData.phone_last_4_digits.slice(0,2)}-${userData.phone_last_4_digits.slice(2,4)}`;
+                    // Восстанавливаем полный номер для отображения
+                    phoneInput.value = phonePrefix + userData.phone_last_4_digits;
                     phoneInput.dataset.last4 = userData.phone_last_4_digits; // Сохраняем для проверки
+                    bookingData.phone = phoneInput.value; // Обновляем bookingData для отображения
+                } else {
+                    phoneInput.value = phonePrefix; // Устанавливаем префикс, если данных нет
                 }
                 if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username;
 
                 // Обновляем bookingData
                 bookingData.name = userData.name || null;
-                bookingData.phone = userData.phone_last_4_digits ? `...${userData.phone_last_4_digits}` : null; 
+                // bookingData.phone уже обновлен выше или останется null
                 bookingData.telegram = userData.telegram_username || null;
 
                 console.log("Форма предзаполнена данными пользователя.");
             } else {
                 console.log("Данные пользователя не найдены. Форма останется пустой или с данными из Telegram Web App.");
                 document.querySelector('#form-step input[type="text"]').value = '';
-                document.getElementById('phone').value = '+7 ';
+                document.getElementById('phone').value = '+7 (XXX) XXX-'; // Устанавливаем префикс
                 document.getElementById('telegram').value = bookingData.telegram; // Предзаполняем Telegram ником из WebApp
             }
         } catch (error) {
@@ -465,7 +473,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 telegram_id: bookingData.telegramId,
                 name: bookingData.name,
                 telegram_username: bookingData.telegram,
-                phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null // Сохраняем только последние 4 цифры
+                // Сохраняем только последние 4 цифры из bookingData.phone
+                phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null 
             };
 
             const { error } = await supabase
@@ -485,21 +494,51 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Настройка формы
     function setupForm() {
         const phoneInput = document.getElementById('phone');
-        
-        // Форматирование номера телефона
+        const phonePrefix = '+7 (XXX) XXX-'; // Фиксированный префикс
+
+        // Инициализируем поле телефона с префиксом и ставим курсор в конец
         if (phoneInput) {
+            // Устанавливаем значение только если оно еще не предзаполнено loadUserData
+            if (!phoneInput.value || phoneInput.value === '+7 ') { // Проверяем на старую заглушку
+                phoneInput.value = phonePrefix;
+            }
+            phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length); // Ставим курсор в конец
+
+            phoneInput.addEventListener('focus', function() {
+                // Если пользователь убрал префикс, восстанавливаем его
+                if (!this.value.startsWith(phonePrefix)) {
+                    this.value = phonePrefix;
+                }
+                this.setSelectionRange(this.value.length, this.value.length); // Курсор всегда в конце
+            });
+
             phoneInput.addEventListener('input', function(e) {
-                let numbers = e.target.value.replace(/\D/g, '');
-                if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
-                numbers = numbers.substring(0, 11);
-                
-                let formatted = '+7';
-                if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
-                if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
-                if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
-                if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
-                
-                e.target.value = formatted;
+                let currentValue = this.value;
+                if (!currentValue.startsWith(phonePrefix)) {
+                    currentValue = phonePrefix; // Сброс, если префикс удален
+                }
+
+                // Извлекаем только цифры после префикса и ограничиваем до 4
+                let last4Digits = currentValue.substring(phonePrefix.length).replace(/\D/g, '');
+                if (last4Digits.length > 4) {
+                    last4Digits = last4Digits.substring(0, 4); 
+                }
+
+                this.value = phonePrefix + last4Digits;
+                this.setSelectionRange(this.value.length, this.value.length); // Курсор всегда в конце
+
+                // Обновляем bookingData полным отформатированным номером для отображения
+                bookingData.phone = this.value; 
+            });
+
+            // Предотвращаем удаление префикса
+            phoneInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && this.selectionStart <= phonePrefix.length) {
+                    e.preventDefault();
+                }
+                if (e.key === 'Delete' && this.selectionStart < phonePrefix.length) {
+                    e.preventDefault();
+                }
             });
         } else {
             console.warn("Элемент 'phone' не найден. Форматирование номера телефона не будет работать.");
@@ -541,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 
                 bookingData.name = this.querySelector('input[type="text"]').value;
-                bookingData.phone = this.querySelector('input[type="tel"]').value;
+                // bookingData.phone уже обновляется в setupForm при вводе
                 bookingData.telegram = this.querySelector('#telegram').value;
                 bookingData.comment = this.querySelector('textarea').value;
                 
@@ -654,6 +693,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             const cancelModal = document.getElementById('cancel-modal');
             if (cancelModal) cancelModal.style.display = 'none';
         });
+
+        // Добавление обработчика для кнопки AI чата
+        document.getElementById('ask-ai-steward')?.addEventListener('click', openAIChatModal);
     }
 
     // Настройка кнопок карты и такси
@@ -685,7 +727,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = '+7 ';
+        document.getElementById('phone').value = '+7 (XXX) XXX-'; // Сбрасываем с префиксом
         
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
@@ -713,6 +755,103 @@ document.addEventListener('DOMContentLoaded', async function() {
             return 'Любой';
         }
         return simulatorIds.map(id => `Симулятор #${id}`).join(', ');
+    }
+
+    // --- Функции для AI Чата ---
+    const aiChatModal = document.getElementById('ai-chat-modal');
+    const aiChatInput = document.getElementById('ai-chat-input');
+    const aiChatResponse = document.getElementById('ai-chat-response');
+    const aiChatSubmitBtn = document.getElementById('ai-chat-submit');
+    const aiChatCloseBtn = document.getElementById('ai-chat-close');
+
+    function setupAIChatFeature() {
+        if (aiChatSubmitBtn) {
+            aiChatSubmitBtn.addEventListener('click', handleAIChatSubmit);
+        }
+        if (aiChatCloseBtn) {
+            aiChatCloseBtn.addEventListener('click', closeAIChatModal);
+        }
+        if (aiChatInput) {
+            aiChatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleAIChatSubmit();
+                }
+            });
+        }
+    }
+
+    function openAIChatModal() {
+        if (aiChatModal) {
+            aiChatModal.style.display = 'flex';
+            aiChatInput.value = ''; // Очищаем поле ввода
+            aiChatResponse.innerHTML = 'Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!'; // Сброс текста ответа
+            aiChatInput.focus();
+        }
+    }
+
+    function closeAIChatModal() {
+        if (aiChatModal) {
+            aiChatModal.style.display = 'none';
+        }
+    }
+
+    async function handleAIChatSubmit() {
+        const question = aiChatInput.value.trim();
+        if (!question) {
+            // Заменил alert на console.error или более мягкое сообщение в UI, если есть
+            console.error('Пожалуйста, введите ваш вопрос.');
+            // Можно добавить временное сообщение в aiChatResponse
+            aiChatResponse.innerHTML = '<div class="text-center text-red-500">Пожалуйста, введите ваш вопрос.</div>';
+            setTimeout(() => {
+                aiChatResponse.innerHTML = 'Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!';
+            }, 2000);
+            return;
+        }
+
+        aiChatResponse.innerHTML = '<div class="text-center text-blue-500">Загрузка...</div>'; // Индикатор загрузки
+        aiChatSubmitBtn.disabled = true;
+        aiChatInput.disabled = true;
+
+        try {
+            const responseText = await callGeminiAPI(question);
+            aiChatResponse.innerHTML = responseText;
+        } catch (error) {
+            console.error("Ошибка при вызове Gemini API:", error);
+            aiChatResponse.innerHTML = 'Извините, произошла ошибка при получении ответа. Попробуйте еще раз.';
+        } finally {
+            aiChatSubmitBtn.disabled = false;
+            aiChatInput.disabled = false;
+            aiChatInput.value = ''; // Очищаем поле после отправки
+        }
+    }
+
+    async function callGeminiAPI(userQuestion) {
+        // Добавил больше контекста для AI, чтобы он отвечал как стюард гоночного клуба
+        const prompt = `Вы полезный и дружелюбный стюард клуба симуляторов гонок. Ответьте на следующий вопрос о клубе, ценах, услугах, расписании или правилах. Старайтесь быть кратким и по делу. Если вы не знаете ответа на вопрос, вежливо сообщите, что у вас нет этой информации и предложите связаться с администратором напрямую. Вопрос: ${userQuestion}`;
+        
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = { contents: chatHistory };
+        const apiKey = ""; // Canvas автоматически предоставит ключ во время выполнения
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+            return result.candidates[0].content.parts[0].text;
+        } else {
+            console.error("Неожиданная структура ответа от Gemini API:", result);
+            return "Извините, не удалось получить ответ от AI. Пожалуйста, попробуйте перефразировать вопрос.";
+        }
     }
 
     // Запускаем приложение
