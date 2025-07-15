@@ -259,13 +259,13 @@ body {
     gap: 8px;
 }
 
-.date-display-text-small { /* Новый класс для мелкого курсивного текста */
-    font-size: 7px; /* Уменьшен в 1.5 раза (было 10px) */
-    font-style: italic;
-    text-transform: none; /* Убран капслок */
-    font-weight: normal; /* Сброс жирности */
-    color: #000000; /* Черный текст на белом фоне */
-}
+/* .date-display-text-small { /* Этот класс удален из HTML */
+/* font-size: 7px; */
+/* font-style: italic; */
+/* text-transform: none; */
+/* font-weight: normal; */
+/* color: #000000; */
+/* } */
 
 
 .date-display .arrow-down {

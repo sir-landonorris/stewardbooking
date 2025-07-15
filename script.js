@@ -1,16 +1,12 @@
-// Импорт Supabase клиента
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-// Supabase клиент, инициализируется как null и будет создан в init()
-let supabase = null;
-let currentSupabaseUser = null; // Будет хранить аутентифицированного пользователя Supabase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Firebase variables (provided by the Canvas environment)
-    // Эти переменные будут доступны в runtime, если приложение запущено в Canvas
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
     let app, db, auth, userId;
     let isAuthReady = false;
@@ -20,146 +16,91 @@ document.addEventListener('DOMContentLoaded', async function() {
         date: null,
         time: null,
         simulator: [], // Изменено на массив для множественного выбора
+        wheel: null,
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
         phone: null,
-        telegram: '', // Инициализируем как пустую строку
-        telegramId: '', // Инициализируем как пустую строку
+        telegram: null,
+        telegramId: null, // Добавляем Telegram ID
         comment: null
     };
 
     // Все пакеты времени
     const packages = [
-        { duration: '1 ЧАС', price: '450 ₽', value: 450, hours: 1 },
-        { duration: '2 ЧАСА', price: '800 ₽', value: 800, hours: 2 },
-        { duration: '3 ЧАСА', price: '1050 ₽', value: 1050, hours: 3 },
-        { duration: '5 ЧАСОВ', price: '1600 ₽', value: 1600, hours: 5 },
-        { duration: 'НОЧЬ', price: '2000 ₽', value: 2000, hours: 8 } // Пример для "Ночь" - 8 часов
+        { duration: '1 час', price: '450 ₽', value: 450, hours: 1 },
+        { duration: '2 часа', price: '800 ₽', value: 800, hours: 2 },
+        { duration: '3 часа', price: '1050 ₽', value: 1050, hours: 3 },
+        { duration: '5 часов', price: '1600 ₽', value: 1600, hours: 5 },
+        { duration: 'Ночь', price: '2000 ₽', value: 2000, hours: 8 } // Пример для "Ночь" - 8 часов
     ];
-
-    // Вспомогательная функция для показа заглушки
-    function showFallbackContent() {
-        const fallbackDiv = document.getElementById('web-app-fallback');
-        const mainContentDiv = document.getElementById('main-booking-content');
-        if (fallbackDiv) fallbackDiv.style.display = 'flex'; // Показываем заглушку
-        if (mainContentDiv) mainContentDiv.style.display = 'none'; // Скрываем основной контент
-        document.body.style.alignItems = 'center'; // Выравнивание для заглушки
-
-        // Устанавливаем данные Telegram для заглушки, если они еще не установлены
-        if (!bookingData.telegramId || bookingData.telegramId.startsWith('fallback_tg_id_')) {
-            bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7);
-            bookingData.telegram = 'fallback_user';
-        }
-        console.warn("Telegram Web App SDK не обнаружен. Отображается заглушка.");
-    }
-
-    // Вспомогательная функция для показа основного контента
-    function showMainContent() {
-        const fallbackDiv = document.getElementById('web-app-fallback');
-        const mainContentDiv = document.getElementById('main-booking-content');
-        if (fallbackDiv) fallbackDiv.style.display = 'none'; // Скрываем заглушку
-        if (mainContentDiv) mainContentDiv.style.display = 'block'; // Показываем основной контент
-        document.body.style.alignItems = 'flex-start'; // Выравнивание для основного контента
-        console.log("Telegram Web App готов и обнаружен. Отображается основной контент.");
-    }
 
     // Инициализация приложения
     async function init() {
-        console.log("init() called.");
-
-        // Логика для отображения контента в зависимости от среды
-        if (window.Telegram && window.Telegram.WebApp) {
-            try {
-                // Если Telegram Web App доступен, пытаемся его инициализировать
-                Telegram.WebApp.ready();
-                Telegram.WebApp.expand();
-                showMainContent(); // Показываем основной контент сразу
-
-                const userTg = Telegram.WebApp.initDataUnsafe.user;
-                if (userTg && typeof userTg.id === 'number') {
-                    bookingData.telegramId = userTg.id.toString(); // Сохраняем Telegram ID
-                    bookingData.telegram = userTg.username || ''; // Сохраняем ник Telegram (если есть, иначе пустая строка)
-                    console.log("Telegram User Data (ID, Username):", bookingData.telegramId, bookingData.telegram);
-                } else {
-                    console.warn("Данные пользователя Telegram Web App (ID) недоступны или не являются числом. Используется запасной Telegram ID для тестирования.");
-                    bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7);
-                    bookingData.telegram = 'fallback_user';
-                }
-            } catch (e) {
-                console.error("Ошибка инициализации Telegram Web App:", e);
-                // Если Telegram Web App инициализация не удалась, показываем заглушку
-                showFallbackContent();
-            }
-        } else {
-            // Если Telegram Web App НЕ обнаружен, сразу показываем заглушку
-            showFallbackContent();
-        }
-
-        // Инициализация Supabase
+        // Initialize Firebase
         try {
-            // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
-            // Убедитесь, что это строки в кавычках.
-            const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
-            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
-            
-            console.log("Supabase URL:", supabaseUrl); // Отладка: Проверка URL
-            console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...'); // Отладка: Проверка ключа
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
 
-            // Теперь здесь нет проверки на заглушки.
-            // Если supabaseUrl или supabaseAnonKey пусты, это вызовет ошибку в createClient.
-            // Убедитесь, что вы вставили реальные ключи выше.
-            if (!supabaseUrl || !supabaseAnonKey) {
-                 console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase URL или Anon Key не могут быть пустыми. Пожалуйста, вставьте ваши фактические ключи Supabase в script.js.");
-                 supabase = null;
+            // Authenticate user
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
             } else {
-                console.log("Attempting to create Supabase client...");
-                supabase = createClient(supabaseUrl, supabaseAnonKey); // Присваиваем глобальной переменной
-                console.log("Supabase client created successfully. Supabase object:", supabase);
-
-                console.log("Попытка анонимной аутентификации Supabase...");
-                const { data, error } = await supabase.auth.signInAnonymously();
-                if (error) {
-                    console.error("Ошибка анонимной аутентификации Supabase:", error);
-                    supabase = null; // Если аутентификация не удалась, Supabase не будет использоваться
-                    currentSupabaseUser = null; // Убедимся, что пользователь тоже null
-                } else {
-                    currentSupabaseUser = data.user;
-                    console.log("Supabase аутентифицирован. User ID:", currentSupabaseUser.id, "currentSupabaseUser object:", currentSupabaseUser);
-                    // Загрузка данных пользователя только если аутентификация Supabase прошла успешно и Telegram ID доступен
-                    if (currentSupabaseUser && bookingData.telegramId) { 
-                        await loadUserData(currentSupabaseUser.id, bookingData.telegramId);
-                    } else {
-                        console.warn("Skipping loadUserData: Supabase user or Telegram ID not fully available (or using fallback).");
-                    }
-                }
+                await signInAnonymously(auth);
             }
-        } catch (error) {
-            console.error("Критическая ошибка инициализации Supabase:", error);
-            supabase = null;
-            currentSupabaseUser = null;
-        }
 
-        // Настройка всех шагов интерфейса (эти функции всегда должны запускаться)
-        setupDateAndSimulatorSelection(); // Объединенный шаг
-        setupPackageSelection();
-        setupTimeSlotsGenerator(); // Будет вызван снова после выбора пакета
-        setupForm();
-        setupNavigation();
-        setupConfirmationActions();
-        setupMapButtons();
-        showStep(0); // Начинаем с первого шага
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    isAuthReady = true;
+                    console.log("Firebase initialized and authenticated. User ID:", userId);
+                    
+                    // Initialize Telegram Web App
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        Telegram.WebApp.ready();
+                        Telegram.WebApp.expand();
+                        console.log("Telegram Web App ready.");
+
+                        const userTg = Telegram.WebApp.initDataUnsafe.user;
+                        if (userTg) {
+                            bookingData.telegramId = userTg.id.toString(); // Store Telegram ID
+                            console.log("Telegram User Data:", userTg);
+                            await loadUserData(bookingData.telegramId);
+                        }
+                    } else {
+                        console.warn("Telegram Web App SDK not found or not ready.");
+                    }
+
+                    setupCalendar();
+                    setupSimulatorSelection();
+                    setupPackageSelection();
+                    setupTimeSlotsGenerator(); // Will be called again after package selection
+                    setupWheelSelection();
+                    setupForm();
+                    setupNavigation();
+                    setupConfirmationActions();
+                    setupMapButtons();
+                    showStep(0); // Start at the first step
+                } else {
+                    console.log("No user signed in.");
+                }
+            });
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+        }
     }
 
     // Показываем нужный шаг и скрываем остальные
     function showStep(stepNumber) {
+        // Скрываем все шаги
         document.querySelectorAll('.step-page').forEach(step => {
             step.classList.remove('active');
         });
         
-        // Обновлен список шагов, так как шаг с рулем удален и шаги объединены
+        // Показываем нужный шаг
         const steps = [
-            'date-simulator-step',   // 0 (Объединенный шаг даты и симулятора)
+            'date-simulator-step', // 0 (объединенный шаг даты и симулятора)
             'package-step',          // 1
             'time-select-step',      // 2
             'form-step',             // 3
@@ -167,89 +108,98 @@ document.addEventListener('DOMContentLoaded', async function() {
         ];
         document.getElementById(steps[stepNumber]).classList.add('active');
         
-        // Обновляем прогресс-бар (теперь всего 5 шагов: 0-4)
+        // Обновляем прогресс-бар (всего 5 шагов, но 0-4)
         updateProgress(stepNumber);
-        updateBreadcrumb(); // Обновляем хлебные крошки при смене шага
     }
 
     // Обновляем прогресс-бар
     function updateProgress(step) {
-        // Целевой глобальный прогресс-бар
-        const progressElement = document.getElementById('booking-progress-global');
-        if (progressElement) {
-            // Всего 5 шагов (0-4), поэтому делим на 4
-            const progress = (step / 4) * 100;
-            progressElement.style.width = `${progress}%`;
-        } else {
-            console.error("Элемент прогресс-бара 'booking-progress-global' не найден.");
-        }
+        const totalSteps = document.querySelectorAll('.step-page').length;
+        const progress = (step / (totalSteps - 1)) * 100;
+        document.getElementById('booking-progress-global').style.width = `${progress}%`;
     }
 
-    // Обновление хлебных крошек
-    function updateBreadcrumb() {
-        const breadcrumbElement = document.getElementById('booking-breadcrumb');
-        if (!breadcrumbElement) return;
-
-        let breadcrumbText = [];
-
-        if (bookingData.simulator.length > 0) {
-            breadcrumbText.push(getSimulatorNames(bookingData.simulator));
-        }
-        if (bookingData.date) {
-            const [day, month, year] = bookingData.date.split('.');
-            const dateObj = new Date(year, parseInt(month) - 1, day);
-            const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(dateObj).toUpperCase(); // В верхний регистр
-            breadcrumbText.push(`${parseInt(day)} ${monthName}`);
-        }
-        if (bookingData.duration) {
-            breadcrumbText.push(bookingData.duration);
-        }
-        if (bookingData.time) {
-            breadcrumbText.push(bookingData.time.split(' ')[0]); // Только начальное время
-        }
-
-        breadcrumbElement.innerHTML = breadcrumbText.join(' / ');
-    }
-
-    // Объединенная настройка выбора даты и симулятора
-    function setupDateAndSimulatorSelection() {
-        const dateDisplay = document.getElementById('date-display-text');
+    // Настройка выбора даты
+    function setupCalendar() {
+        const dateToggle = document.getElementById('date-toggle');
         const dateCarouselContainer = document.getElementById('date-carousel-container');
-        const simulatorBoxes = document.querySelectorAll('.simulator-box');
-        const toPackagePageBtn = document.getElementById('toPackagePage');
-
-        // Инициализация: Сегодня выбрано по умолчанию
+        const dateCarousel = document.getElementById('date-carousel');
         const today = new Date();
-        const todayFormatted = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
-        bookingData.date = todayFormatted;
-        dateDisplay.textContent = `СЕГОДНЯ / ${today.getDate().toString().padStart(2, '0')} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(today).toUpperCase()}`;
         
-        // Инициализация: Автосим 01 выбран по умолчанию
-        const defaultSimulator = document.querySelector('.simulator-box[data-id="1"]');
-        if (defaultSimulator) {
-            defaultSimulator.classList.add('selected');
-            defaultSimulator.querySelector('.remove-selection').style.display = 'flex';
-            bookingData.simulator = ['1'];
+        // Месяцы для отображения
+        const months = [
+            'янв', 'фев', 'мар', 'апр', 
+            'май', 'июн', 'июл', 'авг',
+            'сен', 'окт', 'ноя', 'дек'
+        ];
+        
+        // Генерируем даты на 30 дней вперед
+        let options = '';
+        for (let i = 0; i < 30; i++) {
+            const date = new Date();
+            date.setDate(today.getDate() + i);
+            
+            const day = date.getDate();
+            const monthIndex = date.getMonth();
+            const isToday = (i === 0); // Первый элемент всегда "сегодня"
+            
+            const selectedClass = isToday ? 'selected' : ''; // Выбираем "сегодня" по умолчанию
+            
+            options += `
+                <div class="date-item ${selectedClass}" data-day="${day}" data-month="${monthIndex}">
+                    ${day.toString().padStart(2, '0')}
+                    <small>${months[monthIndex]}</small>
+                </div>
+            `;
         }
-
-        // Кнопка "Далее" активна по умолчанию
-        toPackagePageBtn.classList.add('active');
-        toPackagePageBtn.disabled = false;
-
-        // Обработчик для переключения видимости карусели дат
-        dateDisplay.closest('.date-display').addEventListener('click', function() {
-            this.classList.toggle('expanded');
+        dateCarousel.innerHTML = options;
+        
+        // Обработчик для переключения видимости календаря
+        dateToggle.addEventListener('click', function() {
             dateCarouselContainer.classList.toggle('hidden');
-            if (!dateCarouselContainer.classList.contains('hidden')) {
-                generateDateCarousel(); // Генерируем даты при открытии
-            }
+            this.classList.toggle('expanded');
         });
 
-        // Настройка выбора симулятора (повторяется из предыдущей версии, но адаптирована)
-        simulatorBoxes.forEach(sim => {
+        // Обработчик выбора даты
+        document.querySelectorAll('.date-carousel .date-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Снимаем выделение со всех дат
+                document.querySelectorAll('.date-carousel .date-item').forEach(el => el.classList.remove('selected'));
+                // Выделяем выбранную дату
+                this.classList.add('selected');
+                // Обновляем данные бронирования
+                updateBookingDate();
+                // Календарь не сворачивается
+            });
+        });
+
+        // Инициализируем bookingData.date и состояние кнопки "далее" при загрузке
+        updateBookingDate();
+    }
+
+    function updateBookingDate() {
+        const selectedDateItem = document.querySelector('.date-carousel .date-item.selected');
+        if (selectedDateItem) {
+            const day = selectedDateItem.dataset.day;
+            const monthIndex = parseInt(selectedDateItem.dataset.month);
+            const year = new Date().getFullYear(); // Берем текущий год
+            bookingData.date = `${day.padStart(2, '0')}.${(monthIndex + 1).toString().padStart(2, '0')}.${year}`;
+            document.getElementById('toPackagePage').disabled = false; // Кнопка "Далее" на первом шаге
+            updateBreadcrumbs(); // Обновляем хлебные крошки
+        } else {
+            bookingData.date = null;
+            document.getElementById('toPackagePage').disabled = true;
+            updateBreadcrumbs(); // Обновляем хлебные крошки
+        }
+    }
+
+    // Настройка выбора симулятора (изменена логика)
+    function setupSimulatorSelection() {
+        document.querySelectorAll('.simulator-box').forEach(sim => {
             const removeBtn = sim.querySelector('.remove-selection');
 
             sim.addEventListener('click', function(e) {
+                // Если клик был по крестику, то не обрабатываем как выбор
                 if (e.target === removeBtn) {
                     return;
                 }
@@ -257,11 +207,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const simulatorId = this.dataset.id;
 
                 if (this.classList.contains('selected')) {
+                    // Если уже выбран, снимаем выбор
                     this.classList.remove('selected');
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
-                    // Удалена логика для "any" симулятора
+                    // Добавляем или убираем выбранный симулятор
                     if (!bookingData.simulator.includes(simulatorId)) {
                         bookingData.simulator.push(simulatorId);
                     }
@@ -269,100 +220,33 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'flex';
                 }
                 
-                // Кнопка "Далее" всегда активна, если выбран хотя бы один симулятор
-                if (bookingData.simulator.length === 0) {
-                     toPackagePageBtn.classList.remove('active');
-                     toPackagePageBtn.disabled = true;
-                } else {
-                    toPackagePageBtn.classList.add('active');
-                    toPackagePageBtn.disabled = false;
-                }
-                updateBreadcrumb();
+                // Проверяем, должна ли кнопка "Далее" быть активной
+                document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+                updateBreadcrumbs(); // Обновляем хлебные крошки
             });
 
+            // Обработчик для крестика
             if (removeBtn) {
                 removeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Предотвращаем срабатывание клика на родительском элементе
                     const parentSim = this.closest('.simulator-box');
                     if (parentSim) {
                         const simulatorId = parentSim.dataset.id;
                         parentSim.classList.remove('selected');
                         this.style.display = 'none';
                         bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
-                        if (bookingData.simulator.length === 0) {
-                            toPackagePageBtn.classList.remove('active');
-                            toPackagePageBtn.disabled = true;
-                        }
+                        document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+                        updateBreadcrumbs(); // Обновляем хлебные крошки
                     }
-                    updateBreadcrumb();
                 });
             }
         });
-
-        // Генерация и обработка выбора дат в карусели
-        function generateDateCarousel() {
-            const carousel = document.getElementById('date-carousel');
-            carousel.innerHTML = ''; // Очищаем перед генерацией
-
-            const today = new Date();
-            for (let i = 0; i < 30; i++) { // Генерируем даты на 30 дней вперед
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const year = date.getFullYear();
-                const formattedDate = `${day}.${month}.${year}`;
-                const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date).toUpperCase();
-                
-                let dateText = `${day}<br><small>${monthName}</small>`;
-                let isSelected = (bookingData.date === formattedDate);
-                if (i === 0 && bookingData.date === formattedDate) {
-                    dateText = `СЕГОДНЯ<br><small>${day} ${monthName}</small>`;
-                }
-
-                const dateItem = document.createElement('div');
-                dateItem.classList.add('date-item');
-                if (isSelected) {
-                    dateItem.classList.add('selected');
-                }
-                dateItem.dataset.date = formattedDate;
-                dateItem.innerHTML = dateText;
-
-                dateItem.addEventListener('click', function() {
-                    document.querySelectorAll('.date-item').forEach(item => item.classList.remove('selected'));
-                    this.classList.add('selected');
-                    bookingData.date = this.dataset.date;
-                    
-                    // Обновляем отображение даты вверху
-                    if (this.dataset.date === todayFormatted) {
-                        dateDisplay.textContent = `СЕГОДНЯ / ${today.getDate().toString().padStart(2, '0')} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(today).toUpperCase()}`;
-                    } else {
-                        const [d, m, y] = this.dataset.date.split('.');
-                        const selectedDateObj = new Date(y, parseInt(m) - 1, d);
-                        dateDisplay.textContent = `${d} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(selectedDateObj).toUpperCase()}`;
-                    }
-                    dateDisplay.closest('.date-display').classList.remove('expanded');
-                    dateCarouselContainer.classList.add('hidden');
-                    updateBreadcrumb();
-                });
-                carousel.appendChild(dateItem);
-            }
-            // Прокручиваем к выбранной дате, если она не сегодня и не первая в списке
-            if (bookingData.date && bookingData.date !== todayFormatted) {
-                const selectedDateElement = carousel.querySelector(`.date-item[data-date="${bookingData.date}"]`);
-                if (selectedDateElement) {
-                    selectedDateElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }
-            }
-        }
     }
 
-
-    // Настройка выбора пакета времени
+    // Настройка выбора пакета времени (новый шаг)
     function setupPackageSelection() {
         document.getElementById('package-grid').innerHTML = packages.map(pkg => `
-            <div class="grid-item package" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
+            <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
                 <div>${pkg.duration}</div>
                 <div class="price">${pkg.price}</div>
             </div>
@@ -376,11 +260,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseInt(this.dataset.hours); // Сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
-                    `ВЫ ВЫБРАЛИ: ${this.dataset.duration} (${this.querySelector('.price').textContent})`;
-                document.getElementById('toTimePageNew').classList.add('active');
+                    `вы выбрали: ${this.dataset.duration} (${this.querySelector('.price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
                 setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
-                updateBreadcrumb();
+                updateBreadcrumbs(); // Обновляем хлебные крошки
             });
         });
     }
@@ -401,405 +284,363 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Fetch existing bookings for the selected date and simulators
         let occupiedSlots = [];
-        if (supabase && currentSupabaseUser) { // Проверяем инициализацию Supabase
-            console.log("Попытка получить занятые слоты из Supabase...");
+        if (isAuthReady && db) {
             try {
-                const { data: bookings, error } = await supabase
-                    .from('bookings')
-                    .select('time, simulator, hours') // Выбираем поля, как они названы в Supabase
-                    .eq('date', selectedDate)
-                    .neq('status', 'rejected'); // Исключаем отклоненные заявки
-
-                if (error) {
-                    console.error("Ошибка получения занятых слотов:", error);
-                } else {
-                    occupiedSlots = bookings.filter(booking => {
-                        // Проверяем, пересекается ли хотя бы один симулятор
-                        // Убедимся, что booking.simulator является массивом
-                        const bookedSimulators = Array.isArray(booking.simulator) ? booking.simulator : [booking.simulator];
-                        const simulatorOverlap = bookedSimulators.some(bookedSim => bookingData.simulator.includes(bookedSim));
-                        return simulatorOverlap;
-                    });
-                    console.log("Занятые слоты для выбранной даты и симуляторов:", occupiedSlots);
-                }
+                const bookingsRef = collection(db, `artifacts/${appId}/public/data/bookings`);
+                const q = query(bookingsRef, where('date', '==', selectedDate));
+                const querySnapshot = await getDocs(q);
+                
+                querySnapshot.forEach((doc) => {
+                    const booking = doc.data();
+                    // Check if any of the booked simulators overlap with selected simulators
+                    const simulatorOverlap = booking.simulator.some(bookedSim => bookingData.simulator.includes(bookedSim));
+                    if (simulatorOverlap) {
+                        occupiedSlots.push({
+                            time: booking.time,
+                            durationHours: booking.hours // Assuming booking also stores its duration in hours
+                        });
+                    }
+                });
+                console.log("Occupied slots for selected date and simulators:", occupiedSlots);
 
             } catch (error) {
-                console.error("Ошибка при запросе занятых слотов (try-catch):", error);
+                console.error("Error fetching occupied slots:", error);
             }
-        } else {
-            console.warn("Supabase не инициализирован или пользователь не аутентифицирован. Занятые слоты не будут загружены.");
         }
 
-        // Генерируем временные слоты
+        // Generate time slots
         for (let hour = 10; hour <= 23; hour++) {
-            let startHourFormatted = hour.toString().padStart(2, '0');
-            let endHour = hour + durationHours;
-            let endHourFormatted = endHour.toString().padStart(2, '0');
-            let endTimeSuffix = '';
+            let startHour = hour.toString().padStart(2, '0');
+            let endHour = (hour + durationHours).toString().padStart(2, '0');
+            let endTimeFormatted = `${endHour}:00`;
 
-            if (endHour >= 24) {
-                endHourFormatted = (endHour - 24).toString().padStart(2, '0');
-                endTimeSuffix = ' (СЛЕДУЮЩИЙ ДЕНЬ)';
+            if (hour + durationHours >= 24) {
+                endHour = (hour + durationHours - 24).toString().padStart(2, '0');
+                endTimeFormatted = `${endHour}:00 (следующий день)`;
             }
 
-            const currentTimeSlot = `${startHourFormatted}:00 – ${endHourFormatted}:00${endTimeSuffix}`;
+            const currentTimeSlot = `${startHour}:00 – ${endTimeFormatted}`;
             
+            // Check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
-                // Извлекаем только начальное время из строки "ЧЧ:ММ – ЧЧ:ММ"
-                const occupiedStartTimeStr = occupied.time.split(' ')[0];
-                const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
-                
-                const currentStartTimeStr = currentTimeSlot.split(' ')[0];
-                const [currentStartHour] = currentStartTimeSlot.split(':').map(Number);
+                // Simple overlap check: if start times match and durations are compatible
+                const [occupiedStartHour] = occupied.time.split(' ')[0].split(':').map(Number);
+                const [currentStartHour] = currentTimeSlot.split(' ')[0].split(':').map(Number);
 
-                // Проверка на пересечение временных диапазонов
-                // Упрощенная логика: если начальные часы совпадают, считаем занятым.
-                // Для более точной проверки нужно учитывать длительность и полное пересечение.
+                // This is a simplified check. A more robust solution would involve checking full time range overlap.
+                // For now, if the start hour is the same, we consider it occupied.
                 return occupiedStartHour === currentStartHour;
             });
 
             const disabledClass = isOccupied ? 'disabled' : '';
 
-            times.push(`<div class="grid-item time-slot ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
+            times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
         }
 
-        // Если "Ночь", добавляем специальный слот
-        if (bookingData.duration === 'НОЧЬ') {
+        // If "Ночь", add special slot
+        if (bookingData.duration === 'Ночь') {
             const nightSlot = '00:00 – 08:00';
             const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const occupiedStartTimeStr = occupied.time.split(' ')[0];
-                const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
-                return occupiedStartHour === 0; // Проверка на начало в 00:00
+                const [occupiedStartHour] = occupied.time.split(' ')[0].split(':').map(Number);
+                return occupiedStartHour === 0; // Check for 00:00 start
             });
             const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
-            times.push(`<div class="grid-item time-slot ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
+            times.push(`<div class="time-slot block ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
         }
         
         timeGrid.innerHTML = times.join('');
         
+        // Обработка выбора времени
         document.querySelectorAll('.time-slot:not(.disabled)').forEach(slot => {
             slot.addEventListener('click', function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
                 bookingData.time = this.dataset.timeRange;
-                document.getElementById('toFormPage').classList.add('active'); // Кнопка "Далее"
-                document.getElementById('toFormPage').disabled = false;
-                updateBreadcrumb();
+                document.getElementById('toFormPage').disabled = false; // Changed from toWheelPage to toFormPage
+                updateBreadcrumbs(); // Обновляем хлебные крошки
             });
         });
-        document.getElementById('toFormPage').classList.remove('active'); // Отключаем, пока слот не выбран
-        document.getElementById('toFormPage').disabled = true;
+        document.getElementById('toFormPage').disabled = true; // Disable until a slot is selected
     }
 
-    // Загрузка данных пользователя из Supabase
-    async function loadUserData(supabaseUserId, telegramId) {
-        if (!supabase || !currentSupabaseUser || !telegramId) {
-            console.warn("Невозможно загрузить данные пользователя: Supabase не инициализирован, или нет ID пользователя/Telegram.");
-            return;
-        }
-        console.log("Попытка загрузить данные пользователя из Supabase...");
+    // Настройка выбора руля (больше не отдельный шаг)
+    function setupWheelSelection() {
+        // Эта функция теперь не нужна, так как выбор руля был удален из макета
+    }
+
+    // Загрузка данных пользователя из Firestore
+    async function loadUserData(telegramId) {
+        if (!isAuthReady || !db || !telegramId) return;
+
         try {
-            const { data: userData, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', supabaseUserId) // Ищем по Supabase User ID
-                .eq('telegram_id', telegramId) // Дополнительная проверка по Telegram ID
-                .single();
+            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/user_data`);
+            const userDocSnap = await getDoc(userDocRef);
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found (нет строк)
-                console.error("Ошибка загрузки данных пользователя:", error);
-                return;
-            }
-
-            if (userData) {
-                console.log("Загружены данные пользователя:", userData);
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                console.log("Loaded user data:", userData);
                 
+                // Pre-fill form fields
                 const nameInput = document.querySelector('#form-step input[type="text"]');
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
-                const phonePrefix = '+7 (XXX) XXX-'; // Префикс для отображения
 
-                if (nameInput && userData.name) nameInput.value = userData.name;
-                if (phoneInput && userData.phone_last_4_digits) {
-                    // Восстанавливаем полный номер для отображения
-                    phoneInput.value = phonePrefix + userData.phone_last_4_digits;
-                    phoneInput.dataset.last4 = userData.phone_last_4_digits; // Сохраняем для проверки
-                    bookingData.phone = phoneInput.value; // Обновляем bookingData для отображения
-                } else {
-                    phoneInput.value = phonePrefix; // Устанавливаем префикс, если данных нет
-                }
-                if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username;
+                if (userData.name) nameInput.value = userData.name;
+                if (userData.phone) phoneInput.value = userData.phone;
+                if (userData.telegram) telegramInput.value = userData.telegram;
 
-                // Обновляем bookingData
+                // Update bookingData
                 bookingData.name = userData.name || null;
-                // bookingData.phone уже обновлен выше или останется null
-                bookingData.telegram = userData.telegram_username || null;
+                bookingData.phone = userData.phone || null;
+                bookingData.telegram = userData.telegram || null;
 
-                console.log("Форма предзаполнена данными пользователя.");
+                // Check if all required user data is present to potentially skip the form step
+                if (userData.name && userData.phone && userData.telegram) {
+                    // Optionally, skip to the next step if user data is complete
+                    // For now, we'll just pre-fill and let the user proceed
+                    console.log("User data complete, form pre-filled.");
+                }
             } else {
-                console.log("Данные пользователя не найдены. Форма останется пустой или с данными из Telegram Web App.");
+                console.log("No existing user data found for Telegram ID:", telegramId);
+                // If no data, ensure form fields are empty or default
                 document.querySelector('#form-step input[type="text"]').value = '';
-                document.getElementById('phone').value = phonePrefix; // Устанавливаем префикс
-                document.getElementById('telegram').value = bookingData.telegram; // Предзаполняем Telegram ником из WebApp
+                document.getElementById('phone').value = '+7 ';
+                document.getElementById('telegram').value = '';
             }
         } catch (error) {
-            console.error("Ошибка при загрузке данных пользователя (try-catch):", error);
+            console.error("Error loading user data:", error);
         }
     }
 
-    // Сохранение данных пользователя в Supabase
+    // Сохранение данных пользователя в Firestore
     async function saveUserData() {
-        console.log("saveUserData called. bookingData.telegramId:", bookingData.telegramId); // Лог для отладки
-        if (!supabase || !currentSupabaseUser || !bookingData.telegramId) {
-            console.warn("Невозможно сохранить данные пользователя: Supabase не инициализирован, или нет ID пользователя/Telegram.");
-            return;
-        }
-        console.log("Попытка сохранить данные пользователя в Supabase...");
+        if (!isAuthReady || !db || !bookingData.telegramId) return;
+
         try {
+            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/user_data`);
             const userDataToSave = {
-                id: currentSupabaseUser.id, // Supabase User ID
-                telegram_id: bookingData.telegramId,
                 name: bookingData.name,
-                telegram_username: bookingData.telegram,
-                // Сохраняем только последние 4 цифры из bookingData.phone
-                phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null 
+                telegram: bookingData.telegram,
+                telegramId: bookingData.telegramId,
+                phone: bookingData.phone // Save full phone number for user's own data
             };
-
-            const { error } = await supabase
-                .from('users')
-                .upsert(userDataToSave, { onConflict: 'id' }); // Обновляем, если есть конфликт по id
-
-            if (error) {
-                console.error("Ошибка сохранения данных пользователя:", error);
-            } else {
-                console.log("Данные пользователя сохранены в Supabase.");
-            }
+            await setDoc(userDocRef, userDataToSave, { merge: true });
+            console.log("User data saved to Firestore.");
         } catch (error) {
-            console.error("Ошибка при сохранении данных пользователя (try-catch):", error);
+            console.error("Error saving user data:", error);
         }
     }
 
     // Настройка формы
     function setupForm() {
         const phoneInput = document.getElementById('phone');
-        const phonePrefix = '+7 (XXX) XXX-'; // Фиксированный префикс
-
-        // Инициализируем поле телефона с префиксом и ставим курсор в конец
-        if (phoneInput) {
-            // Устанавливаем значение только если оно еще не предзаполнено loadUserData
-            if (!phoneInput.value || phoneInput.value === '+7 ') { // Проверяем на старую заглушку
-                phoneInput.value = phonePrefix;
-            }
-            phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length); // Ставим курсор в конец
-
-            phoneInput.addEventListener('focus', function() {
-                // Если пользователь убрал префикс, восстанавливаем его
-                if (!this.value.startsWith(phonePrefix)) {
-                    this.value = phonePrefix;
-                }
-                this.setSelectionRange(this.value.length, this.value.length); // Курсор всегда в конце
-            });
-
-            phoneInput.addEventListener('input', function(e) {
-                let currentValue = this.value;
-                if (!currentValue.startsWith(phonePrefix)) {
-                    currentValue = phonePrefix; // Сброс, если префикс удален
-                }
-
-                // Извлекаем только цифры после префикса и ограничиваем до 4
-                let last4Digits = currentValue.substring(phonePrefix.length).replace(/\D/g, '');
-                if (last4Digits.length > 4) {
-                    last4Digits = last4Digits.substring(0, 4); 
-                }
-
-                this.value = phonePrefix + last4Digits;
-                this.setSelectionRange(this.value.length, this.value.length); // Курсор всегда в конце
-
-                // Обновляем bookingData полным отформатированным номером для отображения
-                bookingData.phone = this.value; 
-            });
-
-            // Предотвращаем удаление префикса
-            phoneInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace' && this.selectionStart <= phonePrefix.length) {
-                    e.preventDefault();
-                }
-                if (e.key === 'Delete' && this.selectionStart < phonePrefix.length) {
-                    e.preventDefault();
-                }
-            });
-        } else {
-            console.warn("Элемент 'phone' не найден. Форматирование номера телефона не будет работать.");
-        }
+        
+        // Форматирование номера телефона
+        phoneInput.addEventListener('input', function(e) {
+            let numbers = e.target.value.replace(/\D/g, '');
+            if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
+            numbers = numbers.substring(0, 11);
+            
+            let formatted = '+7';
+            if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
+            if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
+            if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
+            if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
+            
+            e.target.value = formatted;
+        });
         
         // Валидация Telegram
-        const telegramInput = document.getElementById('telegram');
-        if (telegramInput) {
-            telegramInput.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
-            });
-        } else {
-            console.warn("Элемент 'telegram' не найден. Валидация Telegram не будет работать.");
-        }
+        document.getElementById('telegram').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+        });
     }
 
     // Настройка навигации
     function setupNavigation() {
         // Кнопки "Далее"
-        document.getElementById('toPackagePage').addEventListener('click', () => showStep(1)); // С даты+симулятора на пакет
-        document.getElementById('toTimePageNew').addEventListener('click', () => setupTimeSlotsGenerator().then(() => showStep(2))); // С пакета на время
-        document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // Со времени на форму
+        document.getElementById('toPackagePage').addEventListener('click', () => showStep(1)); // С даты/симулятора на пакет
+        document.getElementById('toTimePageNew').addEventListener('click', () => showStep(2)); // С пакета на время
+        document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // Со времени на форму (руль удален)
         
         // Кнопки "Назад"
-        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // С пакета на дату+симулятор
+        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // С пакета на дату/симулятор
         document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // Со времени на пакет
-        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // С формы на время
+        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // С формы на время (руль удален)
         
-        const bookingForm = document.getElementById('booking-form');
-        if (bookingForm) {
-            bookingForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (!this.checkValidity()) {
-                    this.reportValidity();
-                    return;
-                }
-                
-                bookingData.name = this.querySelector('input[type="text"]').value;
-                // bookingData.phone уже обновляется в setupForm при вводе
-                bookingData.telegram = this.querySelector('#telegram').value;
-                bookingData.comment = this.querySelector('textarea').value;
-                
-                console.log("Booking data before saving (from form submission):", bookingData); // Лог для отладки
-                
-                await saveUserData();
-                
-                showConfirmation();
-            });
-        } else {
-            console.warn("Элемент 'booking-form' не найден. Отправка формы не будет работать.");
-        }
+        // Отправка формы
+        document.getElementById('booking-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Проверяем валидность формы
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return;
+            }
+            
+            // Сохраняем данные
+            bookingData.name = this.querySelector('input[type="text"]').value;
+            bookingData.phone = this.querySelector('input[type="tel"]').value;
+            bookingData.telegram = this.querySelector('#telegram').value;
+            bookingData.comment = this.querySelector('textarea').value;
+            
+            // Сохраняем данные пользователя в базу
+            await saveUserData();
+            
+            // Показываем подтверждение
+            showConfirmation();
+        });
     }
 
-    // Показываем страницу подтверждения и сохраняем бронирование
+    // Обновление хлебных крошек
+    function updateBreadcrumbs() {
+        const breadcrumbDiv = document.getElementById('booking-breadcrumb');
+        let breadcrumbs = [];
+
+        if (bookingData.date) {
+            breadcrumbs.push(bookingData.date);
+        }
+        if (bookingData.simulator.length > 0) {
+            breadcrumbs.push(getSimulatorNames(bookingData.simulator));
+        }
+        if (bookingData.duration) {
+            breadcrumbs.push(bookingData.duration);
+        }
+        if (bookingData.time) {
+            breadcrumbs.push(bookingData.time);
+        }
+        // Руль больше не часть бронирования
+        // if (bookingData.wheel) {
+        //     breadcrumbs.push(getWheelName(bookingData.wheel));
+        // }
+
+        breadcrumbDiv.textContent = breadcrumbs.join(' / ');
+    }
+
+    // Показываем страницу подтверждения (изменено отображение симуляторов и сохранение бронирования)
     async function showConfirmation() {
         const details = document.getElementById('confirmation-details');
         
-        if (!details) {
-            console.error("Элемент 'confirmation-details' не найден.");
-            return;
-        }
-
         details.innerHTML = `
-            <p><strong>ДАТА:</strong> ${bookingData.date}</p>
-            <p><strong>ТАРИФ:</strong> ${bookingData.duration}</p>
-            <p><strong>ВРЕМЯ:</strong> ${bookingData.time}</p>
-            <p><strong>СИМУЛЯТОР(Ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
-            <p><strong>ИМЯ:</strong> ${bookingData.name}</p>
-            <p><strong>ТЕЛЕФОН:</strong> ${bookingData.phone}</p>
-            <p><strong>TELEGRAM:</strong> @${bookingData.telegram}</p>
-            ${bookingData.comment ? `<p><strong>КОММЕНТАРИЙ:</strong> ${bookingData.comment}</p>` : ''}
+            <p><strong>дата:</strong> ${bookingData.date}</p>
+            <p><strong>тариф:</strong> ${bookingData.duration}</p>
+            <p><strong>время:</strong> ${bookingData.time}</p>
+            <p><strong>симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
+            <p><strong>имя:</strong> ${bookingData.name}</p>
+            <p><strong>телефон:</strong> ${bookingData.phone}</p>
+            <p><strong>telegram:</strong> @${bookingData.telegram}</p>
+            ${bookingData.comment ? `<p><strong>комментарий:</strong> ${bookingData.comment}</p>` : ''}
         `;
         
-        // Сохраняем бронирование в Supabase
-        if (supabase && currentSupabaseUser) {
-            console.log("Попытка сохранить бронирование в Supabase. bookingData.telegramId:", bookingData.telegramId); // Лог для отладки
+        // Save booking to Firestore
+        if (isAuthReady && db) {
             try {
-                const { data, error } = await supabase
-                    .from('bookings')
-                    .insert({
-                        user_id: currentSupabaseUser.id, // Supabase User ID
-                        telegram_id: bookingData.telegramId, // Telegram user ID (гарантированно не null)
-                        date: bookingData.date,
-                        time: bookingData.time, // Имя поля в Supabase
-                        simulator: bookingData.simulator, // Имя поля в Supabase
-                        duration_text: bookingData.duration,
-                        hours: bookingData.hours, // Имя поля в Supabase
-                        price: parseInt(bookingData.price), // Убедимся, что это число
-                        name: bookingData.name,
-                        phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null, // Сохраняем только последние 4 цифры
-                        telegram_username: bookingData.telegram,
-                        comment: bookingData.comment,
-                        status: 'pending', // Новый статус по умолчанию
-                        created_at: new Date().toISOString() // ISO строка для timestamp
-                    }).select(); // Добавляем .select() для получения вставленных данных
+                const bookingsCollectionRef = collection(db, `artifacts/${appId}/public/data/bookings`);
+                const docRef = await addDoc(bookingsCollectionRef, {
+                    userId: userId, // User ID from Firebase Auth
+                    telegramId: bookingData.telegramId, // Telegram user ID
+                    date: bookingData.date,
+                    time: bookingData.time,
+                    simulator: bookingData.simulator,
+                    duration: bookingData.duration,
+                    hours: bookingData.hours, // Store hours for easier availability checks
+                    price: bookingData.price,
+                    name: bookingData.name,
+                    phone: bookingData.phone.replace(/\D/g, '').slice(-4), // Save only last 4 digits of phone
+                    telegram: bookingData.telegram,
+                    comment: bookingData.comment,
+                    timestamp: new Date()
+                });
+                console.log("Booking saved to Firestore with ID:", docRef.id);
 
-                if (error) {
-                    console.error("Ошибка сохранения бронирования:", error);
-                } else {
-                    console.log("Бронирование сохранено в Supabase. Данные:", data);
-                    // --- ВНИМАНИЕ: Здесь больше НЕТ вызова Edge Function. ---
-                    // --- Python-бот будет сам мониторить базу данных. ---
+                // Call Edge Function to notify steward
+                const EDGE_FUNCTION_URL = 'https://your-project-ref.supabase.co/functions/v1'; // Замените на реальный URL вашей функции
+                // Пример: https://abcdefg.supabase.co/functions/v1
+
+                console.log("Calling Edge Function to notify steward...");
+                try {
+                    const edgeFunctionResponse = await fetch(`${EDGE_FUNCTION_URL}/notify-steward`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            name: bookingData.name,
+                            date: bookingData.date,
+                            time_range: bookingData.time, // Changed from 'time' to 'time_range' to match Python bot
+                            simulator_ids: bookingData.simulator,
+                            booking_id: docRef.id, // ID новой записи бронирования из Supabase
+                            telegram_id_guest: bookingData.telegramId, // Telegram ID гостя
+                            telegram_username_guest: bookingData.telegram // Telegram ник гостя
+                        })
+                    });
+                    const edgeFunctionResult = await edgeFunctionResponse.json();
+                    console.log("Edge Function response:", edgeFunctionResult);
+                } catch (edgeFunctionError) {
+                    console.error("Error calling Edge Function:", edgeFunctionError);
                 }
+
             } catch (error) {
-                console.error("Ошибка при сохранении бронирования (try-catch):", error);
+                console.error("Error saving booking:", error);
             }
-        } else {
-            console.warn("Supabase не инициализирован или пользователь не аутентифицирован. Бронирование не будет сохранено.");
         }
 
-        showStep(4); // Переходим на шаг подтверждения (теперь это шаг 4)
-        updateBreadcrumb();
+        showStep(4);
     }
 
-    // Настройка действий на странице подтверждения
+    // Настройка действий на странице подтверждения (без изменений)
     function setupConfirmationActions() {
-        document.getElementById('book-again')?.addEventListener('click', resetBooking);
+        // Записаться снова
+        document.getElementById('book-again').addEventListener('click', resetBooking);
         
-        document.getElementById('reschedule')?.addEventListener('click', function() {
-            const rescheduleMessage = document.getElementById('reschedule-message');
-            if (rescheduleMessage) {
-                rescheduleMessage.style.display = 'block';
-                setTimeout(() => {
-                    rescheduleMessage.style.display = 'none';
-                }, 3000);
-            }
+        // Перенести запись
+        document.getElementById('reschedule').addEventListener('click', function() {
+            document.getElementById('reschedule-message').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('reschedule-message').style.display = 'none';
+            }, 3000);
         });
         
-        document.getElementById('cancel-booking')?.addEventListener('click', function() {
-            const cancelModal = document.getElementById('cancel-modal');
-            if (cancelModal) cancelModal.style.display = 'flex';
+        // Отменить запись
+        document.getElementById('cancel-booking').addEventListener('click', function() {
+            document.getElementById('cancel-modal').style.display = 'flex';
         });
         
-        document.getElementById('confirm-cancel')?.addEventListener('click', function() {
-            const cancelModal = document.getElementById('cancel-modal');
-            const cancelMessage = document.getElementById('cancel-message');
-            if (cancelModal) cancelModal.style.display = 'none';
-            if (cancelMessage) {
-                cancelMessage.style.display = 'block';
-                setTimeout(() => {
-                    cancelMessage.style.display = 'none';
-                    resetBooking();
-                }, 1500);
-            }
+        document.getElementById('confirm-cancel').addEventListener('click', function() {
+            document.getElementById('cancel-modal').style.display = 'none';
+            document.getElementById('cancel-message').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('cancel-message').style.display = 'none';
+                resetBooking();
+            }, 1500);
         });
         
-        document.getElementById('cancel-cancel')?.addEventListener('click', function() {
-            const cancelModal = document.getElementById('cancel-modal');
-            if (cancelModal) cancelModal.style.display = 'none';
+        document.getElementById('cancel-cancel').addEventListener('click', function() {
+            document.getElementById('cancel-modal').style.display = 'none';
         });
     }
 
-    // Настройка кнопок карты и такси
+    // Настройка кнопок карты и такси (без изменений)
     function setupMapButtons() {
         const address = 'Ростов-на-Дону, ул. Б. Садовая, 70';
         
-        document.getElementById('route-btn')?.addEventListener('click', function() {
+        // Кнопка "Проложить маршрут"
+        document.getElementById('route-btn').addEventListener('click', function() {
             const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(address)}`;
             window.open(url, '_blank');
         });
         
-        document.getElementById('taxi-btn')?.addEventListener('click', function() {
+        // Кнопка "Вызвать такси"
+        document.getElementById('taxi-btn').addEventListener('click', function() {
             const url = `https://3.redirect.appmetrica.yandex.com/route?end-lat=47.222078&end-lon=39.720349&end-name=${encodeURIComponent(address)}`;
             window.open(url, '_blank');
         });
     }
 
-    // Сброс бронирования
+    // Сброс бронирования (изменено)
     function resetBooking() {
+        // Очищаем данные
         for (const key in bookingData) {
             if (key === 'simulator') {
-                bookingData[key] = [];
+                bookingData[key] = []; // Сброс массива
             } else if (key === 'telegramId' || key === 'telegram') {
                 // Не сбрасываем Telegram ID и ник, так как они приходят из WebApp
                 continue;
@@ -808,47 +649,38 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         
+        // Сбрасываем форму
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = '+7 (XXX) XXX-'; // Сбрасываем с префиксом
+        document.getElementById('phone').value = '+7 ';
         
+        // Снимаем выделения и скрываем крестики
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
         
-        // Сбрасываем активность кнопок
-        document.getElementById('toPackagePage').classList.remove('active');
-        document.getElementById('toPackagePage').disabled = true;
-        document.getElementById('toTimePageNew').classList.remove('active');
-        document.getElementById('toTimePageNew').disabled = true;
-        document.getElementById('toFormPage').classList.remove('active');
-        document.getElementById('toFormPage').disabled = true;
-
-        // Первая кнопка "Далее" всегда активна после сброса (для объединенного шага)
-        document.getElementById('toPackagePage').classList.add('active');
-        document.getElementById('toPackagePage').disabled = false;
+        // Сбрасываем кнопки
+        document.querySelectorAll('.next-btn').forEach(btn => btn.disabled = true);
+        const toTimePageBtn = document.getElementById('toTimePage');
+        if (toTimePageBtn) toTimePageBtn.disabled = false;
         
-        // Сброс и инициализация объединенного шага
-        const today = new Date();
-        const todayFormatted = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
-        bookingData.date = todayFormatted;
-        document.getElementById('date-display-text').textContent = `СЕГОДНЯ / ${today.getDate().toString().padStart(2, '0')} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(today).toUpperCase()}`;
-        document.getElementById('date-display-text').closest('.date-display').classList.remove('expanded');
-        document.getElementById('date-carousel-container').classList.add('hidden');
-        
-        const defaultSimulator = document.querySelector('.simulator-box[data-id="1"]');
-        if (defaultSimulator) {
-            defaultSimulator.classList.add('selected');
-            defaultSimulator.querySelector('.remove-selection').style.display = 'flex';
-            bookingData.simulator = ['1'];
-        }
-
         showStep(0);
-        updateBreadcrumb();
     }
 
     // Вспомогательные функции
+    function getWheelName(wheelId) {
+        const wheels = {
+            'ks': 'Штурвал KS',
+            'cs': 'Круглый CS',
+            'nobutton': 'Круглый без кнопок',
+            'any': 'Выберу на месте'
+        };
+        return wheels[wheelId] || wheelId;
+    }
+
     function getSimulatorNames(simulatorIds) {
-        // Удалена логика для "any" симулятора
-        return simulatorIds.map(id => `АВТОСИМ ${id}`).join(', ');
+        if (simulatorIds.includes('any')) {
+            return 'Любой';
+        }
+        return simulatorIds.map(id => `Симулятор #${id}`).join(', ');
     }
 
     // Запускаем приложение
