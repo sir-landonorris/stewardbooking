@@ -2,74 +2,108 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бронирование симулятора</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Бронирование автосимулятора</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* Общие стили для body, контейнера и шагов */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Rubik', sans-serif;
+            background-color: #000;
+            color: white;
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Изменено на flex-start, чтобы контент был сверху */
             min-height: 100vh;
             padding: 20px;
             box-sizing: border-box;
+            width: 100%;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
         }
         .container {
-            background-color: #ffffff;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 450px;
-            overflow: hidden;
-            position: relative;
-            padding: 25px;
+            max-width: 480px;
+            min-width: 320px;
+            margin: 0 auto;
+            padding: 16px;
             box-sizing: border-box;
+            background-color: #1A222E; /* Темный фон для основного контейнера */
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
         }
         .step-page {
             display: none;
-            animation: fadeIn 0.5s ease-in-out;
+            transition: opacity 0.3s ease;
+            margin-top: 24px;
         }
         .step-page.active {
             display: block;
+            opacity: 1;
+            height: auto;
+            animation: fadeIn 0.3s ease;
+        }
+        .step-page:not(.active) {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Прогресс-бар */
         .progress-bar-container {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            height: 8px;
+            height: 4px;
+            background: #1A222E;
+            position: sticky; /* Sticky, чтобы оставался сверху при прокрутке */
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
             margin-bottom: 20px;
-            overflow: hidden;
+            border-radius: 2px;
         }
-        .progress-bar {
+        .progress-bar { /* Это сам заполняющийся бар */
             height: 100%;
+            background: #1756E2;
+            transition: width 0.3s ease;
             width: 0%;
-            background-color: #4CAF50;
-            border-radius: 10px;
-            transition: width 0.4s ease-in-out;
+            border-radius: 2px;
         }
-        .header {
+
+        /* Заголовок */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+        .header-text {
+            flex-grow: 1;
             text-align: center;
-            margin-bottom: 25px;
-            color: #333;
         }
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
+        .header-text h1 {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+            line-height: 1.3;
         }
-        .header p {
-            font-size: 16px;
-            color: #666;
-        }
+
+        /* Общие стили для кнопок */
         .button-primary {
-            background-color: #4CAF50;
+            background-color: #1756E2;
             color: white;
             padding: 12px 20px;
             border-radius: 10px;
@@ -82,15 +116,16 @@
             border: none;
         }
         .button-primary:hover:not(:disabled) {
-            background-color: #45a049;
+            background-color: #1A70F0;
         }
         .button-primary:disabled {
-            background-color: #a5d6a7;
+            background-color: #0A2B6F;
+            opacity: 0.6;
             cursor: not-allowed;
         }
         .button-secondary {
-            background-color: #e0e0e0;
-            color: #333;
+            background-color: #1A222E;
+            color: white;
             padding: 12px 20px;
             border-radius: 10px;
             text-align: center;
@@ -99,209 +134,106 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             width: 100%;
-            border: none;
+            border: 1px solid #333;
         }
         .button-secondary:hover {
-            background-color: #d0d0d0;
+            background-color: #2A323E;
         }
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .grid-item {
-            background-color: #f9f9f9;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
+
+        /* Стили для заглушки */
+        #web-app-fallback {
+            background-color: #1a222e; /* Темный фон для заглушки */
+            color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100px;
-            position: relative;
-        }
-        .grid-item.selected {
-            border-color: #4CAF50;
-            background-color: #e8f5e9;
-            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
-        }
-        .grid-item:hover:not(.selected) {
-            border-color: #b0b0b0;
-        }
-        .remove-selection {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #f44336;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-            display: none; /* Скрыто по умолчанию */
-        }
-        .grid-item.selected .remove-selection {
-            display: flex; /* Показываем при выборе */
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-        .form-group input, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: #4CAF50;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-        }
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
+            text-align: center;
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 400px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-        .modal-buttons button {
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            border: none;
-        }
-        .modal-buttons .confirm {
-            background-color: #f44336;
-            color: white;
-        }
-        .modal-buttons .cancel {
-            background-color: #e0e0e0;
-            color: #333;
-        }
-        .message-box {
-            display: none;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600;
-        }
-        .message-box.success {
-            background-color: #e8f5e9;
-            color: #4CAF50;
-        }
-        .message-box.info {
-            background-color: #e3f2fd;
-            color: #2196F3;
-        }
-
-        /* Styles for AI Chat Modal */
-        #ai-chat-modal .modal-content {
-            max-width: 500px;
-            text-align: left;
-            padding: 25px;
-        }
-        #ai-chat-modal #ai-chat-response {
-            background-color: #f0f2f5;
-            border-radius: 8px;
-            padding: 15px;
-            min-height: 100px;
-            margin-bottom: 15px;
-            overflow-y: auto;
-            max-height: 200px;
-            color: #333;
-        }
-        #ai-chat-modal #ai-chat-input {
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 10px;
+            height: 100%;
+            z-index: 1000; /* Убедитесь, что она поверх всего */
         }
-        #ai-chat-modal .button-group {
-            display: flex;
-            gap: 10px;
+        #web-app-fallback .content {
+            background-color: #000; /* Еще более темный фон для внутреннего блока заглушки */
+            border-radius: 10px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        #web-app-fallback video {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        #web-app-fallback h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        #web-app-fallback p {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+        #web-app-fallback a {
+            color: #1756E2;
+            text-decoration: none;
+        }
+        #web-app-fallback a:hover {
+            text-decoration: underline;
+        }
+        #web-app-fallback .address {
+            font-size: 14px;
+            color: #888;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <!-- Fallback для открытия вне Telegram Web App -->
-    <div id="web-app-fallback" class="hidden fixed inset-0 bg-gray-900 flex items-center justify-center p-4 z-50">
-        <div class="flex flex-col items-center justify-center p-6 text-center text-gray-100 bg-gray-800 rounded-lg shadow-lg max-w-md w-full">
-            <h1 class="text-3xl font-bold mb-4">Рад тебя видеть — стюард на связи 🏁</h1>
-            <p class="text-lg mb-4">
+    <div id="web-app-fallback" style="display: none;">
+        <div class="content">
+            <h1>Рад тебя видеть — стюард на связи 🏁</h1>
+            <p>
                 Готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
             </p>
-            <p class="text-lg mb-4">
+            <p>
                 Если что-то упустил — загляни в наше сообщество 
-                <a href="https://t.me/c/2381161383/2" target="_blank" class="text-blue-400 hover:underline">Sim Racing Клуб</a>,<br>
+                <a href="https://t.me/c/2381161383/2" target="_blank">Sim Racing Клуб</a>,<br>
                 там всегда свежие новости, обсуждения и планы на заезды.
             </p>
-            <p class="text-base text-gray-300 mb-6">
+            <p class="address">
                 📍 <i>Ростов-на-Дону, Б. Садовая, 70 (киберклуб Бункер)</i>
             </p>
-            <div class="w-full max-w-md">
-                <video autoplay loop muted playsinline class="w-full rounded-lg shadow-md mb-4">
-                    <source src="images/Video-main.mp4" type="video/mp4">
-                    Ваш браузер не поддерживает видео.
-                </video>
-            </div>
+            <video autoplay loop muted playsinline>
+                <source src="images/Video-main.mp4" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+            </video>
             <p class="text-sm text-gray-400 mt-4">
                 Пожалуйста, откройте это приложение через Telegram для полноценного бронирования.
             </p>
         </div>
     </div>
 
-    <!-- Основной контент приложения -->
-    <div id="main-booking-content" class="container">
+    <!-- Основной контент приложения - изначально скрыт -->
+    <div id="main-booking-content" class="container" style="display: none;">
         <!-- Видео в шапке основного приложения -->
         <video autoplay loop muted playsinline class="w-full h-24 object-cover rounded-lg mb-4 shadow-md">
             <source src="images/Video-main.mp4" type="video/mp4">
             Ваш браузер не поддерживает видео.
         </video>
-        <div class="header">
-            <h1>Бронирование симулятора</h1>
-            <p>Шаг за шагом к вашему идеальному заезду</p>
+        <div class="header-container">
+            <img src="images/your-logo.png" alt="Ваш логотип" class="logo left-logo" loading="lazy" width="80" height="40">
+            <div class="header-text">
+                <h1>Бронирование автосимуляторов</h1>
+            </div>
+            <img src="images/bunker-logo.png" alt="Логотип Бункера" class="logo right-logo" loading="lazy" width="80" height="40">
         </div>
         <div class="progress-bar-container">
             <div class="progress-bar" id="booking-progress"></div>
@@ -438,7 +370,6 @@
                 <button id="book-again" class="button-primary">Забронировать еще раз</button>
                 <button id="reschedule" class="button-secondary">Перенести бронирование</button>
                 <button id="cancel-booking" class="button-secondary">Отменить бронирование</button>
-                <button id="ask-ai-steward" class="button-secondary">✨ Спросить Стюарда (AI)</button>
                 <button id="route-btn" class="button-secondary">Построить маршрут</button>
                 <button id="taxi-btn" class="button-secondary">Вызвать такси</button>
             </div>
@@ -459,21 +390,6 @@
             <div class="modal-buttons">
                 <button id="confirm-cancel" class="confirm">Да, отменить</button>
                 <button id="cancel-cancel" class="cancel">Нет, оставить</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно AI Чата -->
-    <div id="ai-chat-modal" class="modal">
-        <div class="modal-content">
-            <h3 class="text-lg font-bold mb-4">Спросить Стюарда (AI)</h3>
-            <div id="ai-chat-response" class="mb-4 text-gray-700">
-                Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!
-            </div>
-            <input type="text" id="ai-chat-input" placeholder="Введите ваш вопрос..." class="mb-4">
-            <div class="button-group">
-                <button id="ai-chat-submit" class="button-primary w-1/2">Задать вопрос</button>
-                <button id="ai-chat-close" class="button-secondary w-1/2">Закрыть</button>
             </div>
         </div>
     </div>

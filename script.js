@@ -34,9 +34,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     function showFallbackContent() {
         const fallbackDiv = document.getElementById('web-app-fallback');
         const mainContentDiv = document.getElementById('main-booking-content');
-        if (fallbackDiv) fallbackDiv.classList.remove('hidden');
-        if (mainContentDiv) mainContentDiv.classList.add('hidden');
-        document.body.style.alignItems = 'center';
+        if (fallbackDiv) fallbackDiv.style.display = 'flex'; // Показываем заглушку
+        if (mainContentDiv) mainContentDiv.style.display = 'none'; // Скрываем основной контент
+        document.body.style.alignItems = 'center'; // Выравнивание для заглушки
 
         // Устанавливаем данные Telegram для заглушки, если они еще не установлены
         if (!bookingData.telegramId || bookingData.telegramId.startsWith('fallback_tg_id_')) {
@@ -50,9 +50,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     function showMainContent() {
         const fallbackDiv = document.getElementById('web-app-fallback');
         const mainContentDiv = document.getElementById('main-booking-content');
-        if (fallbackDiv) fallbackDiv.classList.add('hidden');
-        if (mainContentDiv) mainContentDiv.classList.remove('hidden');
-        document.body.style.alignItems = 'flex-start';
+        if (fallbackDiv) fallbackDiv.style.display = 'none'; // Скрываем заглушку
+        if (mainContentDiv) mainContentDiv.style.display = 'block'; // Показываем основной контент
+        document.body.style.alignItems = 'flex-start'; // Выравнивание для основного контента
         console.log("Telegram Web App готов и обнаружен. Отображается основной контент.");
     }
 
@@ -60,15 +60,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function init() {
         console.log("init() called.");
 
-        let telegramInitialized = false;
-
-        // Попытка инициализации Telegram Web App немедленно
+        // Логика для отображения контента в зависимости от среды
         if (window.Telegram && window.Telegram.WebApp) {
             try {
+                // Если Telegram Web App доступен, пытаемся его инициализировать
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
                 showMainContent(); // Показываем основной контент сразу
-                telegramInitialized = true;
 
                 const userTg = Telegram.WebApp.initDataUnsafe.user;
                 if (userTg && typeof userTg.id === 'number') {
@@ -82,37 +80,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             } catch (e) {
                 console.error("Ошибка инициализации Telegram Web App:", e);
-                telegramInitialized = false;
+                // Если Telegram Web App инициализация не удалась, показываем заглушку
+                showFallbackContent();
             }
+        } else {
+            // Если Telegram Web App НЕ обнаружен, сразу показываем заглушку
+            showFallbackContent();
         }
-
-        // Если Telegram Web App не был инициализирован немедленно, планируем показ заглушки
-        if (!telegramInitialized) {
-            setTimeout(() => {
-                // Повторная проверка после небольшой задержки, на случай асинхронной загрузки
-                if (window.Telegram && window.Telegram.WebApp) {
-                    try {
-                        Telegram.WebApp.ready();
-                        Telegram.WebApp.expand();
-                        showMainContent();
-                        const userTg = Telegram.WebApp.initDataUnsafe.user;
-                        if (userTg && typeof userTg.id === 'number') {
-                            bookingData.telegramId = userTg.id.toString();
-                            bookingData.telegram = userTg.username || '';
-                        } else {
-                            bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7);
-                            bookingData.telegram = 'fallback_user';
-                        }
-                    } catch (e) {
-                        console.error("Ошибка инициализации Telegram Web App после задержки:", e);
-                        showFallbackContent(); // Если не удалось инициализировать даже после задержки, показываем заглушку
-                    }
-                } else {
-                    showFallbackContent(); // Telegram Web App все еще не обнаружен, показываем заглушку
-                }
-            }, 500); // Короткая задержка, чтобы дать Telegram SDK время на загрузку
-        }
-
 
         // Инициализация Supabase
         try {
@@ -168,7 +142,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         setupNavigation();
         setupConfirmationActions();
         setupMapButtons();
-        setupAIChatFeature(); // Новая функция для настройки AI чата
+        // setupAIChatFeature(); // Удалено: функция для настройки AI чата
         showStep(0); // Начинаем с первого шага
     }
 
@@ -276,10 +250,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const simulatorId = this.dataset.id;
 
                 if (this.classList.contains('selected')) {
+                    // Если уже выбран, снимаем выбор
                     this.classList.remove('selected');
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
+                    // Если выбираем "Любой симулятор", то снимаем выбор с других
                     if (simulatorId === 'any') {
                         document.querySelectorAll('.simulator-box.selected').forEach(s => {
                             s.classList.remove('selected');
@@ -288,6 +264,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         bookingData.simulator = ['any'];
                     } else {
+                        // Если выбираем конкретный симулятор, то снимаем выбор с "Любого"
                         const anySim = document.querySelector('.simulator.full');
                         if (anySim && anySim.classList.contains('selected')) {
                             anySim.classList.remove('selected');
@@ -408,7 +385,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 
                 const currentStartTimeStr = currentTimeSlot.split(' ')[0];
-                const [currentStartHour] = currentStartTimeSlot.split(':').map(Number);
+                const [currentStartHour] = currentStartTimeStr.split(':').map(Number);
 
                 // Проверка на пересечение временных диапазонов
                 // Упрощенная логика: если начальные часы совпадают, считаем занятым.
@@ -749,8 +726,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (cancelModal) cancelModal.style.display = 'none';
         });
 
-        // Добавление обработчика для кнопки AI чата
-        document.getElementById('ask-ai-steward')?.addEventListener('click', openAIChatModal);
+        // document.getElementById('ask-ai-steward')?.addEventListener('click', openAIChatModal); // Удалено: обработчик для кнопки AI чата
     }
 
     // Настройка кнопок карты и такси
@@ -812,102 +788,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         return simulatorIds.map(id => `Симулятор #${id}`).join(', ');
     }
 
-    // --- Функции для AI Чата ---
-    const aiChatModal = document.getElementById('ai-chat-modal');
-    const aiChatInput = document.getElementById('ai-chat-input');
-    const aiChatResponse = document.getElementById('ai-chat-response');
-    const aiChatSubmitBtn = document.getElementById('ai-chat-submit');
-    const aiChatCloseBtn = document.getElementById('ai-chat-close');
+    // --- Функции для AI Чата (удалены) ---
+    // const aiChatModal = document.getElementById('ai-chat-modal');
+    // const aiChatInput = document.getElementById('ai-chat-input');
+    // const aiChatResponse = document.getElementById('ai-chat-response');
+    // const aiChatSubmitBtn = document.getElementById('ai-chat-submit');
+    // const aiChatCloseBtn = document.getElementById('ai-chat-close');
 
     function setupAIChatFeature() {
-        if (aiChatSubmitBtn) {
-            aiChatSubmitBtn.addEventListener('click', handleAIChatSubmit);
-        }
-        if (aiChatCloseBtn) {
-            aiChatCloseBtn.addEventListener('click', closeAIChatModal);
-        }
-        if (aiChatInput) {
-            aiChatInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleAIChatSubmit();
-                }
-            });
-        }
+        // Эта функция теперь пуста, так как AI-чат удален
     }
 
-    function openAIChatModal() {
-        if (aiChatModal) {
-            aiChatModal.style.display = 'flex';
-            aiChatInput.value = ''; // Очищаем поле ввода
-            aiChatResponse.innerHTML = 'Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!'; // Сброс текста ответа
-            aiChatInput.focus();
-        }
-    }
-
-    function closeAIChatModal() {
-        if (aiChatModal) {
-            aiChatModal.style.display = 'none';
-        }
-    }
-
-    async function handleAIChatSubmit() {
-        const question = aiChatInput.value.trim();
-        if (!question) {
-            // Заменил alert на console.error или более мягкое сообщение в UI, если есть
-            console.error('Пожалуйста, введите ваш вопрос.');
-            // Можно добавить временное сообщение в aiChatResponse
-            aiChatResponse.innerHTML = '<div class="text-center text-red-500">Пожалуйста, введите ваш вопрос.</div>';
-            setTimeout(() => {
-                aiChatResponse.innerHTML = 'Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!';
-            }, 2000);
-            return;
-        }
-
-        aiChatResponse.innerHTML = '<div class="text-center text-blue-500">Загрузка...</div>'; // Индикатор загрузки
-        aiChatSubmitBtn.disabled = true;
-        aiChatInput.disabled = true;
-
-        try {
-            const responseText = await callGeminiAPI(question);
-            aiChatResponse.innerHTML = responseText;
-        } catch (error) {
-            console.error("Ошибка при вызове Gemini API:", error);
-            aiChatResponse.innerHTML = 'Извините, произошла ошибка при получении ответа. Попробуйте еще раз.';
-        } finally {
-            aiChatSubmitBtn.disabled = false;
-            aiChatInput.disabled = false;
-            aiChatInput.value = ''; // Очищаем поле после отправки
-        }
-    }
-
-    async function callGeminiAPI(userQuestion) {
-        // Добавил больше контекста для AI, чтобы он отвечал как стюард гоночного клуба
-        const prompt = `Вы полезный и дружелюбный стюард клуба симуляторов гонок. Ответьте на следующий вопрос о клубе, ценах, услугах, расписании или правилах. Старайтесь быть кратким и по делу. Если вы не знаете ответа на вопрос, вежливо сообщите, что у вас нет этой информации и предложите связаться с администратором напрямую. Вопрос: ${userQuestion}`;
-        
-        let chatHistory = [];
-        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-        const payload = { contents: chatHistory };
-        const apiKey = ""; // Canvas автоматически предоставит ключ во время выполнения
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        
-        if (result.candidates && result.candidates.length > 0 &&
-            result.candidates[0].content && result.candidates[0].content.parts &&
-            result.candidates[0].content.parts.length > 0) {
-            return result.candidates[0].content.parts[0].text;
-        } else {
-            console.error("Неожиданная структура ответа от Gemini API:", result);
-            return "Извините, не удалось получить ответ от AI. Пожалуйста, попробуйте перефразировать вопрос.";
-        }
-    }
+    // Функции openAIChatModal, closeAIChatModal, handleAIChatSubmit, callGeminiAPI удалены
 
     // Запускаем приложение
     init();
