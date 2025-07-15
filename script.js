@@ -57,16 +57,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
             // Убедитесь, что это строки в кавычках.
-            const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Например: 'https://abcdefghijk.supabase.co'
-            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Например: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbm9uX2tleSI6I...'
+            const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
             
             console.log("Supabase URL:", supabaseUrl); // Отладка: Проверка URL
             console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...'); // Отладка: Проверка ключа
 
-            // Проверка, что ключи не остались пустыми или неверными
-            if (!supabaseUrl || supabaseUrl === 'https://jvzogsjammwaityyqfjq.supabase.co' || !supabaseAnonKey || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw') {
-                console.error("КРИТИЧЕСКАЯ ОШИБКА: Пожалуйста, замените 'https://jvzogsjammwaityyqfjq.supabase.co' и 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw' на ваши фактические ключи Supabase в script.js.");
-                supabase = null;
+            // Теперь здесь нет проверки на заглушки.
+            // Если supabaseUrl или supabaseAnonKey пусты, это вызовет ошибку в createClient.
+            // Убедитесь, что вы вставили реальные ключи выше.
+            if (!supabaseUrl || !supabaseAnonKey) {
+                 console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase URL или Anon Key не могут быть пустыми. Пожалуйста, вставьте ваши фактические ключи Supabase в script.js.");
+                 supabase = null;
             } else {
                 supabase = createClient(supabaseUrl, supabaseAnonKey); // Присваиваем глобальной переменной
                 console.log("Попытка анонимной аутентификации Supabase...");
@@ -337,7 +339,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 
                 const currentStartTimeStr = currentTimeSlot.split(' ')[0];
-                const [currentStartHour] = currentStartTimeStr.split(':').map(Number);
+                const [currentStartHour] = currentStartTimeSlot.split(':').map(Number);
 
                 // Проверка на пересечение временных диапазонов
                 // Упрощенная логика: если начальные часы совпадают, считаем занятым.
