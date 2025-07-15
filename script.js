@@ -56,6 +56,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     isAuthReady = true;
                     console.log("Firebase initialized and authenticated. User ID:", userId);
                     
+                    // Make the main content visible FIRST, before any setup functions
+                    document.getElementById('main-booking-content').style.display = 'block';
+
                     // Initialize Telegram Web App
                     if (window.Telegram && window.Telegram.WebApp) {
                         Telegram.WebApp.ready();
@@ -82,8 +85,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     setupConfirmationActions();
                     setupMapButtons();
                     showStep(0); // Start at the first step
-                    // Make the main content visible after everything is set up
-                    document.getElementById('main-booking-content').style.display = 'block';
                 } else {
                     console.log("No user signed in.");
                 }
