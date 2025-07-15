@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         price: null,
         name: null,
         phone: null,
-        telegram: null,
-        telegramId: null, // Telegram ID пользователя
+        telegram: '', // Инициализируем как пустую строку
+        telegramId: '', // Инициализируем как пустую строку
         comment: null
     };
 
@@ -41,16 +41,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log("Telegram Web App ready.");
 
             const userTg = Telegram.WebApp.initDataUnsafe.user;
-            if (userTg) {
+            // Убеждаемся, что userTg и userTg.id существуют и userTg.id является числом
+            if (userTg && typeof userTg.id === 'number') { 
                 bookingData.telegramId = userTg.id.toString(); // Сохраняем Telegram ID
-                bookingData.telegram = userTg.username || ''; // Сохраняем ник Telegram
-                console.log("Telegram User Data:", userTg);
+                bookingData.telegram = userTg.username || ''; // Сохраняем ник Telegram (если есть, иначе пустая строка)
+                console.log("Telegram User Data (ID, Username):", bookingData.telegramId, bookingData.telegram);
+            } else {
+                // Fallback, если данные Telegram пользователя недоступны
+                console.warn("Telegram Web App user data (ID) not available or not a number. Using fallback Telegram ID for testing.");
+                bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7); // Генерируем уникальный fallback ID
+                bookingData.telegram = 'fallback_user'; // Fallback для ника
             }
         } else {
-            console.warn("Telegram Web App SDK не найден или не готов. Используются тестовые данные.");
-            // Для тестирования без Telegram Web App, можно использовать заглушку
-            bookingData.telegramId = 'test_telegram_id_123';
-            bookingData.telegram = 'testuser';
+            // Fallback, если SDK Telegram Web App не найден или не готов
+            console.warn("Telegram Web App SDK not found or not ready. Using fallback Telegram ID for testing.");
+            bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7); // Генерируем уникальный fallback ID
+            bookingData.telegram = 'fallback_user'; // Fallback для ника
         }
 
         // Инициализация Supabase
@@ -63,31 +69,36 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log("Supabase URL:", supabaseUrl); // Отладка: Проверка URL
             console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...'); // Отладка: Проверка ключа
 
-            // Теперь здесь нет проверки на заглушки.
-            // Если supabaseUrl или supabaseAnonKey пусты, это вызовет ошибку в createClient.
-            // Убедитесь, что вы вставили реальные ключи выше.
+            // Простая проверка на пустые ключи. createClient сам выдаст ошибку, если ключи невалидны.
             if (!supabaseUrl || !supabaseAnonKey) {
                  console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase URL или Anon Key не могут быть пустыми. Пожалуйста, вставьте ваши фактические ключи Supabase в script.js.");
                  supabase = null;
             } else {
+                console.log("Attempting to create Supabase client...");
                 supabase = createClient(supabaseUrl, supabaseAnonKey); // Присваиваем глобальной переменной
+                console.log("Supabase client created successfully. Supabase object:", supabase);
+
                 console.log("Попытка анонимной аутентификации Supabase...");
                 const { data, error } = await supabase.auth.signInAnonymously();
                 if (error) {
                     console.error("Ошибка анонимной аутентификации Supabase:", error);
                     supabase = null; // Если аутентификация не удалась, Supabase не будет использоваться
+                    currentSupabaseUser = null; // Убедимся, что пользователь тоже null
                 } else {
                     currentSupabaseUser = data.user;
-                    console.log("Supabase аутентифицирован. User ID:", currentSupabaseUser.id);
-                    // Загрузка данных пользователя только если аутентификация Supabase прошла успешно
-                    if (currentSupabaseUser && bookingData.telegramId) {
+                    console.log("Supabase аутентифицирован. User ID:", currentSupabaseUser.id, "currentSupabaseUser object:", currentSupabaseUser);
+                    // Загрузка данных пользователя только если аутентификация Supabase прошла успешно и Telegram ID доступен
+                    if (currentSupabaseUser && bookingData.telegramId) { 
                         await loadUserData(currentSupabaseUser.id, bookingData.telegramId);
+                    } else {
+                        console.warn("Skipping loadUserData: Supabase user or Telegram ID not fully available (or using fallback).");
                     }
                 }
             }
         } catch (error) {
             console.error("Критическая ошибка инициализации Supabase:", error);
-            supabase = null; // Убедимся, что supabase остается null при ошибке создания клиента
+            supabase = null;
+            currentSupabaseUser = null;
         }
 
         // Настройка всех шагов интерфейса (эти функции всегда должны запускаться)
@@ -404,7 +415,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 .eq('telegram_id', telegramId) // Дополнительная проверка по Telegram ID
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
+            if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found (нет строк)
                 console.error("Ошибка загрузки данных пользователя:", error);
                 return;
             }
@@ -442,6 +453,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Сохранение данных пользователя в Supabase
     async function saveUserData() {
+        console.log("saveUserData called. bookingData.telegramId:", bookingData.telegramId); // Лог для отладки
         if (!supabase || !currentSupabaseUser || !bookingData.telegramId) {
             console.warn("Невозможно сохранить данные пользователя: Supabase не инициализирован, или нет ID пользователя/Telegram.");
             return;
@@ -533,6 +545,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.telegram = this.querySelector('#telegram').value;
                 bookingData.comment = this.querySelector('textarea').value;
                 
+                console.log("Booking data before saving (from form submission):", bookingData); // Лог для отладки
+                
                 await saveUserData();
                 
                 showConfirmation();
@@ -565,13 +579,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Сохраняем бронирование в Supabase
         if (supabase && currentSupabaseUser) {
-            console.log("Попытка сохранить бронирование в Supabase...");
+            console.log("Попытка сохранить бронирование в Supabase. bookingData.telegramId:", bookingData.telegramId); // Лог для отладки
             try {
                 const { data, error } = await supabase
                     .from('bookings')
                     .insert({
                         user_id: currentSupabaseUser.id, // Supabase User ID
-                        telegram_id: bookingData.telegramId, // Telegram user ID
+                        telegram_id: bookingData.telegramId, // Telegram user ID (гарантированно не null)
                         date: bookingData.date,
                         time_range: bookingData.time,
                         simulator_ids: bookingData.simulator, // Массив строк
