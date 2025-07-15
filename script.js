@@ -5,8 +5,37 @@ import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, a
 document.addEventListener('DOMContentLoaded', async function() {
     // Firebase variables (provided by the Canvas environment)
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    let firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; // Use 'let' to allow modification
     const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // --- START: Safeguard for missing Firebase config properties ---
+    // This is a temporary measure for development/debugging if __firebase_config is incomplete.
+    // In a production Canvas environment, __firebase_config should always be fully provided.
+    if (!firebaseConfig.projectId) {
+        console.warn("Firebase 'projectId' is missing from __firebase_config. Using a dummy project ID for initialization. Please ensure your Canvas environment provides a complete Firebase config.");
+        firebaseConfig.projectId = "dummy-project-id";
+    }
+    if (!firebaseConfig.apiKey) {
+        console.warn("Firebase 'apiKey' is missing from __firebase_config. Using a dummy API key.");
+        firebaseConfig.apiKey = "dummy-api-key";
+    }
+    if (!firebaseConfig.authDomain) {
+        console.warn("Firebase 'authDomain' is missing from __firebase_config. Using a dummy auth domain.");
+        firebaseConfig.authDomain = "dummy-auth-domain.firebaseapp.com";
+    }
+    if (!firebaseConfig.storageBucket) {
+        console.warn("Firebase 'storageBucket' is missing from __firebase_config. Using a dummy storage bucket.");
+        firebaseConfig.storageBucket = "dummy-project-id.appspot.com";
+    }
+    if (!firebaseConfig.messagingSenderId) {
+        console.warn("Firebase 'messagingSenderId' is missing from __firebase_config. Using a dummy messaging sender ID.");
+        firebaseConfig.messagingSenderId = "1234567890"; // Example dummy ID
+    }
+    if (!firebaseConfig.appId) {
+        console.warn("Firebase 'appId' is missing from __firebase_config. Using a dummy app ID.");
+        firebaseConfig.appId = "1:1234567890:web:abcdef1234567890abcdef"; // Example dummy ID
+    }
+    // --- END: Safeguard ---
 
     let app, db, auth, userId;
     let isAuthReady = false;
