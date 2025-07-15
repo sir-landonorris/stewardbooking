@@ -12,27 +12,27 @@ document.addEventListener('DOMContentLoaded', async function() {
     // This is a temporary measure for development/debugging if __firebase_config is incomplete.
     // In a production Canvas environment, __firebase_config should always be fully provided.
     if (!firebaseConfig.projectId) {
-        console.warn("Firebase 'projectId' is missing from __firebase_config. Using a dummy project ID for initialization. Please ensure your Canvas environment provides a complete Firebase config.");
-        firebaseConfig.projectId = "dummy-project-id";
+        console.error("CRITICAL ERROR: Firebase 'projectId' is missing from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
+        firebaseConfig.projectId = "dummy-project-id"; // Fallback for initialization, but auth will fail
     }
     if (!firebaseConfig.apiKey) {
-        console.warn("Firebase 'apiKey' is missing from __firebase_config. Using a dummy API key.");
-        firebaseConfig.apiKey = "dummy-api-key";
+        console.error("CRITICAL ERROR: Firebase 'apiKey' is missing from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
+        firebaseConfig.apiKey = "dummy-api-key"; // Fallback for initialization, but auth will fail
     }
     if (!firebaseConfig.authDomain) {
-        console.warn("Firebase 'authDomain' is missing from __firebase_config. Using a dummy auth domain.");
+        console.warn("Firebase 'authDomain' is missing from __firebase_config. Using a dummy auth domain. Please ensure your Canvas environment provides a complete and valid Firebase config.");
         firebaseConfig.authDomain = "dummy-auth-domain.firebaseapp.com";
     }
     if (!firebaseConfig.storageBucket) {
-        console.warn("Firebase 'storageBucket' is missing from __firebase_config. Using a dummy storage bucket.");
+        console.warn("Firebase 'storageBucket' is missing from __firebase_config. Using a dummy storage bucket. Please ensure your Canvas environment provides a complete and valid Firebase config.");
         firebaseConfig.storageBucket = "dummy-project-id.appspot.com";
     }
     if (!firebaseConfig.messagingSenderId) {
-        console.warn("Firebase 'messagingSenderId' is missing from __firebase_config. Using a dummy messaging sender ID.");
+        console.warn("Firebase 'messagingSenderId' is missing from __firebase_config. Using a dummy messaging sender ID. Please ensure your Canvas environment provides a complete and valid Firebase config.");
         firebaseConfig.messagingSenderId = "1234567890"; // Example dummy ID
     }
     if (!firebaseConfig.appId) {
-        console.warn("Firebase 'appId' is missing from __firebase_config. Using a dummy app ID.");
+        console.warn("Firebase 'appId' is missing from __firebase_config. Using a dummy app ID. Please ensure your Canvas environment provides a complete and valid Firebase config.");
         firebaseConfig.appId = "1:1234567890:web:abcdef1234567890abcdef"; // Example dummy ID
     }
     // --- END: Safeguard ---
@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         console.warn("Telegram Web App SDK not found or not ready.");
                     }
 
+                    // Call setup functions ONLY AFTER Firebase is ready and user is authenticated
                     setupCalendar();
                     setupSimulatorSelection();
                     setupPackageSelection();
