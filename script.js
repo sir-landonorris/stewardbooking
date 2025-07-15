@@ -34,14 +34,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function init() {
         console.log("init() called."); // Отладка: Проверка вызова init()
 
-        let isTelegramWebApp = false; // Флаг для определения среды
+        const fallbackDiv = document.getElementById('web-app-fallback');
+        const mainContentDiv = document.getElementById('main-booking-content');
 
-        // Инициализация Telegram Web App
+        // --- Логика для отображения контента (перенесена и улучшена) ---
         if (window.Telegram && window.Telegram.WebApp) {
+            // Если Telegram Web App доступен, показываем основной контент
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
-            console.log("Telegram Web App ready.");
-            isTelegramWebApp = true; // Устанавливаем флаг
+            console.log("Telegram Web App ready and detected. Displaying main content.");
+
+            if (fallbackDiv) fallbackDiv.classList.add('hidden');
+            if (mainContentDiv) mainContentDiv.classList.remove('hidden');
+            document.body.style.alignItems = 'flex-start';
 
             const userTg = Telegram.WebApp.initDataUnsafe.user;
             // Убеждаемся, что userTg и userTg.id существуют и userTg.id является числом
@@ -50,34 +55,19 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.telegram = userTg.username || ''; // Сохраняем ник Telegram (если есть, иначе пустая строка)
                 console.log("Telegram User Data (ID, Username):", bookingData.telegramId, bookingData.telegram);
             } else {
-                // Fallback, если данные Telegram пользователя недоступны
                 console.warn("Telegram Web App user data (ID) not available or not a number. Using fallback Telegram ID for testing.");
                 bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7); // Генерируем уникальный fallback ID
                 bookingData.telegram = 'fallback_user'; // Fallback для ника
             }
         } else {
-            // Fallback, если SDK Telegram Web App не найден или не готов
-            console.warn("Telegram Web App SDK not found or not ready. Using fallback Telegram ID for testing.");
+            // Если Telegram Web App НЕ доступен, показываем заглушку
+            console.warn("Telegram Web App SDK not found or not ready. Displaying fallback.");
+            if (fallbackDiv) fallbackDiv.classList.remove('hidden');
+            if (mainContentDiv) mainContentDiv.classList.add('hidden');
+            document.body.style.alignItems = 'center';
+
             bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7); // Генерируем уникальный fallback ID
             bookingData.telegram = 'fallback_user'; // Fallback для ника
-        }
-
-        // --- Логика для отображения контента (перенесена из index.html) ---
-        const fallbackDiv = document.getElementById('web-app-fallback');
-        const mainContentDiv = document.getElementById('main-booking-content');
-
-        if (fallbackDiv && mainContentDiv) { // Убедимся, что элементы существуют
-            if (isTelegramWebApp) {
-                fallbackDiv.classList.add('hidden');
-                mainContentDiv.classList.remove('hidden');
-                document.body.style.alignItems = 'flex-start'; // Вернуть выравнивание для основного контента
-            } else {
-                fallbackDiv.classList.remove('hidden');
-                mainContentDiv.classList.add('hidden');
-                document.body.style.alignItems = 'center'; // Выровнять заглушку по центру
-            }
-        } else {
-            console.error("Элементы 'web-app-fallback' или 'main-booking-content' не найдены. Проверьте index.html.");
         }
         // --- Конец логики отображения ---
 
