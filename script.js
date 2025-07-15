@@ -55,14 +55,21 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Инициализация Supabase
         try {
-            const supabaseUrl = typeof __SUPABASE_URL !== 'undefined' ? __SUPABASE_URL : 'https://jvzogsjammwaityyqfjq.supabase.co';
-            const supabaseAnonKey = typeof __SUPABASE_ANON_KEY !== 'undefined' ? __SUPABASE_ANON_KEY : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw';
+            // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
+            // Убедитесь, что это строки в кавычках.
+            const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Например: 'https://abcdefghijk.supabase.co'
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Например: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbm9uX2tleSI6I...'
             
-            if (supabaseUrl === 'https://jvzogsjammwaityyqfjq.supabase.co' || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw') {
-                console.warn("Supabase URL или Anon Key являются заполнителями. Функции Supabase будут отключены.");
-                supabase = null; // Убедимся, что supabase остается null
+            console.log("Supabase URL:", supabaseUrl); // Отладка: Проверка URL
+            console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...'); // Отладка: Проверка ключа
+
+            // Проверка, что ключи не остались пустыми или неверными
+            if (!supabaseUrl || supabaseUrl === 'https://jvzogsjammwaityyqfjq.supabase.co' || !supabaseAnonKey || supabaseAnonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw') {
+                console.error("КРИТИЧЕСКАЯ ОШИБКА: Пожалуйста, замените 'https://jvzogsjammwaityyqfjq.supabase.co' и 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw' на ваши фактические ключи Supabase в script.js.");
+                supabase = null;
             } else {
                 supabase = createClient(supabaseUrl, supabaseAnonKey); // Присваиваем глобальной переменной
+                console.log("Попытка анонимной аутентификации Supabase...");
                 const { data, error } = await supabase.auth.signInAnonymously();
                 if (error) {
                     console.error("Ошибка анонимной аутентификации Supabase:", error);
@@ -77,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
             }
         } catch (error) {
-            console.error("Ошибка инициализации Supabase:", error);
+            console.error("Критическая ошибка инициализации Supabase:", error);
             supabase = null; // Убедимся, что supabase остается null при ошибке создания клиента
         }
 
@@ -284,11 +291,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         let occupiedSlots = [];
         if (supabase && currentSupabaseUser) {
+            console.log("Попытка получить занятые слоты из Supabase...");
             try {
                 const { data: bookings, error } = await supabase
                     .from('bookings')
                     .select('time_range, simulator_ids, duration_hours')
-                    .eq('date', selectedDate);
+                    .eq('date', selectedDate)
+                    .neq('status', 'rejected'); // Исключаем отклоненные заявки
 
                 if (error) {
                     console.error("Ошибка получения занятых слотов:", error);
@@ -302,8 +311,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
 
             } catch (error) {
-                console.error("Ошибка при запросе занятых слотов:", error);
+                console.error("Ошибка при запросе занятых слотов (try-catch):", error);
             }
+        } else {
+            console.warn("Supabase не инициализирован или пользователь не аутентифицирован. Занятые слоты не будут загружены.");
         }
 
         // Генерируем временные слоты
@@ -378,8 +389,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Загрузка данных пользователя из Supabase
     async function loadUserData(supabaseUserId, telegramId) {
-        if (!supabase || !supabaseUserId || !telegramId) return;
-
+        if (!supabase || !currentSupabaseUser || !telegramId) {
+            console.warn("Невозможно загрузить данные пользователя: Supabase не инициализирован, или нет ID пользователя/Telegram.");
+            return;
+        }
+        console.log("Попытка загрузить данные пользователя из Supabase...");
         try {
             const { data: userData, error } = await supabase
                 .from('users')
@@ -400,48 +414,44 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
 
-                if (userData.name) nameInput.value = userData.name;
-                // Восстанавливаем полный номер телефона, если он хранится полностью
-                // Если хранится только 4 последние цифры, нужно будет запросить полный номер
-                if (userData.phone_last_4_digits) {
-                    // Здесь можно добавить логику для запроса полного номера, если нужно
-                    // Или просто отобразить последние 4 цифры
+                if (nameInput && userData.name) nameInput.value = userData.name;
+                if (phoneInput && userData.phone_last_4_digits) {
                     phoneInput.value = `+7 (XXX) XXX-${userData.phone_last_4_digits.slice(0,2)}-${userData.phone_last_4_digits.slice(2,4)}`;
                     phoneInput.dataset.last4 = userData.phone_last_4_digits; // Сохраняем для проверки
                 }
-                if (userData.telegram_username) telegramInput.value = userData.telegram_username;
+                if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username;
 
                 // Обновляем bookingData
                 bookingData.name = userData.name || null;
-                // Важно: если телефон хранится только последними 4 цифрами,
-                // то для бронирования нужно будет запросить полный номер.
-                // Пока сохраняем только последние 4 цифры для бронирования.
                 bookingData.phone = userData.phone_last_4_digits ? `...${userData.phone_last_4_digits}` : null; 
                 bookingData.telegram = userData.telegram_username || null;
 
-                console.log("Форма предзаполнена.");
+                console.log("Форма предзаполнена данными пользователя.");
             } else {
-                console.log("Данные пользователя не найдены. Форма пуста.");
+                console.log("Данные пользователя не найдены. Форма останется пустой или с данными из Telegram Web App.");
                 document.querySelector('#form-step input[type="text"]').value = '';
                 document.getElementById('phone').value = '+7 ';
                 document.getElementById('telegram').value = bookingData.telegram; // Предзаполняем Telegram ником из WebApp
             }
         } catch (error) {
-            console.error("Ошибка при загрузке данных пользователя:", error);
+            console.error("Ошибка при загрузке данных пользователя (try-catch):", error);
         }
     }
 
     // Сохранение данных пользователя в Supabase
     async function saveUserData() {
-        if (!supabase || !currentSupabaseUser || !bookingData.telegramId) return;
-
+        if (!supabase || !currentSupabaseUser || !bookingData.telegramId) {
+            console.warn("Невозможно сохранить данные пользователя: Supabase не инициализирован, или нет ID пользователя/Telegram.");
+            return;
+        }
+        console.log("Попытка сохранить данные пользователя в Supabase...");
         try {
             const userDataToSave = {
                 id: currentSupabaseUser.id, // Supabase User ID
                 telegram_id: bookingData.telegramId,
                 name: bookingData.name,
                 telegram_username: bookingData.telegram,
-                phone_last_4_digits: bookingData.phone.slice(-4) // Сохраняем только последние 4 цифры
+                phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null // Сохраняем только последние 4 цифры
             };
 
             const { error } = await supabase
@@ -454,7 +464,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log("Данные пользователя сохранены в Supabase.");
             }
         } catch (error) {
-            console.error("Ошибка при сохранении данных пользователя:", error);
+            console.error("Ошибка при сохранении данных пользователя (try-catch):", error);
         }
     }
 
@@ -463,24 +473,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         const phoneInput = document.getElementById('phone');
         
         // Форматирование номера телефона
-        phoneInput.addEventListener('input', function(e) {
-            let numbers = e.target.value.replace(/\D/g, '');
-            if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
-            numbers = numbers.substring(0, 11);
-            
-            let formatted = '+7';
-            if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
-            if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
-            if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
-            if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
-            
-            e.target.value = formatted;
-        });
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let numbers = e.target.value.replace(/\D/g, '');
+                if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
+                numbers = numbers.substring(0, 11);
+                
+                let formatted = '+7';
+                if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
+                if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
+                if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
+                if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
+                
+                e.target.value = formatted;
+            });
+        } else {
+            console.warn("Элемент 'phone' не найден. Форматирование номера телефона не будет работать.");
+        }
         
         // Валидация Telegram
-        document.getElementById('telegram').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
-        });
+        const telegramInput = document.getElementById('telegram');
+        if (telegramInput) {
+            telegramInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+            });
+        } else {
+            console.warn("Элемент 'telegram' не найден. Валидация Telegram не будет работать.");
+        }
     }
 
     // Настройка навигации
@@ -497,29 +516,39 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(3));
         document.getElementById('backToWheelPage').addEventListener('click', () => showStep(4));
         
-        document.getElementById('booking-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return;
-            }
-            
-            bookingData.name = this.querySelector('input[type="text"]').value;
-            bookingData.phone = this.querySelector('input[type="tel"]').value;
-            bookingData.telegram = this.querySelector('#telegram').value;
-            bookingData.comment = this.querySelector('textarea').value;
-            
-            await saveUserData();
-            
-            showConfirmation();
-        });
+        const bookingForm = document.getElementById('booking-form');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    return;
+                }
+                
+                bookingData.name = this.querySelector('input[type="text"]').value;
+                bookingData.phone = this.querySelector('input[type="tel"]').value;
+                bookingData.telegram = this.querySelector('#telegram').value;
+                bookingData.comment = this.querySelector('textarea').value;
+                
+                await saveUserData();
+                
+                showConfirmation();
+            });
+        } else {
+            console.warn("Элемент 'booking-form' не найден. Отправка формы не будет работать.");
+        }
     }
 
     // Показываем страницу подтверждения и сохраняем бронирование
     async function showConfirmation() {
         const details = document.getElementById('confirmation-details');
         
+        if (!details) {
+            console.error("Элемент 'confirmation-details' не найден.");
+            return;
+        }
+
         details.innerHTML = `
             <p><strong>Дата:</strong> ${bookingData.date}</p>
             <p><strong>Тариф:</strong> ${bookingData.duration}</p>
@@ -534,8 +563,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Сохраняем бронирование в Supabase
         if (supabase && currentSupabaseUser) {
+            console.log("Попытка сохранить бронирование в Supabase...");
             try {
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('bookings')
                     .insert({
                         user_id: currentSupabaseUser.id, // Supabase User ID
@@ -548,20 +578,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                         duration_hours: bookingData.hours,
                         price: parseInt(bookingData.price), // Убедимся, что это число
                         name: bookingData.name,
-                        phone_last_4_digits: bookingData.phone.slice(-4), // Сохраняем только последние 4 цифры
+                        phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null, // Сохраняем только последние 4 цифры
                         telegram_username: bookingData.telegram,
                         comment: bookingData.comment,
+                        status: 'pending', // Новый статус по умолчанию
                         created_at: new Date().toISOString() // ISO строка для timestamp
-                    });
+                    }).select(); // Добавляем .select() для получения вставленных данных
 
                 if (error) {
                     console.error("Ошибка сохранения бронирования:", error);
                 } else {
-                    console.log("Бронирование сохранено в Supabase.");
+                    console.log("Бронирование сохранено в Supabase. Данные:", data);
+                    // --- ВНИМАНИЕ: Здесь больше НЕТ вызова Edge Function. ---
+                    // --- Python-бот будет сам мониторить базу данных. ---
                 }
             } catch (error) {
-                console.error("Ошибка при сохранении бронирования:", error);
+                console.error("Ошибка при сохранении бронирования (try-catch):", error);
             }
+        } else {
+            console.warn("Supabase не инициализирован или пользователь не аутентифицирован. Бронирование не будет сохранено.");
         }
 
         showStep(6);
@@ -569,30 +604,39 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Настройка действий на странице подтверждения
     function setupConfirmationActions() {
-        document.getElementById('book-again').addEventListener('click', resetBooking);
+        document.getElementById('book-again')?.addEventListener('click', resetBooking);
         
-        document.getElementById('reschedule').addEventListener('click', function() {
-            document.getElementById('reschedule-message').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('reschedule-message').style.display = 'none';
-            }, 3000);
+        document.getElementById('reschedule')?.addEventListener('click', function() {
+            const rescheduleMessage = document.getElementById('reschedule-message');
+            if (rescheduleMessage) {
+                rescheduleMessage.style.display = 'block';
+                setTimeout(() => {
+                    rescheduleMessage.style.display = 'none';
+                }, 3000);
+            }
         });
         
-        document.getElementById('cancel-booking').addEventListener('click', function() {
-            document.getElementById('cancel-modal').style.display = 'flex';
+        document.getElementById('cancel-booking')?.addEventListener('click', function() {
+            const cancelModal = document.getElementById('cancel-modal');
+            if (cancelModal) cancelModal.style.display = 'flex';
         });
         
-        document.getElementById('confirm-cancel').addEventListener('click', function() {
-            document.getElementById('cancel-modal').style.display = 'none';
-            document.getElementById('cancel-message').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('cancel-message').style.display = 'none';
-                resetBooking();
-            }, 1500);
+        document.getElementById('confirm-cancel')?.addEventListener('click', function() {
+            const cancelModal = document.getElementById('cancel-modal');
+            const cancelMessage = document.getElementById('cancel-message');
+            if (cancelModal) cancelModal.style.display = 'none';
+            if (cancelMessage) {
+                cancelMessage.style.display = 'block';
+                setTimeout(() => {
+                    cancelMessage.style.display = 'none';
+                    resetBooking();
+                }, 1500);
+            }
         });
         
-        document.getElementById('cancel-cancel').addEventListener('click', function() {
-            document.getElementById('cancel-modal').style.display = 'none';
+        document.getElementById('cancel-cancel')?.addEventListener('click', function() {
+            const cancelModal = document.getElementById('cancel-modal');
+            if (cancelModal) cancelModal.style.display = 'none';
         });
     }
 
@@ -600,12 +644,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     function setupMapButtons() {
         const address = 'Ростов-на-Дону, ул. Б. Садовая, 70';
         
-        document.getElementById('route-btn').addEventListener('click', function() {
+        document.getElementById('route-btn')?.addEventListener('click', function() {
             const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(address)}`;
             window.open(url, '_blank');
         });
         
-        document.getElementById('taxi-btn').addEventListener('click', function() {
+        document.getElementById('taxi-btn')?.addEventListener('click', function() {
             const url = `https://3.redirect.appmetrica.yandex.com/route?end-lat=47.222078&end-lon=39.720349&end-name=${encodeURIComponent(address)}`;
             window.open(url, '_blank');
         });
@@ -624,14 +668,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
         
-        document.getElementById('booking-form').reset();
+        document.getElementById('booking-form')?.reset();
         document.getElementById('phone').value = '+7 ';
         
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
         
         document.querySelectorAll('.next-btn').forEach(btn => btn.disabled = true);
-        document.getElementById('toTimePage').disabled = false;
+        const toTimePageBtn = document.getElementById('toTimePage');
+        if (toTimePageBtn) toTimePageBtn.disabled = false;
         
         showStep(0);
     }
