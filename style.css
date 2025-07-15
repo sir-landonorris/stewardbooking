@@ -3,8 +3,8 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Helvetica Neue', system-ui, sans-serif; /* Основной текст */
-    background-color: #000000; /* Черный фон */
-    color: #ffffff; /* Белый текст */
+    background-color: #ffffff; /* Белый фон */
+    color: #000000; /* Черный текст */
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -147,7 +147,7 @@ body {
     cursor: not-allowed;
     border-radius: 0;
     box-shadow: none;
-    text-transform: uppercase; /* Кнопки в верхнем регистре */
+    text-transform: none; /* Убран капслок */
     font-size: 18px; /* Крупнее, чем основной текст */
     margin: 0; /* УДАЛЕНО: margin-bottom */
 }
@@ -170,7 +170,7 @@ body {
     text-align: right;
     color: #000000; /* Черный текст на белом фоне */
     margin-bottom: 32px; /* Отступ увеличен в 2 раза (было 16px) */
-    text-transform: uppercase;
+    text-transform: none; /* Убран капслок */
 }
 
 /* Стили для заглушки */
@@ -207,7 +207,7 @@ body {
 }
 #web-app-fallback h1 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;
-    text-transform: uppercase;
+    text-transform: none; /* Убран капслок */
     font-weight: bold;
     font-size: 28px;
     margin-bottom: 16px;
@@ -218,6 +218,7 @@ body {
     font-size: 16px;
     margin-bottom: 8px;
     color: #ffffff;
+    text-transform: none; /* Убран капслок */
 }
 #web-app-fallback a {
     color: #ffffff; /* Белые ссылки */
@@ -243,7 +244,7 @@ body {
 
 .date-display {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
-    font-size: 12px; /* Уменьшен в 2 раза (было 16px) */
+    font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
     font-weight: bold;
     text-transform: none; /* Убран капслок */
     font-style: italic; /* Курсив */
@@ -256,7 +257,7 @@ body {
 }
 
 .date-display-text-small { /* Новый класс для мелкого курсивного текста */
-    font-size: 12px; /* Уменьшен в 2 раза (было 16px) */
+    font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
     font-style: italic;
     text-transform: none; /* Убран капслок */
     font-weight: normal; /* Сброс жирности */
@@ -318,7 +319,7 @@ body {
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
     font-size: 20px; /* Крупные цифры */
     font-weight: bold;
-    text-transform: uppercase;
+    text-transform: uppercase; /* Цифры остаются в верхнем регистре */
 }
 
 .date-carousel .date-item small {
@@ -327,6 +328,7 @@ body {
     display: block;
     margin-top: 4px;
     font-weight: normal;
+    text-transform: none; /* Убран капслок */
 }
 
 .date-carousel .date-item.selected {
@@ -347,7 +349,7 @@ h2 {
 
 /* Стилизация заголовков (например, "ВЫБЕРИТЕ СИМУЛЯТОР(Ы)") */
 .step-title { /* Новый класс для заголовков шагов */
-    font-size: 12px; /* Уменьшен в 2 раза (было 16px) */
+    font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
     font-style: italic; /* Курсив */
     text-transform: none; /* Убран капслок */
     text-align: left; /* Выравнивание по левому краю */
@@ -393,8 +395,8 @@ h2 {
     font-weight: bold;
     line-height: 1;
     position: absolute; /* Позиционирование */
-    top: 16px; /* Отступ сверху увеличен в 2 раза */
-    left: 16px; /* Отступ слева увеличен в 2 раза */
+    top: 32px; /* Отступ сверху увеличен в 2 раза (было 16px) */
+    left: 32px; /* Отступ слева увеличен в 2 раза (было 16px) */
     text-transform: uppercase; /* Цифра остается в верхнем регистре */
 }
 .grid-item small {
@@ -459,7 +461,7 @@ h2 {
     color: #000000;
     text-align: center;
     margin-bottom: 16px;
-    text-transform: uppercase;
+    text-transform: none; /* Убран капслок */
 }
 
 /* Выбор времени */
@@ -487,6 +489,7 @@ h2 {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    text-transform: none; /* Убран капслок */
 }
 
 /* Форма данных */
@@ -496,6 +499,7 @@ form label {
     color: #000000;
     margin-bottom: 4px;
     display: block;
+    text-transform: none; /* Убран капслок */
 }
 form input[type="text"],
 form input[type="tel"],
@@ -514,6 +518,7 @@ form textarea {
 form input::placeholder,
 form textarea::placeholder {
     color: #a0a0a0;
+    text-transform: none; /* Убран капслок */
 }
 form input:focus,
 form textarea:focus {
@@ -527,6 +532,7 @@ textarea {
 .text-sm {
     font-size: 14px;
     color: #000000;
+    text-transform: none; /* Убран капслок */
 }
 
 /* Подтверждение */
@@ -539,6 +545,7 @@ textarea {
     font-size: 16px;
     font-family: 'Helvetica Neue', system-ui, sans-serif;
     border: none; /* УДАЛЕНО: обводка */
+    text-transform: none; /* Убран капслок */
 }
 .confirmation-details strong {
     color: #000000;
@@ -551,7 +558,7 @@ textarea {
     margin-top: 16px;
     text-align: center;
     font-size: 14px;
-    text-transform: uppercase;
+    text-transform: none; /* Убран капслок */
     border: none; /* УДАЛЕНО: обводка */
 }
 .message-box.info {
@@ -572,7 +579,7 @@ textarea {
 }
 .modal-content h3 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;
-    text-transform: uppercase;
+    text-transform: uppercase; /* Заголовок остается в верхнем регистре */
     font-weight: bold;
     font-size: 20px;
     margin-bottom: 16px;
@@ -581,6 +588,7 @@ textarea {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
     font-size: 16px;
     margin-bottom: 16px;
+    text-transform: none; /* Убран капслок */
 }
 .modal-buttons .button {
     margin: 0 4px;
@@ -602,8 +610,8 @@ textarea {
     }
     .grid-item .simulator-number {
         font-size: 48px; /* Адаптивный размер для цифр симулятора */
-        top: 12px; /* Адаптивный отступ */
-        left: 12px; /* Адаптивный отступ */
+        top: 24px; /* Адаптивный отступ */
+        left: 24px; /* Адаптивный отступ */
     }
     .grid-item small {
         font-size: 14px;
