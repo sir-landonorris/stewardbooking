@@ -30,7 +30,7 @@ body {
     padding: 16px; /* Отступы по краям */
     position: relative;
     overflow: hidden;
-    margin-top: 4px; /* Отступ для глобального прогресс-бара */
+    margin-top: 104px; /* Отступ для основного контента, чтобы не перекрывался фиксированным заголовком (100px header + 4px progress bar) */
     background-color: #ffffff; /* Белый фон для основного блока */
     color: #000000; /* Черный текст для основного блока */
     border-radius: 0; /* Нет скруглений */
@@ -73,12 +73,11 @@ body {
     justify-content: flex-start; /* Выравнивание контента по левому краю */
     background-color: #000000; /* Черный фон для обрамления */
     padding: 0; /* Убираем padding, так как фон будет картинкой */
-    margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
-    margin-right: -16px;
-    width: calc(100% + 32px); /* Полная ширина с учетом компенсации */
-    margin-top: -16px; /* Сдвигаем вверх, чтобы прилегал к краю контейнера */
-    margin-bottom: 16px; /* Расстояние между блоками */
-    position: relative; /* Для позиционирования текста поверх картинки */
+    position: fixed; /* Фиксированный заголовок */
+    top: 4px; /* Под глобальным прогресс-баром */
+    left: 0;
+    width: 100vw; /* Полная ширина видимой области браузера */
+    z-index: 999; /* Выше основного контента, но ниже глобального прогресс-бара */
     height: 100px; /* Фиксированная высота для фона */
     background-image: url('images/header.png'); /* Новая картинка */
     background-size: cover; /* Покрытие всей области */
@@ -261,7 +260,7 @@ body {
 }
 
 .date-display-text-small { /* Новый класс для мелкого курсивного текста */
-    font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
+    font-size: 7px; /* Уменьшен в 1.5 раза (было 10px) */
     font-style: italic;
     text-transform: none; /* Убран капслок */
     font-weight: normal; /* Сброс жирности */
@@ -310,26 +309,26 @@ body {
     max-height: 120px; /* Максимальная высота для больших экранов */
     background-color: #d9d9d9;
     color: #000000;
-    text-align: center;
-    padding: 16px 0; /* Внутренние отступы */
+    text-align: left; /* Выравнивание текста по левому краю */
+    padding: 8px; /* Уменьшенный padding для размещения контента по углам */
     cursor: pointer;
     border-radius: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between; /* Размещаем элементы вверху и внизу */
+    align-items: flex-start; /* Выравниваем по левому краю */
     scroll-snap-align: start;
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
     font-size: 20px; /* Крупные цифры */
     font-weight: bold;
-    text-transform: uppercase; /* Цифры остаются в верхнем регистре */
+    text-transform: none; /* Цифры остаются в верхнем регистре */
 }
 
 .date-carousel .date-item small {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
-    font-size: 14px; /* Меньше для месяца */
+    font-size: 11px; /* На 20% меньше (было 14px) */
     display: block;
-    margin-top: 4px;
+    margin-top: auto; /* Прижимает к низу flex-контейнера */
     font-weight: normal;
     text-transform: none; /* Убран капслок */
 }
@@ -399,7 +398,7 @@ h2 {
     position: absolute; /* Позиционирование */
     top: 32px; /* Отступ сверху увеличен в 2 раза (было 16px) */
     left: 32px; /* Отступ слева увеличен в 2 раза (было 16px) */
-    text-transform: uppercase; /* Цифра остается в верхнем регистре */
+    text-transform: none; /* Цифра остается в верхнем регистре */
 }
 .grid-item small {
     font-size: 16px; /* Увеличил размер для "АВТОСИМ" */
