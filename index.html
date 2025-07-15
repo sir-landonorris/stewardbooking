@@ -244,7 +244,7 @@
 
         .date-display {
             font-family: 'Helvetica Neue', system-ui, sans-serif;
-            font-size: 16px;
+            font-size: 16px; /* Изначальный размер */
             font-weight: bold;
             text-transform: uppercase;
             cursor: pointer;
@@ -254,6 +254,15 @@
             justify-content: flex-start;
             gap: 8px;
         }
+
+        .date-display-text-small { /* Новый класс для мелкого курсивного текста */
+            font-size: 16px; /* Размер как на скриншоте */
+            font-style: italic;
+            text-transform: uppercase;
+            font-weight: normal; /* Сброс жирности */
+            color: #000000; /* Черный текст на белом фоне */
+        }
+
 
         .date-display .arrow-down {
             display: inline-block;
@@ -290,10 +299,10 @@
 
         .date-carousel .date-item {
             flex: 0 0 auto; /* Не сжимать и не растягивать */
-            width: calc(33.333% - 0px); /* 3 элемента в ряд, без gap */
-            height: calc(33.333vw - 0px); /* Делаем квадратным относительно ширины viewport */
-            max-width: 140px; /* Максимальная ширина для больших экранов */
-            max-height: 140px; /* Максимальная высота для больших экранов */
+            width: calc(25% - 0px); /* 4 элемента в ряд, без gap */
+            height: calc(25vw - 0px); /* Делаем квадратным относительно ширины viewport */
+            max-width: 120px; /* Максимальная ширина для больших экранов */
+            max-height: 120px; /* Максимальная высота для больших экранов */
             background-color: #d9d9d9;
             color: #000000;
             text-align: center;
@@ -307,14 +316,14 @@
             align-items: center;
             scroll-snap-align: start;
             font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
-            font-size: 24px; /* Крупные цифры */
+            font-size: 20px; /* Крупные цифры */
             font-weight: bold;
             text-transform: uppercase;
         }
 
         .date-carousel .date-item small {
             font-family: 'Helvetica Neue', system-ui, sans-serif;
-            font-size: 16px;
+            font-size: 14px; /* Меньше для месяца */
             display: block;
             margin-top: 4px;
             font-weight: normal;
@@ -325,7 +334,7 @@
             color: #ffffff;
         }
 
-        /* Выбор симуляторов */
+        /* Заголовки шагов */
         h2 {
             font-family: 'Helvetica Neue Condensed Black', sans-serif;
             text-transform: uppercase;
@@ -335,9 +344,22 @@
             margin-bottom: 16px;
             color: #000000;
         }
+
+        /* Стилизация заголовков (например, "ВЫБЕРИТЕ СИМУЛЯТОР(Ы)") */
+        .step-title { /* Новый класс для заголовков шагов */
+            font-size: 16px; /* Мелко */
+            font-style: italic; /* Курсив */
+            text-transform: uppercase; /* Прописные буквы */
+            text-align: left; /* Выравнивание по левому краю */
+            margin-bottom: 16px; /* Отступ снизу */
+            color: #000000;
+        }
+
+
+        /* Выбор симуляторов */
         .simulator-grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* 2-3 столбца */
+            grid-template-columns: repeat(2, 1fr); /* 2 столбца на первом шаге */
             gap: 0; /* Плотное прилегание */
             margin-bottom: 16px;
             margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
@@ -365,8 +387,14 @@
             min-width: 140px; /* Минимальный размер для адаптивности */
             min-height: 140px;
         }
+        .grid-item .simulator-number { /* Стиль для цифр симуляторов */
+            font-family: 'Monaco', monospace;
+            font-size: 48px; /* Крупный размер */
+            font-weight: bold;
+            line-height: 1;
+        }
         .grid-item small {
-            font-size: 12px;
+            font-size: 16px; /* Увеличил размер для "АВТОСИМ" */
             display: block;
             margin-top: 4px;
         }
@@ -402,18 +430,19 @@
             display: flex;
         }
 
-        /* Стиль для "Любой симулятор" */
-        .grid-item.full {
-            grid-column: 1 / -1; /* Занимает всю ширину сетки */
-            width: 100%;
-            aspect-ratio: unset; /* Убираем квадратность для этого элемента */
-            height: auto; /* Автоматическая высота */
-            padding: 16px; /* Восстанавливаем padding */
-            min-height: unset; /* Убираем минимальную высоту */
-        }
+        /* Стиль для "Любой симулятор" - УДАЛЕНО */
+        /* .grid-item.full { ... } */
 
 
         /* Выбор пакета времени */
+        #package-grid { /* Отдельный стиль для сетки пакетов */
+            grid-template-columns: repeat(3, 1fr); /* 3 столбца на шаге пакетов */
+            display: grid; /* Применяем grid, так как он может быть переопределен */
+            gap: 0;
+            margin-left: -16px;
+            margin-right: -16px;
+            margin-bottom: 16px;
+        }
         .package .price {
             font-family: 'Monaco', monospace; /* Моноширинный шрифт для цен */
             font-size: 24px; /* Крупные цифры */
@@ -428,15 +457,23 @@
         }
 
         /* Выбор времени */
+        #time-grid { /* Отдельный стиль для сетки времени */
+            grid-template-columns: repeat(4, 1fr); /* 4 столбца на шаге времени */
+            display: grid; /* Применяем grid, так как он может быть переопределен */
+            gap: 0;
+            margin-left: -16px;
+            margin-right: -16px;
+            margin-bottom: 16px;
+        }
         .time-slot {
             font-family: 'Monaco', monospace; /* Моноширинный шрифт для слотов */
-            font-size: 20px; /* Крупнее для слотов */
+            font-size: 16px; /* Уменьшил для 4х колонок */
             padding: 12px;
             border: none; /* УДАЛЕНО: обводка */
             margin: 0; /* Плотное прилегание */
             aspect-ratio: 1 / 1; /* Делаем квадратным */
-            min-width: 140px;
-            min-height: 140px;
+            min-width: unset; /* Сброс min-width */
+            min-height: unset; /* Сброс min-height */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -546,19 +583,31 @@
                 font-size: 20px;
             }
             .simulator-grid-container {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* 2-3 столбца */
+                grid-template-columns: repeat(2, 1fr); /* 2 столбца */
             }
             .grid-item {
                 font-size: 14px;
                 padding: 12px;
-                min-width: 120px;
-                min-height: 120px;
+                min-width: unset;
+                min-height: unset;
+            }
+            .grid-item .simulator-number {
+                font-size: 36px;
             }
             .grid-item small {
-                font-size: 10px;
+                font-size: 14px;
+            }
+            #package-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 столбца */
             }
             .package .price, .time-slot {
                 font-size: 18px;
+            }
+            #time-grid {
+                grid-template-columns: repeat(4, 1fr); /* 4 столбца */
+            }
+            .time-slot {
+                font-size: 14px;
             }
             .button {
                 font-size: 16px;
@@ -569,30 +618,30 @@
                 padding: 10px;
             }
             .date-carousel .date-item {
-                width: calc(33.333% - 0px); /* 3 элемента в ряд */
-                height: calc(33.333vw - 0px);
+                width: calc(25% - 0px); /* 4 элемента в ряд */
+                height: calc(25vw - 0px);
             }
-            .time-slot {
-                font-size: 16px;
-                min-width: 120px;
-                min-height: 120px;
+            .date-carousel .date-item small {
+                font-size: 12px;
             }
         }
         @media (max-width: 380px) {
             .simulator-grid-container {
-                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 2-3 столбца */
+                grid-template-columns: repeat(2, 1fr); /* 2 столбца */
             }
             .grid-item {
-                min-width: 100px;
-                min-height: 100px;
+                min-width: unset;
+                min-height: unset;
+            }
+            #package-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 столбца на очень маленьких экранах */
+            }
+            #time-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */
             }
             .date-carousel .date-item {
-                width: calc(50% - 0px); /* 2 элемента в ряд на очень маленьких экранах */
-                height: calc(50vw - 0px);
-            }
-            .time-slot {
-                min-width: 100px;
-                min-height: 100px;
+                width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
+                height: calc(33.333vw - 0px);
             }
         }
     </style>
@@ -650,7 +699,7 @@
             <div class="date-selection-area">
                 <div class="date-display">
                     ДАТА <span class="arrow-down"></span>
-                    <span id="date-display-text"></span>
+                    <span id="date-display-text" class="date-display-text-small"></span>
                 </div>
                 <div id="date-carousel-container" class="date-carousel-container hidden">
                     <div id="date-carousel" class="date-carousel">
@@ -659,20 +708,17 @@
                 </div>
             </div>
 
-            <h2>ВЫБЕРИТЕ СИМУЛЯТОР(Ы)</h2>
+            <div class="step-title">ВЫБЕРИТЕ СИМУЛЯТОР(Ы)</div>
             <div class="simulator-grid-container">
                 <div class="grid-item simulator-box" data-id="1">
-                    01<br><small>АВТОСИМ</small>
+                    <div class="simulator-number">01</div><small>АВТОСИМ</small>
                     <div class="remove-selection">✕</div>
                 </div>
                 <div class="grid-item simulator-box" data-id="2">
-                    02<br><small>АВТОСИМ</small>
+                    <div class="simulator-number">02</div><small>АВТОСИМ</small>
                     <div class="remove-selection">✕</div>
                 </div>
-                <div class="grid-item simulator-box full" data-id="any">
-                    ЛЮБОЙ<br><small>СИМУЛЯТОР</small>
-                    <div class="remove-selection">✕</div>
-                </div>
+                <!-- Кнопка "Любой симулятор" удалена -->
             </div>
             <div class="flex justify-between gap-4 mt-6">
                 <!-- Кнопка "Назад" не нужна на первом шаге -->
@@ -682,8 +728,8 @@
 
         <!-- Шаг 2: Выбор пакета времени -->
         <div id="package-step" class="step-page">
-            <h2>ВЫБЕРИТЕ ПАКЕТ ВРЕМЕНИ</h2>
-            <div id="package-grid" class="simulator-grid-container">
+            <div class="step-title">ВЫБЕРИТЕ ПАКЕТ ВРЕМЕНИ</div>
+            <div id="package-grid" class="grid-container">
                 <!-- Пакеты будут сгенерированы JS -->
             </div>
             <p id="package-summary"></p>
@@ -695,8 +741,8 @@
 
         <!-- Шаг 3: Выбор времени -->
         <div id="time-select-step" class="step-page">
-            <h2>ВЫБЕРИТЕ ВРЕМЯ</h2>
-            <div id="time-grid" class="simulator-grid-container">
+            <div class="step-title">ВЫБЕРИТЕ ВРЕМЯ</div>
+            <div id="time-grid" class="grid-container">
                 <!-- Временные слоты будут сгенерированы JS -->
             </div>
             <div class="flex justify-between gap-4 mt-6">
@@ -707,7 +753,7 @@
 
         <!-- Шаг 4: Заполнение формы -->
         <div id="form-step" class="step-page">
-            <h2>ВАШИ ДАННЫЕ</h2>
+            <div class="step-title">ВАШИ ДАННЫЕ</div>
             <form id="booking-form">
                 <div class="form-group">
                     <label for="name">ВАШЕ ИМЯ</label>

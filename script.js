@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Эти переменные будут доступны в runtime, если приложение запущено в Canvas
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? initialAuthToken : null;
 
     let app, db, auth, userId;
     let isAuthReady = false;
@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         date: null,
         time: null,
         simulator: [], // Изменено на массив для множественного выбора
-        // wheel: null, // Удалено: выбор руля
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
@@ -262,24 +261,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
-                    if (simulatorId === 'any') {
-                        document.querySelectorAll('.simulator-box.selected').forEach(s => {
-                            s.classList.remove('selected');
-                            const sRemoveBtn = s.querySelector('.remove-selection');
-                            if (sRemoveBtn) sRemoveBtn.style.display = 'none';
-                        });
-                        bookingData.simulator = ['any'];
-                    } else {
-                        const anySim = document.querySelector('.simulator-box.full');
-                        if (anySim && anySim.classList.contains('selected')) {
-                            anySim.classList.remove('selected');
-                            const anyRemoveBtn = anySim.querySelector('.remove-selection');
-                            if (anyRemoveBtn) anyRemoveBtn.style.display = 'none';
-                            bookingData.simulator = [];
-                        }
-                        if (!bookingData.simulator.includes(simulatorId)) {
-                            bookingData.simulator.push(simulatorId);
-                        }
+                    // Удалена логика для "any" симулятора
+                    if (!bookingData.simulator.includes(simulatorId)) {
+                        bookingData.simulator.push(simulatorId);
                     }
                     this.classList.add('selected');
                     if (removeBtn) removeBtn.style.display = 'flex';
@@ -729,7 +713,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                         date: bookingData.date,
                         time: bookingData.time, // Имя поля в Supabase
                         simulator: bookingData.simulator, // Имя поля в Supabase
-                        // wheel: bookingData.wheel, // Удалено: поле wheel
                         duration_text: bookingData.duration,
                         hours: bookingData.hours, // Имя поля в Supabase
                         price: parseInt(bookingData.price), // Убедимся, что это число
@@ -864,9 +847,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Вспомогательные функции
     function getSimulatorNames(simulatorIds) {
-        if (simulatorIds.includes('any')) {
-            return 'ЛЮБОЙ СИМУЛЯТОР';
-        }
+        // Удалена логика для "any" симулятора
         return simulatorIds.map(id => `АВТОСИМ ${id}`).join(', ');
     }
 
