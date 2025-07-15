@@ -1,3 +1,11 @@
+/* Глобальный сброс box-sizing для более предсказуемой компоновки */
+html {
+    box-sizing: border-box;
+}
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
 /* Общие стили для body, контейнера и шагов */
 body {
     margin: 0;
@@ -9,7 +17,6 @@ body {
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
-    box-sizing: border-box;
     width: 100%;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
@@ -21,14 +28,13 @@ body {
     min-width: 320px;
     margin: 0 auto;
     padding: 16px; /* Отступы по краям */
-    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    margin-top: 4px; /* Отступ для глобального прогресс-бара */
     background-color: #ffffff; /* Белый фон для основного блока */
     color: #000000; /* Черный текст для основного блока */
     border-radius: 0; /* Нет скруглений */
     box-shadow: none; /* Нет теней */
-    position: relative;
-    overflow: hidden;
-    margin-top: 4px; /* Отступ для глобального прогресс-бара */
 }
 
 /* Шаги */
@@ -97,7 +103,6 @@ body {
     align-items: center; /* Центрируем по вертикали */
     padding-left: calc(134 / 2358 * 100vw + 16px); /* 134px из 2358px + padding контейнера */
     padding-right: calc(777 / 2358 * 100vw + 16px); /* 777px из 2358px + padding контейнера */
-    box-sizing: border-box;
 }
 
 .header-text h1 {
@@ -183,7 +188,6 @@ body {
     justify-content: center;
     text-align: center;
     padding: 16px;
-    box-sizing: border-box;
     position: fixed;
     top: 0;
     left: 0;
@@ -308,7 +312,6 @@ body {
     color: #000000;
     text-align: center;
     padding: 16px 0; /* Внутренние отступы */
-    box-sizing: border-box;
     cursor: pointer;
     border-radius: 0;
     display: flex;
@@ -319,7 +322,7 @@ body {
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
     font-size: 20px; /* Крупные цифры */
     font-weight: bold;
-    text-transform: none; /* Убран капслок для всего текста, кроме цифр */
+    text-transform: uppercase; /* Цифры остаются в верхнем регистре */
 }
 
 .date-carousel .date-item small {
@@ -445,9 +448,8 @@ h2 {
     gap: 0;
     margin-left: -16px; /* Вытягиваем на всю ширину */
     margin-right: -16px;
-    padding-left: 16px; /* Добавлены отступы для выравнивания */
-    padding-right: 16px;
-    box-sizing: border-box; /* Учитываем padding в ширине */
+    /* padding-left: 16px; */ /* Удалены для выравнивания от края до края */
+    /* padding-right: 16px; */ /* Удалены для выравнивания от края до края */
     margin-bottom: 16px;
 }
 .package .price {
@@ -470,9 +472,8 @@ h2 {
     gap: 0;
     margin-left: -16px; /* Вытягиваем на всю ширину */
     margin-right: -16px;
-    padding-left: 16px; /* Добавлены отступы для выравнивания */
-    padding-right: 16px;
-    box-sizing: border-box; /* Учитываем padding в ширине */
+    /* padding-left: 16px; */ /* Удалены для выравнивания от края до края */
+    /* padding-right: 16px; */ /* Удалены для выравнивания от края до края */
     margin-bottom: 16px;
 }
 .time-slot {
@@ -511,7 +512,6 @@ form textarea {
     color: #000000;
     font-family: 'Helvetica Neue', system-ui, sans-serif;
     font-size: 16px;
-    box-sizing: border-box;
     margin-bottom: 16px;
 }
 form input::placeholder,
