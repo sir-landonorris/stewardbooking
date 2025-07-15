@@ -11,12 +11,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     // --- START: Safeguard for missing Firebase config properties ---
     // This is a temporary measure for development/debugging if __firebase_config is incomplete.
     // In a production Canvas environment, __firebase_config should always be fully provided.
-    if (!firebaseConfig.projectId) {
-        console.error("CRITICAL ERROR: Firebase 'projectId' is missing from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
+    if (!firebaseConfig.projectId || firebaseConfig.projectId === "dummy-project-id") {
+        console.error("CRITICAL ERROR: Firebase 'projectId' is missing or is a dummy value from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
         firebaseConfig.projectId = "dummy-project-id"; // Fallback for initialization, but auth will fail
     }
-    if (!firebaseConfig.apiKey) {
-        console.error("CRITICAL ERROR: Firebase 'apiKey' is missing from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
+    if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "dummy-api-key") {
+        console.error("CRITICAL ERROR: Firebase 'apiKey' is missing or is a dummy value from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
         firebaseConfig.apiKey = "dummy-api-key"; // Fallback for initialization, but auth will fail
     }
     if (!firebaseConfig.authDomain) {
