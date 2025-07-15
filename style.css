@@ -64,19 +64,34 @@ body {
 .header-container {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start; /* Выравнивание контента по левому краю */
+    background-color: #000000; /* Черный фон для обрамления */
+    padding: 8px 16px; /* Отступы внутри черного блока */
+    margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+    margin-right: -16px;
+    width: calc(100% + 32px); /* Полная ширина с учетом компенсации */
+    margin-top: -16px; /* Сдвигаем вверх, чтобы прилегал к краю контейнера */
     margin-bottom: 16px; /* Расстояние между блоками */
+}
+
+.logo-group {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Расстояние между логотипами */
+    margin-left: auto; /* Прижимаем группу логотипов к правому краю */
 }
 
 .logo {
     height: 40px;
     width: auto;
-    filter: invert(1); /* Для белого фона, чтобы лого были черными */
+    filter: invert(1); /* Для черного фона, чтобы лого были белыми */
 }
 
 .header-text {
-    flex-grow: 1;
-    text-align: center;
+    flex-grow: 1; /* Позволяем заголовку занимать доступное пространство */
+    text-align: left; /* Выравнивание заголовка по левому краю */
+    color: #ffffff; /* Белый текст для заголовка */
+    padding-right: 10px; /* Небольшой отступ перед логотипами */
 }
 
 .header-text h1 {
@@ -88,18 +103,8 @@ body {
     line-height: 1.2;
 }
 
-/* Header Video Styling */
-.header-video {
-    width: calc(100% + 32px); /* Adjust for container's padding */
-    margin-left: -16px; /* Align to container's left edge */
-    margin-right: -16px; /* Align to container's right edge */
-    height: 120px;
-    object-fit: cover;
-    display: block;
-    border-radius: 0; /* Нет скруглений */
-    box-shadow: none; /* Нет теней */
-    margin-top: -16px; /* Shift up to align with container's top edge */
-}
+/* Header Video Styling (УДАЛЕНО) */
+/* .header-video { ... } */
 
 /* Кнопки и блоки выбора */
 .block {
@@ -113,6 +118,7 @@ body {
     box-shadow: none; /* Нет теней */
     margin-bottom: 16px; /* Расстояние между блоками */
     font-size: 16px; /* Основной текст */
+    border: none; /* УДАЛЕНО: обводка */
 }
 .block.active {
     background-color: #000000; /* Черный */
@@ -123,6 +129,7 @@ body {
     color: #a0a0a0; /* Серый для зачёркнутого */
     text-decoration: line-through;
     pointer-events: none;
+    border: none; /* УДАЛЕНО: обводка */
 }
 
 .button {
@@ -133,7 +140,7 @@ body {
     color: #000000; /* Черный */
     text-align: center;
     font-weight: bold;
-    border: none;
+    border: none; /* УДАЛЕНО: обводка */
     cursor: not-allowed;
     border-radius: 0; /* Нет скруглений */
     box-shadow: none; /* Нет теней */
@@ -232,7 +239,7 @@ body {
 .form-group select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #000000; /* Черная рамка */
+    border: none; /* УДАЛЕНО: обводка */
     border-radius: 0; /* Нет скруглений */
     background-color: #d9d9d9; /* Светло-серый фон */
     color: #000000; /* Черный текст */
@@ -267,7 +274,7 @@ h2 {
     background-color: #d9d9d9;
     color: #000000;
     cursor: pointer;
-    border: 2px solid #000000; /* Черная рамка */
+    border: none; /* УДАЛЕНО: обводка */
     border-radius: 0;
     box-shadow: none;
     font-size: 16px;
@@ -288,6 +295,7 @@ h2 {
     color: #a0a0a0;
     text-decoration: line-through;
     pointer-events: none;
+    border: none; /* УДАЛЕНО: обводка */
 }
 .grid-item .remove-selection {
     position: absolute;
@@ -329,6 +337,7 @@ h2 {
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для слотов */
     font-size: 20px; /* Крупнее для слотов */
     padding: 12px;
+    border: none; /* УДАЛЕНО: обводка */
 }
 
 /* Форма данных */
@@ -344,7 +353,7 @@ form input[type="tel"],
 form textarea {
     width: 100%;
     padding: 12px;
-    border: 1px solid #000000;
+    border: none; /* УДАЛЕНО: обводка */
     border-radius: 0;
     background-color: #d9d9d9;
     color: #000000;
@@ -360,7 +369,7 @@ form textarea::placeholder {
 form input:focus,
 form textarea:focus {
     outline: 2px solid #000000; /* Черная обводка при фокусе */
-    border-color: #000000;
+    border-color: transparent; /* УДАЛЕНО: обводка */
 }
 textarea {
     resize: vertical;
@@ -380,6 +389,7 @@ textarea {
     margin-bottom: 16px;
     font-size: 16px;
     font-family: 'Helvetica Neue', system-ui, sans-serif;
+    border: none; /* УДАЛЕНО: обводка */
 }
 .confirmation-details strong {
     color: #000000;
@@ -393,6 +403,7 @@ textarea {
     text-align: center;
     font-size: 14px;
     text-transform: uppercase;
+    border: none; /* УДАЛЕНО: обводка */
 }
 .message-box.info {
     background-color: #a0a0a0; /* Серый для информационных сообщений */
@@ -408,6 +419,7 @@ textarea {
     width: 80%;
     max-width: 400px;
     text-align: center;
+    border: none; /* УДАЛЕНО: обводка */
 }
 .modal-content h3 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;

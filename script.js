@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const bookingData = {
         date: null,
         time: null,
-        simulator: [], // Массив для множественного выбора
+        simulator: [], // Изменено на массив для множественного выбора
+        // wheel: null, // Удалено: выбор руля
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
@@ -201,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (bookingData.date) {
             const [day, month, year] = bookingData.date.split('.');
             const dateObj = new Date(year, parseInt(month) - 1, day);
-            const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(dateObj);
+            const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(dateObj).toUpperCase(); // В верхний регистр
             breadcrumbText.push(`${parseInt(day)} ${monthName}`);
         }
         if (bookingData.duration) {
@@ -276,7 +277,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookingData.date = `${day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
             document.getElementById('toTimePage').classList.add('active'); // Кнопка "Далее" на первом шаге
             document.getElementById('toTimePage').disabled = false;
-            console.log("bookingData.date обновлено до:", bookingData.date); // Отладка: Проверка bookingData.date
             updateBreadcrumb();
         }
     }
