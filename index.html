@@ -479,24 +479,5 @@
     </div>
 
     <script src="script.js" type="module"></script>
-    <!-- Скрипт для определения Telegram Web App -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const fallbackDiv = document.getElementById('web-app-fallback');
-            const mainContentDiv = document.getElementById('main-booking-content');
-
-            if (window.Telegram && window.Telegram.WebApp) { // Условие изменено
-                // Если Telegram Web App доступен, показываем основной контент
-                fallbackDiv.classList.add('hidden');
-                mainContentDiv.classList.remove('hidden');
-                document.body.style.alignItems = 'flex-start'; // Вернуть выравнивание для основного контента
-            } else {
-                // Если Telegram Web App НЕ доступен, показываем заглушку
-                fallbackDiv.classList.remove('hidden');
-                mainContentDiv.classList.add('hidden');
-                document.body.style.alignItems = 'center'; // Выровнять заглушку по центру
-            }
-        });
-    </script>
 </body>
 </html>

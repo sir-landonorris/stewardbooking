@@ -34,11 +34,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function init() {
         console.log("init() called."); // Отладка: Проверка вызова init()
 
+        let isTelegramWebApp = false; // Флаг для определения среды
+
         // Инициализация Telegram Web App
         if (window.Telegram && window.Telegram.WebApp) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
             console.log("Telegram Web App ready.");
+            isTelegramWebApp = true; // Устанавливаем флаг
 
             const userTg = Telegram.WebApp.initDataUnsafe.user;
             // Убеждаемся, что userTg и userTg.id существуют и userTg.id является числом
@@ -58,6 +61,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookingData.telegramId = 'fallback_tg_id_' + Math.random().toString(36).substring(7); // Генерируем уникальный fallback ID
             bookingData.telegram = 'fallback_user'; // Fallback для ника
         }
+
+        // --- Логика для отображения контента (перенесена из index.html) ---
+        const fallbackDiv = document.getElementById('web-app-fallback');
+        const mainContentDiv = document.getElementById('main-booking-content');
+
+        if (fallbackDiv && mainContentDiv) { // Убедимся, что элементы существуют
+            if (isTelegramWebApp) {
+                fallbackDiv.classList.add('hidden');
+                mainContentDiv.classList.remove('hidden');
+                document.body.style.alignItems = 'flex-start'; // Вернуть выравнивание для основного контента
+            } else {
+                fallbackDiv.classList.remove('hidden');
+                mainContentDiv.classList.add('hidden');
+                document.body.style.alignItems = 'center'; // Выровнять заглушку по центру
+            }
+        } else {
+            console.error("Элементы 'web-app-fallback' или 'main-booking-content' не найдены. Проверьте index.html.");
+        }
+        // --- Конец логики отображения ---
 
         // Инициализация Supabase
         try {
