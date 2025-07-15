@@ -91,12 +91,14 @@ body {
     flex-grow: 1; /* Позволяем заголовку занимать доступное пространство */
     text-align: left; /* Выравнивание заголовка по левому краю */
     color: #ffffff; /* Белый текст для заголовка */
-    padding-right: 10px; /* Небольшой отступ перед логотипами */
+    /* Адаптивные отступы для текста заголовка */
+    padding-left: calc(134 / 2358 * 100vw); /* 134px из 2358px */
+    padding-right: calc(777 / 2358 * 100vw); /* 777px из 2358px */
 }
 
 .header-text h1 {
     font-family: 'Helvetica Neue Condensed Black', sans-serif;
-    text-transform: uppercase;
+    text-transform: uppercase; /* Заголовок остается в верхнем регистре */
     font-weight: bold;
     font-size: 24px; /* Заголовки: 24-28px */
     margin: 0;
@@ -163,7 +165,7 @@ body {
     font-size: 12px;
     text-align: right;
     color: #000000; /* Черный текст на белом фоне */
-    margin-bottom: 8px;
+    margin-bottom: 16px; /* Отступ увеличен в 2 раза */
     text-transform: uppercase;
 }
 
@@ -239,7 +241,8 @@ body {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
     font-size: 16px; /* Изначальный размер */
     font-weight: bold;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */ /* Убран капслок */
+    text-transform: none;
     cursor: pointer;
     margin-bottom: 8px; /* Отступ от заголовка "ДАТА" */
     display: flex;
@@ -251,7 +254,8 @@ body {
 .date-display-text-small { /* Новый класс для мелкого курсивного текста */
     font-size: 16px; /* Размер как на скриншоте */
     font-style: italic;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */ /* Убран капслок */
+    text-transform: none;
     font-weight: normal; /* Сброс жирности */
     color: #000000; /* Черный текст на белом фоне */
 }
@@ -342,7 +346,8 @@ h2 {
 .step-title { /* Новый класс для заголовков шагов */
     font-size: 16px; /* Мелко */
     font-style: italic; /* Курсив */
-    text-transform: uppercase; /* Прописные буквы */
+    /* text-transform: uppercase; */ /* Убран капслок */
+    text-transform: none;
     text-align: left; /* Выравнивание по левому краю */
     margin-bottom: 16px; /* Отступ снизу */
     color: #000000;
@@ -371,7 +376,7 @@ h2 {
     font-family: 'Helvetica Neue', system-ui, sans-serif;
     border: none; /* УДАЛЕНО: обводка */
     margin: 0; /* Плотное прилегание */
-    position: relative; /* Для позиционирования крестика */
+    position: relative; /* Для позиционирования крестика и текста */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -382,14 +387,23 @@ h2 {
 }
 .grid-item .simulator-number { /* Стиль для цифр симуляторов */
     font-family: 'Monaco', monospace;
-    font-size: 48px; /* Крупный размер */
+    font-size: 60px; /* Увеличено в 1.5 раза */
     font-weight: bold;
     line-height: 1;
+    position: absolute; /* Позиционирование */
+    top: 8px; /* Отступ сверху */
+    left: 8px; /* Отступ слева */
+    text-transform: uppercase; /* Цифра остается в верхнем регистре */
 }
 .grid-item small {
     font-size: 16px; /* Увеличил размер для "АВТОСИМ" */
     display: block;
     margin-top: 4px;
+    position: absolute; /* Позиционирование */
+    bottom: 8px; /* Отступ снизу */
+    left: 8px; /* Отступ слева */
+    /* text-transform: uppercase; */ /* Убран капслок */
+    text-transform: none;
 }
 .grid-item.selected {
     background-color: #000000;
@@ -432,8 +446,11 @@ h2 {
     grid-template-columns: repeat(3, 1fr); /* 3 столбца на шаге пакетов */
     display: grid; /* Применяем grid, так как он может быть переопределен */
     gap: 0;
-    margin-left: -16px;
+    margin-left: -16px; /* Вытягиваем на всю ширину */
     margin-right: -16px;
+    padding-left: 16px; /* Добавлены отступы для выравнивания */
+    padding-right: 16px;
+    box-sizing: border-box; /* Учитываем padding в ширине */
     margin-bottom: 16px;
 }
 .package .price {
@@ -454,8 +471,11 @@ h2 {
     grid-template-columns: repeat(4, 1fr); /* 4 столбца на шаге времени */
     display: grid; /* Применяем grid, так как он может быть переопределен */
     gap: 0;
-    margin-left: -16px;
+    margin-left: -16px; /* Вытягиваем на всю ширину */
     margin-right: -16px;
+    padding-left: 16px; /* Добавлены отступы для выравнивания */
+    padding-right: 16px;
+    box-sizing: border-box; /* Учитываем padding в ширине */
     margin-bottom: 16px;
 }
 .time-slot {
@@ -585,7 +605,7 @@ textarea {
         min-height: unset;
     }
     .grid-item .simulator-number {
-        font-size: 36px;
+        font-size: 48px; /* Адаптивный размер для цифр симулятора */
     }
     .grid-item small {
         font-size: 14px;
