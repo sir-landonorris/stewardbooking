@@ -6,16 +6,24 @@ let supabase = null;
 let currentSupabaseUser = null; // Будет хранить аутентифицированного пользователя Supabase
 
 document.addEventListener('DOMContentLoaded', async function() {
+    // Firebase variables (provided by the Canvas environment)
+    // Эти переменные будут доступны в runtime, если приложение запущено в Canvas
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let app, db, auth, userId;
+    let isAuthReady = false;
+
     // Все данные бронирования
     const bookingData = {
         date: null,
         time: null,
         simulator: [], // Массив для множественного выбора
-        wheel: null,
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
-        phone: null, // Теперь будет хранить полный отформатированный номер для отображения
+        phone: null,
         telegram: '', // Инициализируем как пустую строку
         telegramId: '', // Инициализируем как пустую строку
         comment: null
@@ -23,11 +31,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Все пакеты времени
     const packages = [
-        { duration: '1 час', price: '450 ₽', value: 450, hours: 1 },
-        { duration: '2 часа', price: '800 ₽', value: 800, hours: 2 },
-        { duration: '3 часа', price: '1050 ₽', value: 1050, hours: 3 },
-        { duration: '5 часов', price: '1600 ₽', value: 1600, hours: 5 },
-        { duration: 'Ночь', price: '2000 ₽', value: 2000, hours: 8 } // Пример для "Ночь" - 8 часов
+        { duration: '1 ЧАС', price: '450 ₽', value: 450, hours: 1 },
+        { duration: '2 ЧАСА', price: '800 ₽', value: 800, hours: 2 },
+        { duration: '3 ЧАСА', price: '1050 ₽', value: 1050, hours: 3 },
+        { duration: '5 ЧАСОВ', price: '1600 ₽', value: 1600, hours: 5 },
+        { duration: 'НОЧЬ', price: '2000 ₽', value: 2000, hours: 8 } // Пример для "Ночь" - 8 часов
     ];
 
     // Вспомогательная функция для показа заглушки
@@ -137,12 +145,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         setupSimulatorSelection();
         setupPackageSelection();
         setupTimeSlotsGenerator(); // Будет вызван снова после выбора пакета
-        setupWheelSelection();
+        // setupWheelSelection(); // Удалено: шаг выбора руля
         setupForm();
         setupNavigation();
         setupConfirmationActions();
         setupMapButtons();
-        // setupAIChatFeature(); // Удалено: функция для настройки AI чата
         showStep(0); // Начинаем с первого шага
     }
 
@@ -152,18 +159,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             step.classList.remove('active');
         });
         
+        // Обновлен список шагов, так как шаг с рулем удален
         const steps = [
             'date-select-container', // 0
             'simulator-step',        // 1
             'package-step',          // 2
             'time-select-step',      // 3
-            'wheel-step',            // 4
-            'form-step',             // 5
-            'confirmation-step'      // 6
+            'form-step',             // 4
+            'confirmation-step'      // 5
         ];
         document.getElementById(steps[stepNumber]).classList.add('active');
         
+        // Обновляем прогресс-бар (всего 6 шагов, но 0-5)
         updateProgress(stepNumber);
+        updateBreadcrumb(); // Обновляем хлебные крошки при смене шага
     }
 
     // Обновляем прогресс-бар
@@ -171,11 +180,38 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Целевой глобальный прогресс-бар
         const progressElement = document.getElementById('booking-progress-global');
         if (progressElement) {
-            const progress = (step / (document.querySelectorAll('.step-page').length - 1)) * 100;
+            // Всего 6 шагов (0-5), поэтому делим на 5
+            const progress = (step / 5) * 100;
             progressElement.style.width = `${progress}%`;
         } else {
             console.error("Элемент прогресс-бара 'booking-progress-global' не найден.");
         }
+    }
+
+    // Обновление хлебных крошек
+    function updateBreadcrumb() {
+        const breadcrumbElement = document.getElementById('booking-breadcrumb');
+        if (!breadcrumbElement) return;
+
+        let breadcrumbText = [];
+
+        if (bookingData.simulator.length > 0) {
+            breadcrumbText.push(getSimulatorNames(bookingData.simulator));
+        }
+        if (bookingData.date) {
+            const [day, month, year] = bookingData.date.split('.');
+            const dateObj = new Date(year, parseInt(month) - 1, day);
+            const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(dateObj);
+            breadcrumbText.push(`${parseInt(day)} ${monthName}`);
+        }
+        if (bookingData.duration) {
+            breadcrumbText.push(bookingData.duration);
+        }
+        if (bookingData.time) {
+            breadcrumbText.push(bookingData.time.split(' ')[0]); // Только начальное время
+        }
+
+        breadcrumbElement.innerHTML = breadcrumbText.join(' / ');
     }
 
     // Настройка выбора даты
@@ -192,9 +228,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         const today = new Date();
         
         const months = [
-            'Январь', 'Февраль', 'Март', 'Апрель', 
-            'Май', 'Июнь', 'Июль', 'Август',
-            'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            'ЯНВАРЬ', 'ФЕВРАЛЬ', 'МАРТ', 'АПРЕЛЬ', 
+            'МАЙ', 'ИЮНЬ', 'ИЮЛЬ', 'АВГУСТ',
+            'СЕНТЯБРЬ', 'ОКТЯБРЬ', 'НОЯБРЬ', 'ДЕКАБРЬ'
         ];
         
         // Заполняем выбор месяца
@@ -238,17 +274,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             const month = parseInt(monthSelect.value) + 1;
             const year = today.getFullYear();
             bookingData.date = `${day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
+            document.getElementById('toTimePage').classList.add('active'); // Кнопка "Далее" на первом шаге
             document.getElementById('toTimePage').disabled = false;
             console.log("bookingData.date обновлено до:", bookingData.date); // Отладка: Проверка bookingData.date
+            updateBreadcrumb();
         }
     }
 
     // Настройка выбора симулятора
     function setupSimulatorSelection() {
-        document.querySelectorAll('.simulator, .simulator-box').forEach(sim => {
+        document.querySelectorAll('.simulator-box').forEach(sim => {
             const removeBtn = sim.querySelector('.remove-selection');
 
             sim.addEventListener('click', function(e) {
+                // Если клик был по крестику, то не обрабатываем как выбор
                 if (e.target === removeBtn) {
                     return;
                 }
@@ -271,7 +310,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         bookingData.simulator = ['any'];
                     } else {
                         // Если выбираем конкретный симулятор, то снимаем выбор с "Любого"
-                        const anySim = document.querySelector('.simulator.full');
+                        const anySim = document.querySelector('.simulator-box.full');
                         if (anySim && anySim.classList.contains('selected')) {
                             anySim.classList.remove('selected');
                             const anyRemoveBtn = anySim.querySelector('.remove-selection');
@@ -279,6 +318,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                             bookingData.simulator = [];
                         }
                         
+                        // Добавляем или убираем выбранный симулятор
                         if (!bookingData.simulator.includes(simulatorId)) {
                             bookingData.simulator.push(simulatorId);
                         }
@@ -287,20 +327,33 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'flex';
                 }
                 
-                document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+                // Проверяем, должна ли кнопка "Далее" быть активной
+                if (bookingData.simulator.length === 0) {
+                    document.getElementById('toPackagePage').classList.remove('active');
+                    document.getElementById('toPackagePage').disabled = true;
+                } else {
+                    document.getElementById('toPackagePage').classList.add('active');
+                    document.getElementById('toPackagePage').disabled = false;
+                }
+                updateBreadcrumb();
             });
 
+            // Обработчик для крестика
             if (removeBtn) {
                 removeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const parentSim = this.closest('.simulator, .simulator-box');
+                    e.stopPropagation(); // Предотвращаем срабатывание клика на родительском элементе
+                    const parentSim = this.closest('.simulator-box');
                     if (parentSim) {
                         const simulatorId = parentSim.dataset.id;
                         parentSim.classList.remove('selected');
                         this.style.display = 'none';
                         bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
-                        document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+                        if (bookingData.simulator.length === 0) {
+                            document.getElementById('toPackagePage').classList.remove('active');
+                            document.getElementById('toPackagePage').disabled = true;
+                        }
                     }
+                    updateBreadcrumb();
                 });
             }
         });
@@ -309,7 +362,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Настройка выбора пакета времени
     function setupPackageSelection() {
         document.getElementById('package-grid').innerHTML = packages.map(pkg => `
-            <div class="package" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
+            <div class="grid-item package" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
                 <div>${pkg.duration}</div>
                 <div class="price">${pkg.price}</div>
             </div>
@@ -321,11 +374,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 this.classList.add('selected');
                 bookingData.duration = this.dataset.duration;
                 bookingData.price = this.dataset.price;
-                bookingData.hours = parseInt(this.dataset.hours);
+                bookingData.hours = parseInt(this.dataset.hours); // Сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
-                    `Вы выбрали: ${this.dataset.duration} (${this.querySelector('.price').textContent})`;
+                    `ВЫ ВЫБРАЛИ: ${this.dataset.duration} (${this.querySelector('.price').textContent})`;
+                document.getElementById('toTimePageNew').classList.add('active');
                 document.getElementById('toTimePageNew').disabled = false;
-                setupTimeSlotsGenerator();
+                setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
+                updateBreadcrumb();
             });
         });
     }
@@ -336,6 +391,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         timeGrid.innerHTML = ''; // Очищаем предыдущие слоты
 
         if (!bookingData.hours || !bookingData.date || bookingData.simulator.length === 0) {
+            // Если пакет, дата или симулятор не выбраны, не показываем слоты
             return;
         }
 
@@ -343,13 +399,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         const durationHours = bookingData.hours;
         const selectedDate = bookingData.date; // e.g., "15.07.2025"
 
+        // Fetch existing bookings for the selected date and simulators
         let occupiedSlots = [];
-        if (supabase && currentSupabaseUser) {
+        if (supabase && currentSupabaseUser) { // Проверяем инициализацию Supabase
             console.log("Попытка получить занятые слоты из Supabase...");
             try {
                 const { data: bookings, error } = await supabase
                     .from('bookings')
-                    .select('time_range, simulator, hours') // Changed simulator_ids to simulator, duration_hours to hours
+                    .select('time, simulator, hours') // Выбираем поля, как они названы в Supabase
                     .eq('date', selectedDate)
                     .neq('status', 'rejected'); // Исключаем отклоненные заявки
 
@@ -358,7 +415,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 } else {
                     occupiedSlots = bookings.filter(booking => {
                         // Проверяем, пересекается ли хотя бы один симулятор
-                        const simulatorOverlap = booking.simulator.some(bookedSim => bookingData.simulator.includes(bookedSim));
+                        // Убедимся, что booking.simulator является массивом
+                        const bookedSimulators = Array.isArray(booking.simulator) ? booking.simulator : [booking.simulator];
+                        const simulatorOverlap = bookedSimulators.some(bookedSim => bookingData.simulator.includes(bookedSim));
                         return simulatorOverlap;
                     });
                     console.log("Занятые слоты для выбранной даты и симуляторов:", occupiedSlots);
@@ -380,14 +439,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (endHour >= 24) {
                 endHourFormatted = (endHour - 24).toString().padStart(2, '0');
-                endTimeSuffix = ' (следующий день)';
+                endTimeSuffix = ' (СЛЕДУЮЩИЙ ДЕНЬ)';
             }
 
             const currentTimeSlot = `${startHourFormatted}:00 – ${endHourFormatted}:00${endTimeSuffix}`;
             
             const isOccupied = occupiedSlots.some(occupied => {
                 // Извлекаем только начальное время из строки "ЧЧ:ММ – ЧЧ:ММ"
-                const occupiedStartTimeStr = occupied.time.split(' ')[0]; // Changed time_range to time
+                const occupiedStartTimeStr = occupied.time.split(' ')[0];
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 
                 const currentStartTimeStr = currentTimeSlot.split(' ')[0];
@@ -401,19 +460,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             const disabledClass = isOccupied ? 'disabled' : '';
 
-            times.push(`<div class="time-slot ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
+            times.push(`<div class="grid-item time-slot ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
         }
 
         // Если "Ночь", добавляем специальный слот
-        if (bookingData.duration === 'Ночь') {
+        if (bookingData.duration === 'НОЧЬ') {
             const nightSlot = '00:00 – 08:00';
             const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const occupiedStartTimeStr = occupied.time.split(' ')[0]; // Changed time_range to time
+                const occupiedStartTimeStr = occupied.time.split(' ')[0];
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 return occupiedStartHour === 0; // Проверка на начало в 00:00
             });
             const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
-            times.push(`<div class="time-slot ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
+            times.push(`<div class="grid-item time-slot ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
         }
         
         timeGrid.innerHTML = times.join('');
@@ -423,22 +482,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
                 bookingData.time = this.dataset.timeRange;
-                document.getElementById('toWheelPage').disabled = false;
-            });
-        });
-        document.getElementById('toWheelPage').disabled = true; // Отключаем, пока слот не выбран
-    }
-
-    // Настройка выбора руля
-    function setupWheelSelection() {
-        document.querySelectorAll('.wheel').forEach(wheel => {
-            wheel.addEventListener('click', function() {
-                document.querySelectorAll('.wheel').forEach(w => w.classList.remove('selected'));
-                this.classList.add('selected');
-                bookingData.wheel = this.dataset.id;
+                document.getElementById('toFormPage').classList.add('active'); // Кнопка "Далее"
                 document.getElementById('toFormPage').disabled = false;
+                updateBreadcrumb();
             });
         });
+        document.getElementById('toFormPage').classList.remove('active'); // Отключаем, пока слот не выбран
+        document.getElementById('toFormPage').disabled = true;
     }
 
     // Загрузка данных пользователя из Supabase
@@ -489,7 +539,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 console.log("Данные пользователя не найдены. Форма останется пустой или с данными из Telegram Web App.");
                 document.querySelector('#form-step input[type="text"]').value = '';
-                document.getElementById('phone').value = '+7 (XXX) XXX-'; // Устанавливаем префикс
+                document.getElementById('phone').value = phonePrefix; // Устанавливаем префикс
                 document.getElementById('telegram').value = bookingData.telegram; // Предзаполняем Telegram ником из WebApp
             }
         } catch (error) {
@@ -595,17 +645,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Настройка навигации
     function setupNavigation() {
-        document.getElementById('toTimePage').addEventListener('click', () => showStep(1));
-        document.getElementById('toPackagePage').addEventListener('click', () => showStep(2));
-        document.getElementById('toTimePageNew').addEventListener('click', () => setupTimeSlotsGenerator().then(() => showStep(3))); // Перегенерация слотов перед показом
-        document.getElementById('toWheelPage').addEventListener('click', () => showStep(4));
-        document.getElementById('toFormPage').addEventListener('click', () => showStep(5));
+        // Кнопки "Далее"
+        document.getElementById('toTimePage').addEventListener('click', () => showStep(1)); // С даты на симулятор
+        document.getElementById('toPackagePage').addEventListener('click', () => showStep(2)); // С симулятора на пакет
+        document.getElementById('toTimePageNew').addEventListener('click', () => setupTimeSlotsGenerator().then(() => showStep(3))); // С пакета на время
+        // document.getElementById('toWheelPage').addEventListener('click', () => showStep(4)); // Удалено: Со времени на руль
+        document.getElementById('toFormPage').addEventListener('click', () => showStep(4)); // Со времени на форму (было с руля на форму)
         
-        document.getElementById('backToCalendarPage').addEventListener('click', () => showStep(0));
-        document.getElementById('backToSimulatorPage').addEventListener('click', () => showStep(1));
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(2));
-        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(3));
-        document.getElementById('backToWheelPage').addEventListener('click', () => showStep(4));
+        // Кнопки "Назад"
+        document.getElementById('backToCalendarPage').addEventListener('click', () => showStep(0)); // С симулятора на дату
+        document.getElementById('backToSimulatorPage').addEventListener('click', () => showStep(1)); // С пакета на симулятор
+        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(2)); // Со времени на пакет
+        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(3)); // С формы на время (было с руля на время)
+        // document.getElementById('backToWheelPage').addEventListener('click', () => showStep(4)); // Удалено: С формы на руль
         
         const bookingForm = document.getElementById('booking-form');
         if (bookingForm) {
@@ -643,15 +695,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         details.innerHTML = `
-            <p><strong>Дата:</strong> ${bookingData.date}</p>
-            <p><strong>Тариф:</strong> ${bookingData.duration}</p>
-            <p><strong>Время:</strong> ${bookingData.time}</p>
-            <p><strong>Симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
-            <p><strong>Руль:</strong> ${getWheelName(bookingData.wheel)}</p>
-            <p><strong>Имя:</strong> ${bookingData.name}</p>
-            <p><strong>Телефон:</strong> ${bookingData.phone}</p>
-            <p><strong>Telegram:</strong> @${bookingData.telegram}</p>
-            ${bookingData.comment ? `<p><strong>Комментарий:</strong> ${bookingData.comment}</p>` : ''}
+            <p><strong>ДАТА:</strong> ${bookingData.date}</p>
+            <p><strong>ТАРИФ:</strong> ${bookingData.duration}</p>
+            <p><strong>ВРЕМЯ:</strong> ${bookingData.time}</p>
+            <p><strong>СИМУЛЯТОР(Ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
+            <p><strong>ИМЯ:</strong> ${bookingData.name}</p>
+            <p><strong>ТЕЛЕФОН:</strong> ${bookingData.phone}</p>
+            <p><strong>TELEGRAM:</strong> @${bookingData.telegram}</p>
+            ${bookingData.comment ? `<p><strong>КОММЕНТАРИЙ:</strong> ${bookingData.comment}</p>` : ''}
         `;
         
         // Сохраняем бронирование в Supabase
@@ -664,11 +715,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                         user_id: currentSupabaseUser.id, // Supabase User ID
                         telegram_id: bookingData.telegramId, // Telegram user ID (гарантированно не null)
                         date: bookingData.date,
-                        time_range: bookingData.time,
-                        simulator: bookingData.simulator, // Changed simulator_ids to simulator
-                        wheel: bookingData.wheel,
+                        time: bookingData.time, // Имя поля в Supabase
+                        simulator: bookingData.simulator, // Имя поля в Supabase
+                        // wheel: bookingData.wheel, // Удалено: поле wheel
                         duration_text: bookingData.duration,
-                        hours: bookingData.hours, // Changed duration_hours to hours
+                        hours: bookingData.hours, // Имя поля в Supabase
                         price: parseInt(bookingData.price), // Убедимся, что это число
                         name: bookingData.name,
                         phone_last_4_digits: bookingData.phone ? bookingData.phone.slice(-4) : null, // Сохраняем только последние 4 цифры
@@ -692,7 +743,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.warn("Supabase не инициализирован или пользователь не аутентифицирован. Бронирование не будет сохранено.");
         }
 
-        showStep(6);
+        showStep(5); // Переходим на шаг подтверждения (теперь это шаг 5)
+        updateBreadcrumb();
     }
 
     // Настройка действий на странице подтверждения
@@ -731,8 +783,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             const cancelModal = document.getElementById('cancel-modal');
             if (cancelModal) cancelModal.style.display = 'none';
         });
-
-        // document.getElementById('ask-ai-steward')?.addEventListener('click', openAIChatModal); // Удалено: обработчик для кнопки AI чата
     }
 
     // Настройка кнопок карты и такси
@@ -769,43 +819,41 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
         
-        document.querySelectorAll('.next-btn').forEach(btn => btn.disabled = true);
-        const toTimePageBtn = document.getElementById('toTimePage');
-        if (toTimePageBtn) toTimePageBtn.disabled = false;
+        // Сбрасываем активность кнопок
+        document.getElementById('toTimePage').classList.remove('active');
+        document.getElementById('toTimePage').disabled = true;
+        document.getElementById('toPackagePage').classList.remove('active');
+        document.getElementById('toPackagePage').disabled = true;
+        document.getElementById('toTimePageNew').classList.remove('active');
+        document.getElementById('toTimePageNew').disabled = true;
+        document.getElementById('toFormPage').classList.remove('active');
+        document.getElementById('toFormPage').disabled = true;
+
+        // Первая кнопка "Далее" всегда активна после сброса
+        document.getElementById('toTimePage').classList.add('active');
+        document.getElementById('toTimePage').disabled = false;
         
         showStep(0);
+        updateBreadcrumb();
     }
 
     // Вспомогательные функции
-    function getWheelName(wheelId) {
-        const wheels = {
-            'ks': 'Штурвал KS',
-            'cs': 'Круглый CS',
-            'nobutton': 'Круглый без кнопок',
-            'any': 'Выберу на месте'
-        };
-        return wheels[wheelId] || wheelId;
-    }
+    // function getWheelName(wheelId) { // Удалено: функция для получения имени руля
+    //     const wheels = {
+    //         'ks': 'Штурвал KS',
+    //         'cs': 'Круглый CS',
+    //         'nobutton': 'Круглый без кнопок',
+    //         'any': 'Выберу на месте'
+    //     };
+    //     return wheels[wheelId] || wheelId;
+    // }
 
     function getSimulatorNames(simulatorIds) {
         if (simulatorIds.includes('any')) {
-            return 'Любой';
+            return 'ЛЮБОЙ СИМУЛЯТОР';
         }
-        return simulatorIds.map(id => `Симулятор #${id}`).join(', ');
+        return simulatorIds.map(id => `АВТОСИМ ${id}`).join(', ');
     }
-
-    // --- Функции для AI Чата (удалены) ---
-    // const aiChatModal = document.getElementById('ai-chat-modal');
-    // const aiChatInput = document.getElementById('ai-chat-input');
-    // const aiChatResponse = document.getElementById('ai-chat-response');
-    // const aiChatSubmitBtn = document.getElementById('ai-chat-submit');
-    // const aiChatCloseBtn = document.getElementById('ai-chat-close');
-
-    function setupAIChatFeature() {
-        // Эта функция теперь пуста, так как AI-чат удален
-    }
-
-    // Функции openAIChatModal, closeAIChatModal, handleAIChatSubmit, callGeminiAPI удалены
 
     // Запускаем приложение
     init();
