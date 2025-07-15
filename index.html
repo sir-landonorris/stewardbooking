@@ -262,13 +262,13 @@
             gap: 8px;
         }
 
-        .date-display-text-small { /* Новый класс для мелкого курсивного текста */
-            font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
-            font-style: italic;
-            text-transform: none; /* Убран капслок */
-            font-weight: normal; /* Сброс жирности */
-            color: #000000; /* Черный текст на белом фоне */
-        }
+        /* .date-display-text-small { /* Этот класс удален из HTML */
+        /* font-size: 7px; */
+        /* font-style: italic; */
+        /* text-transform: none; */
+        /* font-weight: normal; */
+        /* color: #000000; */
+        /* } */
 
 
         .date-display .arrow-down {
@@ -312,14 +312,14 @@
             max-height: 120px; /* Максимальная высота для больших экранов */
             background-color: #d9d9d9;
             color: #000000;
-            text-align: center;
-            padding: 16px 0; /* Внутренние отступы */
+            text-align: left; /* Выравнивание текста по левому краю */
+            padding: 8px; /* Уменьшенный padding для размещения контента по углам */
             cursor: pointer;
             border-radius: 0;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            justify-content: space-between; /* Размещаем элементы вверху и внизу */
+            align-items: flex-start; /* Выравниваем по левому краю */
             scroll-snap-align: start;
             font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
             font-size: 20px; /* Крупные цифры */
@@ -329,9 +329,9 @@
 
         .date-carousel .date-item small {
             font-family: 'Helvetica Neue', system-ui, sans-serif;
-            font-size: 14px; /* Меньше для месяца */
+            font-size: 11px; /* На 20% меньше (было 14px) */
             display: block;
-            margin-top: 4px;
+            margin-top: auto; /* Прижимает к низу flex-контейнера */
             font-weight: normal;
             text-transform: none; /* Убран капслок */
         }
@@ -514,7 +514,6 @@
             color: #000000;
             font-family: 'Helvetica Neue', system-ui, sans-serif;
             font-size: 16px;
-            box-sizing: border-box;
             margin-bottom: 16px;
         }
         form input::placeholder,
@@ -717,11 +716,10 @@
         <!-- Шаг 1: Объединенный выбор даты и симулятора -->
         <div id="date-simulator-step" class="step-page active date-simulator-step">
             <div class="date-selection-area">
-                <div class="date-display">
+                <div class="date-display expanded" id="date-toggle">
                     дата <span class="arrow-down"></span>
-                    <span id="date-display-text" class="date-display-text-small"></span>
                 </div>
-                <div id="date-carousel-container" class="date-carousel-container hidden">
+                <div id="date-carousel-container" class="date-carousel-container">
                     <div id="date-carousel" class="date-carousel">
                         <!-- Даты будут сгенерированы JS -->
                     </div>
