@@ -142,11 +142,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         // Настройка всех шагов интерфейса (эти функции всегда должны запускаться)
-        setupCalendar();
-        setupSimulatorSelection();
+        setupDateAndSimulatorSelection(); // Объединенный шаг
         setupPackageSelection();
         setupTimeSlotsGenerator(); // Будет вызван снова после выбора пакета
-        // setupWheelSelection(); // Удалено: шаг выбора руля
         setupForm();
         setupNavigation();
         setupConfirmationActions();
@@ -160,18 +158,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             step.classList.remove('active');
         });
         
-        // Обновлен список шагов, так как шаг с рулем удален
+        // Обновлен список шагов, так как шаг с рулем удален и шаги объединены
         const steps = [
-            'date-select-container', // 0
-            'simulator-step',        // 1
-            'package-step',          // 2
-            'time-select-step',      // 3
-            'form-step',             // 4
-            'confirmation-step'      // 5
+            'date-simulator-step',   // 0 (Объединенный шаг даты и симулятора)
+            'package-step',          // 1
+            'time-select-step',      // 2
+            'form-step',             // 3
+            'confirmation-step'      // 4
         ];
         document.getElementById(steps[stepNumber]).classList.add('active');
         
-        // Обновляем прогресс-бар (всего 6 шагов, но 0-5)
+        // Обновляем прогресс-бар (теперь всего 5 шагов: 0-4)
         updateProgress(stepNumber);
         updateBreadcrumb(); // Обновляем хлебные крошки при смене шага
     }
@@ -181,8 +178,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Целевой глобальный прогресс-бар
         const progressElement = document.getElementById('booking-progress-global');
         if (progressElement) {
-            // Всего 6 шагов (0-5), поэтому делим на 5
-            const progress = (step / 5) * 100;
+            // Всего 5 шагов (0-4), поэтому делим на 4
+            const progress = (step / 4) * 100;
             progressElement.style.width = `${progress}%`;
         } else {
             console.error("Элемент прогресс-бара 'booking-progress-global' не найден.");
@@ -215,79 +212,45 @@ document.addEventListener('DOMContentLoaded', async function() {
         breadcrumbElement.innerHTML = breadcrumbText.join(' / ');
     }
 
-    // Настройка выбора даты
-    function setupCalendar() {
-        const daySelect = document.getElementById('day');
-        const monthSelect = document.getElementById('month');
-        console.log("setupCalendar() called. daySelect:", daySelect, "monthSelect:", monthSelect); // Отладка: Проверка наличия элементов
+    // Объединенная настройка выбора даты и симулятора
+    function setupDateAndSimulatorSelection() {
+        const dateDisplay = document.getElementById('date-display-text');
+        const dateCarouselContainer = document.getElementById('date-carousel-container');
+        const simulatorBoxes = document.querySelectorAll('.simulator-box');
+        const toPackagePageBtn = document.getElementById('toPackagePage');
 
-        if (!daySelect || !monthSelect) {
-            console.error("Элементы выбора даты или месяца не найдены в DOM. Убедитесь, что index.html содержит <select id='day'> и <select id='month'>.");
-            return; // Выходим, если элементы не найдены
-        }
-
+        // Инициализация: Сегодня выбрано по умолчанию
         const today = new Date();
+        const todayFormatted = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+        bookingData.date = todayFormatted;
+        dateDisplay.textContent = `СЕГОДНЯ / ${today.getDate().toString().padStart(2, '0')} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(today).toUpperCase()}`;
         
-        const months = [
-            'ЯНВАРЬ', 'ФЕВРАЛЬ', 'МАРТ', 'АПРЕЛЬ', 
-            'МАЙ', 'ИЮНЬ', 'ИЮЛЬ', 'АВГУСТ',
-            'СЕНТЯБРЬ', 'ОКТЯБРЬ', 'НОЯБРЬ', 'ДЕКАБРЬ'
-        ];
-        
-        // Заполняем выбор месяца
-        const monthOptionsHtml = months.map((month, index) => 
-            `<option value="${index}">${month}</option>`
-        ).join('');
-        monthSelect.innerHTML = monthOptionsHtml;
-        console.log("monthSelect.innerHTML установлено:", monthOptionsHtml); // Отладка: Проверка содержимого месяца
-        
-        monthSelect.value = today.getMonth();
-        console.log("monthSelect.value установлено на:", monthSelect.value); // Отладка: Проверка установленного значения месяца
+        // Инициализация: Автосим 01 выбран по умолчанию
+        const defaultSimulator = document.querySelector('.simulator-box[data-id="1"]');
+        if (defaultSimulator) {
+            defaultSimulator.classList.add('selected');
+            defaultSimulator.querySelector('.remove-selection').style.display = 'flex';
+            bookingData.simulator = ['1'];
+        }
 
-        updateDays(); // Первоначальный вызов для заполнения дней
-        
-        monthSelect.addEventListener('change', updateDays);
-        daySelect.addEventListener('change', function() {
-            updateBookingDate();
-        });
-        
-        function updateDays() {
-            console.log("updateDays() called."); // Отладка: Проверка вызова updateDays()
-            const selectedMonth = parseInt(monthSelect.value);
-            const year = today.getFullYear();
-            const daysInMonth = new Date(year, selectedMonth + 1, 0).getDate();
-            const currentDay = today.getDate();
-            
-            let options = '';
-            for (let i = 1; i <= daysInMonth; i++) {
-                const selected = (selectedMonth === today.getMonth() && i === currentDay) ? 'selected' : '';
-                options += `<option value="${i}" ${selected}>${i}</option>`;
+        // Кнопка "Далее" активна по умолчанию
+        toPackagePageBtn.classList.add('active');
+        toPackagePageBtn.disabled = false;
+
+        // Обработчик для переключения видимости карусели дат
+        dateDisplay.closest('.date-display').addEventListener('click', function() {
+            this.classList.toggle('expanded');
+            dateCarouselContainer.classList.toggle('hidden');
+            if (!dateCarouselContainer.classList.contains('hidden')) {
+                generateDateCarousel(); // Генерируем даты при открытии
             }
-            
-            daySelect.innerHTML = options;
-            console.log("daySelect.innerHTML установлено:", options); // Отладка: Проверка содержимого дня
-            updateBookingDate();
-        }
-        
-        function updateBookingDate() {
-            console.log("updateBookingDate() called."); // Отладка: Проверка вызова updateBookingDate()
-            const day = daySelect.value;
-            const month = parseInt(monthSelect.value) + 1;
-            const year = today.getFullYear();
-            bookingData.date = `${day.padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year}`;
-            document.getElementById('toTimePage').classList.add('active'); // Кнопка "Далее" на первом шаге
-            document.getElementById('toTimePage').disabled = false;
-            updateBreadcrumb();
-        }
-    }
+        });
 
-    // Настройка выбора симулятора
-    function setupSimulatorSelection() {
-        document.querySelectorAll('.simulator-box').forEach(sim => {
+        // Настройка выбора симулятора (повторяется из предыдущей версии, но адаптирована)
+        simulatorBoxes.forEach(sim => {
             const removeBtn = sim.querySelector('.remove-selection');
 
             sim.addEventListener('click', function(e) {
-                // Если клик был по крестику, то не обрабатываем как выбор
                 if (e.target === removeBtn) {
                     return;
                 }
@@ -295,12 +258,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const simulatorId = this.dataset.id;
 
                 if (this.classList.contains('selected')) {
-                    // Если уже выбран, снимаем выбор
                     this.classList.remove('selected');
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
-                    // Если выбираем "Любой симулятор", то снимаем выбор с других
                     if (simulatorId === 'any') {
                         document.querySelectorAll('.simulator-box.selected').forEach(s => {
                             s.classList.remove('selected');
@@ -309,7 +270,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                         });
                         bookingData.simulator = ['any'];
                     } else {
-                        // Если выбираем конкретный симулятор, то снимаем выбор с "Любого"
                         const anySim = document.querySelector('.simulator-box.full');
                         if (anySim && anySim.classList.contains('selected')) {
                             anySim.classList.remove('selected');
@@ -317,8 +277,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                             if (anyRemoveBtn) anyRemoveBtn.style.display = 'none';
                             bookingData.simulator = [];
                         }
-                        
-                        // Добавляем или убираем выбранный симулятор
                         if (!bookingData.simulator.includes(simulatorId)) {
                             bookingData.simulator.push(simulatorId);
                         }
@@ -327,21 +285,20 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'flex';
                 }
                 
-                // Проверяем, должна ли кнопка "Далее" быть активной
+                // Кнопка "Далее" всегда активна, если выбран хотя бы один симулятор
                 if (bookingData.simulator.length === 0) {
-                    document.getElementById('toPackagePage').classList.remove('active');
-                    document.getElementById('toPackagePage').disabled = true;
+                     toPackagePageBtn.classList.remove('active');
+                     toPackagePageBtn.disabled = true;
                 } else {
-                    document.getElementById('toPackagePage').classList.add('active');
-                    document.getElementById('toPackagePage').disabled = false;
+                    toPackagePageBtn.classList.add('active');
+                    toPackagePageBtn.disabled = false;
                 }
                 updateBreadcrumb();
             });
 
-            // Обработчик для крестика
             if (removeBtn) {
                 removeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Предотвращаем срабатывание клика на родительском элементе
+                    e.stopPropagation();
                     const parentSim = this.closest('.simulator-box');
                     if (parentSim) {
                         const simulatorId = parentSim.dataset.id;
@@ -349,15 +306,74 @@ document.addEventListener('DOMContentLoaded', async function() {
                         this.style.display = 'none';
                         bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                         if (bookingData.simulator.length === 0) {
-                            document.getElementById('toPackagePage').classList.remove('active');
-                            document.getElementById('toPackagePage').disabled = true;
+                            toPackagePageBtn.classList.remove('active');
+                            toPackagePageBtn.disabled = true;
                         }
                     }
                     updateBreadcrumb();
                 });
             }
         });
+
+        // Генерация и обработка выбора дат в карусели
+        function generateDateCarousel() {
+            const carousel = document.getElementById('date-carousel');
+            carousel.innerHTML = ''; // Очищаем перед генерацией
+
+            const today = new Date();
+            for (let i = 0; i < 30; i++) { // Генерируем даты на 30 дней вперед
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const year = date.getFullYear();
+                const formattedDate = `${day}.${month}.${year}`;
+                const monthName = new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(date).toUpperCase();
+                
+                let dateText = `${day}<br><small>${monthName}</small>`;
+                let isSelected = (bookingData.date === formattedDate);
+                if (i === 0 && bookingData.date === formattedDate) {
+                    dateText = `СЕГОДНЯ<br><small>${day} ${monthName}</small>`;
+                }
+
+                const dateItem = document.createElement('div');
+                dateItem.classList.add('date-item');
+                if (isSelected) {
+                    dateItem.classList.add('selected');
+                }
+                dateItem.dataset.date = formattedDate;
+                dateItem.innerHTML = dateText;
+
+                dateItem.addEventListener('click', function() {
+                    document.querySelectorAll('.date-item').forEach(item => item.classList.remove('selected'));
+                    this.classList.add('selected');
+                    bookingData.date = this.dataset.date;
+                    
+                    // Обновляем отображение даты вверху
+                    if (this.dataset.date === todayFormatted) {
+                        dateDisplay.textContent = `СЕГОДНЯ / ${today.getDate().toString().padStart(2, '0')} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(today).toUpperCase()}`;
+                    } else {
+                        const [d, m, y] = this.dataset.date.split('.');
+                        const selectedDateObj = new Date(y, parseInt(m) - 1, d);
+                        dateDisplay.textContent = `${d} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(selectedDateObj).toUpperCase()}`;
+                    }
+                    dateDisplay.closest('.date-display').classList.remove('expanded');
+                    dateCarouselContainer.classList.add('hidden');
+                    updateBreadcrumb();
+                });
+                carousel.appendChild(dateItem);
+            }
+            // Прокручиваем к выбранной дате, если она не сегодня и не первая в списке
+            if (bookingData.date && bookingData.date !== todayFormatted) {
+                const selectedDateElement = carousel.querySelector(`.date-item[data-date="${bookingData.date}"]`);
+                if (selectedDateElement) {
+                    selectedDateElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+        }
     }
+
 
     // Настройка выбора пакета времени
     function setupPackageSelection() {
@@ -450,7 +466,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const [occupiedStartHour] = occupiedStartTimeStr.split(':').map(Number);
                 
                 const currentStartTimeStr = currentTimeSlot.split(' ')[0];
-                const [currentStartHour] = currentStartTimeStr.split(':').map(Number);
+                const [currentStartHour] = currentStartTimeSlot.split(':').map(Number);
 
                 // Проверка на пересечение временных диапазонов
                 // Упрощенная логика: если начальные часы совпадают, считаем занятым.
@@ -646,18 +662,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Настройка навигации
     function setupNavigation() {
         // Кнопки "Далее"
-        document.getElementById('toTimePage').addEventListener('click', () => showStep(1)); // С даты на симулятор
-        document.getElementById('toPackagePage').addEventListener('click', () => showStep(2)); // С симулятора на пакет
-        document.getElementById('toTimePageNew').addEventListener('click', () => setupTimeSlotsGenerator().then(() => showStep(3))); // С пакета на время
-        // document.getElementById('toWheelPage').addEventListener('click', () => showStep(4)); // Удалено: Со времени на руль
-        document.getElementById('toFormPage').addEventListener('click', () => showStep(4)); // Со времени на форму (было с руля на форму)
+        document.getElementById('toPackagePage').addEventListener('click', () => showStep(1)); // С даты+симулятора на пакет
+        document.getElementById('toTimePageNew').addEventListener('click', () => setupTimeSlotsGenerator().then(() => showStep(2))); // С пакета на время
+        document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // Со времени на форму
         
         // Кнопки "Назад"
-        document.getElementById('backToCalendarPage').addEventListener('click', () => showStep(0)); // С симулятора на дату
-        document.getElementById('backToSimulatorPage').addEventListener('click', () => showStep(1)); // С пакета на симулятор
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(2)); // Со времени на пакет
-        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(3)); // С формы на время (было с руля на время)
-        // document.getElementById('backToWheelPage').addEventListener('click', () => showStep(4)); // Удалено: С формы на руль
+        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // С пакета на дату+симулятор
+        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // Со времени на пакет
+        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // С формы на время
         
         const bookingForm = document.getElementById('booking-form');
         if (bookingForm) {
@@ -743,7 +755,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.warn("Supabase не инициализирован или пользователь не аутентифицирован. Бронирование не будет сохранено.");
         }
 
-        showStep(5); // Переходим на шаг подтверждения (теперь это шаг 5)
+        showStep(4); // Переходим на шаг подтверждения (теперь это шаг 4)
         updateBreadcrumb();
     }
 
@@ -820,8 +832,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
         
         // Сбрасываем активность кнопок
-        document.getElementById('toTimePage').classList.remove('active');
-        document.getElementById('toTimePage').disabled = true;
         document.getElementById('toPackagePage').classList.remove('active');
         document.getElementById('toPackagePage').disabled = true;
         document.getElementById('toTimePageNew').classList.remove('active');
@@ -829,25 +839,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('toFormPage').classList.remove('active');
         document.getElementById('toFormPage').disabled = true;
 
-        // Первая кнопка "Далее" всегда активна после сброса
-        document.getElementById('toTimePage').classList.add('active');
-        document.getElementById('toTimePage').disabled = false;
+        // Первая кнопка "Далее" всегда активна после сброса (для объединенного шага)
+        document.getElementById('toPackagePage').classList.add('active');
+        document.getElementById('toPackagePage').disabled = false;
         
+        // Сброс и инициализация объединенного шага
+        const today = new Date();
+        const todayFormatted = `${today.getDate().toString().padStart(2, '0')}.${(today.getMonth() + 1).toString().padStart(2, '0')}.${today.getFullYear()}`;
+        bookingData.date = todayFormatted;
+        document.getElementById('date-display-text').textContent = `СЕГОДНЯ / ${today.getDate().toString().padStart(2, '0')} ${new Intl.DateTimeFormat('ru-RU', { month: 'long' }).format(today).toUpperCase()}`;
+        document.getElementById('date-display-text').closest('.date-display').classList.remove('expanded');
+        document.getElementById('date-carousel-container').classList.add('hidden');
+        
+        const defaultSimulator = document.querySelector('.simulator-box[data-id="1"]');
+        if (defaultSimulator) {
+            defaultSimulator.classList.add('selected');
+            defaultSimulator.querySelector('.remove-selection').style.display = 'flex';
+            bookingData.simulator = ['1'];
+        }
+
         showStep(0);
         updateBreadcrumb();
     }
 
     // Вспомогательные функции
-    // function getWheelName(wheelId) { // Удалено: функция для получения имени руля
-    //     const wheels = {
-    //         'ks': 'Штурвал KS',
-    //         'cs': 'Круглый CS',
-    //         'nobutton': 'Круглый без кнопок',
-    //         'any': 'Выберу на месте'
-    //     };
-    //     return wheels[wheelId] || wheelId;
-    // }
-
     function getSimulatorNames(simulatorIds) {
         if (simulatorIds.includes('any')) {
             return 'ЛЮБОЙ СИМУЛЯТОР';

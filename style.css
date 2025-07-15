@@ -103,9 +103,6 @@ body {
     line-height: 1.2;
 }
 
-/* Header Video Styling (УДАЛЕНО) */
-/* .header-video { ... } */
-
 /* Кнопки и блоки выбора */
 .block {
     display: inline-block;
@@ -116,7 +113,7 @@ body {
     cursor: pointer;
     border-radius: 0; /* Нет скруглений */
     box-shadow: none; /* Нет теней */
-    margin-bottom: 16px; /* Расстояние между блоками */
+    margin: 0; /* УДАЛЕНО: margin-bottom, все плотно */
     font-size: 16px; /* Основной текст */
     border: none; /* УДАЛЕНО: обводка */
 }
@@ -146,6 +143,7 @@ body {
     box-shadow: none; /* Нет теней */
     text-transform: uppercase; /* Кнопки в верхнем регистре */
     font-size: 18px; /* Крупнее, чем основной текст */
+    margin: 0; /* УДАЛЕНО: margin-bottom */
 }
 .button.active {
     background-color: #000000; /* Черный */
@@ -228,28 +226,96 @@ body {
     margin-top: 16px;
 }
 
-/* Выбор даты */
-.form-group label {
-    font-family: 'Helvetica Neue', system-ui, sans-serif;
-    font-size: 14px;
-    color: #000000;
-    margin-bottom: 8px;
-    display: block;
+/* Объединенный шаг: Дата и Симулятор */
+.date-simulator-step {
+    margin-bottom: 16px; /* Отступ от нижних элементов */
 }
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: none; /* УДАЛЕНО: обводка */
-    border-radius: 0; /* Нет скруглений */
-    background-color: #d9d9d9; /* Светло-серый фон */
-    color: #000000; /* Черный текст */
+
+.date-selection-area {
+    margin-bottom: 16px; /* Отступ между датой и симуляторами */
+}
+
+.date-display {
+    font-family: 'Helvetica Neue', system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 8px; /* Отступ от заголовка "ДАТА" */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.date-display .arrow-down {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #000000; /* Черная стрелка */
+    transition: transform 0.2s ease;
+}
+
+.date-display.expanded .arrow-down {
+    transform: rotate(180deg);
+}
+
+.date-carousel {
+    display: flex;
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch; /* Для плавного скролла на iOS */
+    scroll-snap-type: x mandatory;
+    gap: 0; /* Плотное прилегание */
+    margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+    margin-right: -16px;
+    padding-left: 16px; /* Добавляем padding для первого элемента */
+    padding-right: 16px; /* Добавляем padding для последнего элемента */
+    margin-bottom: 16px; /* Отступ от симуляторов */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.date-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.date-carousel .date-item {
+    flex: 0 0 auto; /* Не сжимать и не растягивать */
+    width: calc(33.333% - 0px); /* 3 элемента в ряд, без gap */
+    height: calc(33.333vw - 0px); /* Делаем квадратным относительно ширины viewport */
+    max-width: 140px; /* Максимальная ширина для больших экранов */
+    max-height: 140px; /* Максимальная высота для больших экранов */
+    background-color: #d9d9d9;
+    color: #000000;
+    text-align: center;
+    padding: 16px 0; /* Внутренние отступы */
+    box-sizing: border-box;
+    cursor: pointer;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    scroll-snap-align: start;
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
     font-size: 24px; /* Крупные цифры */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: none; /* Убираем стрелку */
-    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.date-carousel .date-item small {
+    font-family: 'Helvetica Neue', system-ui, sans-serif;
+    font-size: 16px;
+    display: block;
+    margin-top: 4px;
+    font-weight: normal;
+}
+
+.date-carousel .date-item.selected {
+    background-color: #000000;
+    color: #ffffff;
 }
 
 /* Выбор симуляторов */
@@ -262,11 +328,13 @@ h2 {
     margin-bottom: 16px;
     color: #000000;
 }
-.grid-container {
+.simulator-grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* 2-3 столбца */
-    gap: 16px; /* Расстояние между блоками */
+    gap: 0; /* Плотное прилегание */
     margin-bottom: 16px;
+    margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+    margin-right: -16px;
 }
 .grid-item {
     padding: 16px;
@@ -274,12 +342,21 @@ h2 {
     background-color: #d9d9d9;
     color: #000000;
     cursor: pointer;
-    border: none; /* УДАЛЕНО: обводка */
     border-radius: 0;
     box-shadow: none;
     font-size: 16px;
     text-transform: uppercase;
     font-family: 'Helvetica Neue', system-ui, sans-serif;
+    border: none; /* УДАЛЕНО: обводка */
+    margin: 0; /* Плотное прилегание */
+    position: relative; /* Для позиционирования крестика */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1; /* Делаем квадратным */
+    min-width: 140px; /* Минимальный размер для адаптивности */
+    min-height: 140px;
 }
 .grid-item small {
     font-size: 12px;
@@ -292,7 +369,7 @@ h2 {
 }
 .grid-item.disabled {
     background-color: #d9d9d9;
-    color: #a0a0a0;
+    color: #a0a0a0; /* Серый для зачёркнутого */
     text-decoration: line-through;
     pointer-events: none;
     border: none; /* УДАЛЕНО: обводка */
@@ -318,6 +395,17 @@ h2 {
     display: flex;
 }
 
+/* Стиль для "Любой симулятор" */
+.grid-item.full {
+    grid-column: 1 / -1; /* Занимает всю ширину сетки */
+    width: 100%;
+    aspect-ratio: unset; /* Убираем квадратность для этого элемента */
+    height: auto; /* Автоматическая высота */
+    padding: 16px; /* Восстанавливаем padding */
+    min-height: unset; /* Убираем минимальную высоту */
+}
+
+
 /* Выбор пакета времени */
 .package .price {
     font-family: 'Monaco', monospace; /* Моноширинный шрифт для цен */
@@ -338,6 +426,14 @@ h2 {
     font-size: 20px; /* Крупнее для слотов */
     padding: 12px;
     border: none; /* УДАЛЕНО: обводка */
+    margin: 0; /* Плотное прилегание */
+    aspect-ratio: 1 / 1; /* Делаем квадратным */
+    min-width: 140px;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Форма данных */
@@ -442,12 +538,14 @@ textarea {
     .header-text h1 {
         font-size: 20px;
     }
-    .grid-container {
+    .simulator-grid-container {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* 2-3 столбца */
     }
     .grid-item {
         font-size: 14px;
         padding: 12px;
+        min-width: 120px;
+        min-height: 120px;
     }
     .grid-item small {
         font-size: 10px;
@@ -463,9 +561,30 @@ textarea {
         font-size: 14px;
         padding: 10px;
     }
+    .date-carousel .date-item {
+        width: calc(33.333% - 0px); /* 3 элемента в ряд */
+        height: calc(33.333vw - 0px);
+    }
+    .time-slot {
+        font-size: 16px;
+        min-width: 120px;
+        min-height: 120px;
+    }
 }
 @media (max-width: 380px) {
-    .grid-container {
+    .simulator-grid-container {
         grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* 2-3 столбца */
+    }
+    .grid-item {
+        min-width: 100px;
+        min-height: 100px;
+    }
+    .date-carousel .date-item {
+        width: calc(50% - 0px); /* 2 элемента в ряд на очень маленьких экранах */
+        height: calc(50vw - 0px);
+    }
+    .time-slot {
+        min-width: 100px;
+        min-height: 100px;
     }
 }
