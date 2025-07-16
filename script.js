@@ -1,112 +1,112 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Supabase variables (provided by the Canvas environment)
+    // supabase variables (provided by the canvas environment)
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     let supabaseConfig = typeof __supabase_config !== 'undefined' ? JSON.parse(__supabase_config) : {};
     
-    // --- START: Safeguard for missing Supabase config properties ---
+    // --- start: safeguard for missing supabase config properties ---
     if (!supabaseConfig.url || supabaseConfig.url === "https://dummy.supabase.co") {
-        console.error("CRITICAL ERROR: Supabase 'url' is missing or is a dummy value from __supabase_config. Please ensure your Canvas environment provides a complete and valid Supabase config from your Supabase console.");
-        supabaseConfig.url = "https://dummy.supabase.co"; // Fallback for initialization, but app won't work
+        console.error("critical error: supabase 'url' is missing or is a dummy value from __supabase_config. please ensure your canvas environment provides a complete and valid supabase config from your supabase console.");
+        supabaseConfig.url = "https://dummy.supabase.co"; // fallback for initialization, but app won't work
     }
     if (!supabaseConfig.anonKey || supabaseConfig.anonKey === "dummy-anon-key") {
-        console.error("CRITICAL ERROR: Supabase 'anonKey' is missing or is a dummy value from __supabase_config. Please ensure your Canvas environment provides a complete and valid Supabase config from your Supabase console.");
-        supabaseConfig.anonKey = "dummy-anon-key"; // Fallback for initialization, but app won't work
+        console.error("critical error: supabase 'anonkey' is missing or is a dummy value from __supabase_config. please ensure your canvas environment provides a complete and valid supabase config from your supabase console.");
+        supabaseConfig.anonKey = "dummy-anon-key"; // fallback for initialization, but app won't work
     }
-    // --- END: Safeguard ---
+    // --- end: safeguard ---
 
     let supabase, userId;
     let isAuthReady = false;
 
-    // Все данные бронирования
+    // все данные бронирования
     const bookingData = {
         date: null,
         time: null,
-        simulator: [], // Изменено на массив для множественного выбора
-        wheel: null, // Теперь не используется, но оставлено для совместимости
-        duration: null, // Длительность пакета, например "1 час"
+        simulator: [], // изменено на массив для множественного выбора
+        wheel: null, // теперь не используется, но оставлено для совместимости
+        duration: null, // длительность пакета, например "1 час"
         price: null,
         name: null,
         phone: null,
         telegram: null,
-        telegramId: null, // Добавляем Telegram ID
+        telegramId: null, // добавляем telegram id
         comment: null
     };
 
-    // Все пакеты времени
+    // все пакеты времени
     const packages = [
         { duration: '1 час', price: '450 ₽', value: 450, hours: 1, originalPrice: 450 },
         { duration: '2 часа', price: '850 ₽', value: 850, hours: 2, originalPrice: 900 },
         { duration: '3 часа', price: '1200 ₽', value: 1200, hours: 3, originalPrice: 1350 },
         { duration: '5 часов', price: '1900 ₽', value: 1900, hours: 5, originalPrice: 2250 },
-        { duration: 'Ночь', price: '2500 ₽', value: 2500, hours: 8, originalPrice: null } // No original price for night
+        { duration: 'ночь', price: '2500 ₽', value: 2500, hours: 8, originalPrice: null } // no original price for night
     ];
-    // Базовая часовая ставка для расчета перечеркнутой цены
+    // базовая часовая ставка для расчета перечеркнутой цены
     const BASE_HOURLY_RATE = 450;
-    // Ставка для расчета цен в "Своем пакете" после 3 часов
+    // ставка для расчета цен в "своем пакете" после 3 часов
     const CUSTOM_HOURLY_RATE = 400; 
 
-    // Инициализация приложения
+    // инициализация приложения
     async function init() {
         try {
             supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
-            console.log("Supabase client initialized.");
+            console.log("supabase client initialized.");
 
-            // Get user session or sign in anonymously if needed for Supabase RLS
+            // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) {
-                console.error("Error getting Supabase session:", sessionError);
+                console.error("error getting supabase session:", sessionError);
             }
 
             if (session && session.user) {
                 userId = session.user.id;
-                console.log("Supabase authenticated. User ID:", userId);
+                console.log("supabase authenticated. user id:", userId);
             } else {
-                userId = crypto.randomUUID(); // Fallback if no user or anonymous sign-in fails
-                console.warn("No Supabase user session found. Using a random UUID as user ID:", userId);
+                userId = crypto.randomUUID(); // fallback if no user or anonymous sign-in fails
+                console.warn("no supabase user session found. using a random uuid as user id:", userId);
             }
-            isAuthReady = true; // Mark as ready after auth check (even if anonymous/UUID)
+            isAuthReady = true; // mark as ready after auth check (even if anonymous/uuid)
 
-            // Initialize Telegram Web App
+            // initialize telegram web app
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
-                console.log("Telegram Web App ready.");
+                console.log("telegram web app ready.");
 
                 const userTg = Telegram.WebApp.initDataUnsafe.user;
                 if (userTg) {
-                    bookingData.telegramId = userTg.id.toString(); // Store Telegram ID
-                    bookingData.telegram = userTg.username || ''; // Store Telegram username
-                    console.log("Telegram User Data:", userTg);
+                    bookingData.telegramId = userTg.id.toString(); // store telegram id
+                    bookingData.telegram = userTg.username || ''; // store telegram username
+                    console.log("telegram user data:", userTg);
                     await loadUserData(bookingData.telegramId);
                 }
             } else {
-                console.warn("Telegram Web App SDK not found or not ready.");
-                // Fallback for non-Telegram environment
+                console.warn("telegram web app sdk not found or not ready.");
+                // fallback for non-telegram environment
                 document.getElementById('web-app-fallback').classList.remove('hidden');
                 document.getElementById('main-booking-content').style.display = 'none';
             }
 
             setupCalendar();
-            setupSimulatorSelection(); // This will now correctly initialize bookingData.simulator
+            setupSimulatorSelection(); // this will now correctly initialize bookingData.simulator
             setupPackageSelection();
-            setupTimeSlotsGenerator(); // Will be called again after package selection
+            setupTimeSlotsGenerator(); // will be called again after package selection
             setupForm();
             setupNavigation();
             setupConfirmationActions();
             setupMapButtons();
-            showStep(0); // Start at the first step
+            showStep(0); // start at the first step
 
-            // Ensure modal is hidden on load
+            // ensure modal is hidden on load
             document.getElementById('cancel-modal').style.display = 'none';
 
         } catch (error) {
-            console.error("Error initializing application:", error);
+            console.error("error initializing application:", error);
         }
     }
 
-    // Показываем нужный шаг и скрываем остальные
+    // показываем нужный шаг и скрываем остальные
     function showStep(stepNumber) {
         document.querySelectorAll('.step-page').forEach(step => {
             step.classList.remove('active');
@@ -123,8 +123,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         updateProgress(stepNumber);
 
-        // Показываем предупреждение для длительных броней, если это шаг выбора времени
-        if (stepNumber === 2) { // Шаг выбора времени
+        // показываем предупреждение для длительных броней, если это шаг выбора времени
+        if (stepNumber === 2) { // шаг выбора времени
             const longBookingWarning = document.getElementById('long-booking-warning');
             if (bookingData.hours && bookingData.hours >= 12) {
                 longBookingWarning.style.display = 'block';
@@ -134,29 +134,28 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // Обновляем прогресс-бар
+    // обновляем прогресс-бар
     function updateProgress(step) {
-        const totalSteps = document.querySelectorAll('.step-page').length; // Correctly count active steps
+        const totalSteps = document.querySelectorAll('.step-page').length; // correctly count active steps
         const progress = (step / (totalSteps - 1)) * 100;
         document.getElementById('booking-progress-global').style.width = `${progress}%`;
     }
 
-    // Настройка выбора даты
+    // настройка выбора даты
     function setupCalendar() {
         const dateToggle = document.getElementById('date-toggle');
         const dateCarouselContainer = document.getElementById('date-carousel-container');
         const dateCarousel = document.getElementById('date-carousel');
-        const currentDateDisplay = document.getElementById('current-date-display');
         const today = new Date();
         
-        // Месяцы для отображения (полные названия)
+        // месяцы для отображения (полные названия)
         const months = [
             'январь', 'февраль', 'март', 'апрель', 
             'май', 'июнь', 'июль', 'август',
             'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
         ];
         
-        // Генерируем даты на 30 дней вперед
+        // генерируем даты на 30 дней вперед
         let options = '';
         for (let i = 0; i < 30; i++) {
             const date = new Date();
@@ -165,9 +164,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             const day = date.getDate();
             const monthIndex = date.getMonth();
             const year = date.getFullYear();
-            const isToday = (i === 0); // Первый элемент всегда "сегодня"
+            const isToday = (i === 0); // первый элемент всегда "сегодня"
             
-            const selectedClass = isToday ? 'selected' : ''; // Выбираем "сегодня" по умолчанию
+            const selectedClass = isToday ? 'selected' : ''; // выбираем "сегодня" по умолчанию
             
             options += `
                 <div class="date-item ${selectedClass}" data-full-date="${day.toString().padStart(2, '0')}.${(monthIndex + 1).toString().padStart(2, '0')}.${year}">
@@ -178,57 +177,57 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         dateCarousel.innerHTML = options;
         
-        // Обработчик для переключения видимости календаря
+        // обработчик для переключения видимости календаря
         dateToggle.addEventListener('click', function() {
             dateCarouselContainer.classList.toggle('hidden');
             this.classList.toggle('expanded');
         });
 
-        // Обработчик выбора даты
+        // обработчик выбора даты
         document.querySelectorAll('.date-carousel .date-item').forEach(item => {
             item.addEventListener('click', function() {
-                // Снимаем выделение со всех дат
+                // снимаем выделение со всех дат
                 document.querySelectorAll('.date-carousel .date-item').forEach(el => el.classList.remove('selected'));
-                // Выделяем выбранную дату
+                // выделяем выбранную дату
                 this.classList.add('selected');
-                // Обновляем данные бронирования
+                // обновляем данные бронирования
                 updateBookingDate();
-                // Календарь не сворачивается
+                // календарь не сворачивается
             });
         });
 
-        // Инициализируем bookingData.date и состояние кнопки "далее" при загрузке
-        updateBookingDate(); // Call once on load to set initial date
+        // инициализируем bookingdata.date и состояние кнопки "далее" при загрузке
+        updateBookingDate(); // call once on load to set initial date
     }
 
     function updateBookingDate() {
         const selectedDateItem = document.querySelector('.date-carousel .date-item.selected');
-        const currentDateDisplay = document.getElementById('current-date-display');
+        // const currentDateDisplay = document.getElementById('current-date-display'); // removed as per user request
 
         if (selectedDateItem) {
             const fullDate = selectedDateItem.dataset.fullDate;
             bookingData.date = fullDate;
-            currentDateDisplay.textContent = fullDate; // Update the displayed date
-            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; // Check simulator selection
-            updateBreadcrumbs(); // Обновляем хлебные крошки
+            // currentDateDisplay.textContent = fullDate; // removed as per user request
+            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; // check simulator selection
+            updateBreadcrumbs(); // обновляем хлебные крошки
         } else {
             bookingData.date = null;
             document.getElementById('toPackagePage').disabled = true;
-            updateBreadcrumbs(); // Обновляем хлебные крошки
+            updateBreadcrumbs(); // обновляем хлебные крошки
         }
     }
 
 
-    // Настройка выбора симулятора (изменена логика)
+    // настройка выбора симулятора (изменена логика)
     function setupSimulatorSelection() {
-        // Очищаем предыдущие выборы в bookingData для повторной инициализации на основе текущего DOM
+        // очищаем предыдущие выборы в bookingdata для повторной инициализации на основе текущего dom
         bookingData.simulator = [];
 
         document.querySelectorAll('.simulator-box').forEach(sim => {
             const removeBtn = sim.querySelector('.remove-selection');
             const simulatorId = sim.dataset.id;
 
-            // Устанавливаем симулятор 01 выбранным по умолчанию
+            // устанавливаем симулятор 01 выбранным по умолчанию
             if (simulatorId === '1') {
                 sim.classList.add('selected');
                 if (!bookingData.simulator.includes(simulatorId)) {
@@ -241,18 +240,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             sim.addEventListener('click', function(e) {
-                // Если клик был по крестику, то не обрабатываем как выбор
+                // если клик был по крестику, то не обрабатываем как выбор
                 if (e.target === removeBtn) {
                     return;
                 }
 
                 if (this.classList.contains('selected')) {
-                    // Если уже выбран, снимаем выбор
+                    // если уже выбран, снимаем выбор
                     this.classList.remove('selected');
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
-                    // Теперь нет опции "любой", только конкретные симуляторы
+                    // теперь нет опции "любой", только конкретные симуляторы
                     if (!bookingData.simulator.includes(simulatorId)) {
                         bookingData.simulator.push(simulatorId);
                     }
@@ -260,15 +259,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'flex';
                 }
                 
-                // Проверяем, должна ли кнопка "Далее" быть активной
+                // проверяем, должна ли кнопка "далее" быть активной
                 document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
-                updateBreadcrumbs(); // Обновляем хлебные крошки
+                updateBreadcrumbs(); // обновляем хлебные крошки
             });
 
-            // Обработчик для крестика
+            // обработчик для крестика
             if (removeBtn) {
                 removeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation(); // Предотвращаем срабатывание клика на родительском элементе
+                    e.stopPropagation(); // предотвращаем срабатывание клика на родительском элементе
                     const parentSim = this.closest('.simulator-box');
                     if (parentSim) {
                         const simulatorId = parentSim.dataset.id;
@@ -276,26 +275,26 @@ document.addEventListener('DOMContentLoaded', async function() {
                         this.style.display = 'none';
                         bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                         document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
-                        updateBreadcrumbs(); // Обновляем хлебные крошки
+                        updateBreadcrumbs(); // обновляем хлебные крошки
                     }
                 });
             }
         });
-        // Убедимся, что состояние кнопки "Далее" корректно после начальной настройки
+        // убедимся, что состояние кнопки "далее" корректно после начальной настройки
         document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
         updateBreadcrumbs();
     }
 
-    // Настройка выбора пакета времени (новый шаг)
+    // настройка выбора пакета времени (новый шаг)
     function setupPackageSelection() {
         const packageGrid = document.getElementById('package-grid');
         let packagesHtml = packages.map(pkg => {
             const originalPriceDisplay = pkg.originalPrice !== null ? `<div class="package-original-price">${pkg.originalPrice} ₽</div>` : '';
             
-            if (pkg.duration === 'Ночь') {
+            if (pkg.duration === 'ночь') { // changed to lowercase
                 return `
                     <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                        <div class="package-night-text">Ночной</div>
+                        <div class="package-night-text">ночной</div>
                         <small class="package-night-time">(00:00 – 08:00)</small>
                         ${originalPriceDisplay}
                         <div class="package-price">${pkg.price}</div>
@@ -315,10 +314,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }).join('');
 
-        // Добавляем кнопку "Свой пакет"
+        // добавляем кнопку "свой пакет"
         packagesHtml += `
             <div class="package block custom-package-trigger" id="custom-package-trigger">
-                <div class="text-center">Свой<br>пакет</div>
+                <div class="custom-package-text">свой<br>пакет</div>
             </div>
         `;
         
@@ -330,35 +329,41 @@ document.addEventListener('DOMContentLoaded', async function() {
                 this.classList.add('selected');
                 bookingData.duration = this.dataset.duration;
                 bookingData.price = this.dataset.price;
-                bookingData.hours = parseInt(this.dataset.hours); // Сохраняем количество часов
+                bookingData.hours = parseInt(this.dataset.hours); // сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
-                    `Вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
+                    `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
-                setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
-                updateBreadcrumbs(); // Обновляем хлебные крошки
+                setupTimeSlotsGenerator(); // генерируем слоты после выбора пакета
+                updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
 
-        // Обработчик для кнопки "Свой пакет"
+        // обработчик для кнопки "свой пакет"
         document.getElementById('custom-package-trigger').addEventListener('click', function() {
-            document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // Снимаем выбор с обычных пакетов
-            document.getElementById('package-grid').classList.add('hidden'); // Скрываем основной список
-            document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // Показываем карусель
-            setupCustomPackageSelection(); // Генерируем и настраиваем карусель
+            document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // снимаем выбор с обычных пакетов
+            document.getElementById('package-grid').classList.add('hidden'); // скрываем основной список
+            document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // показываем карусель
+            setupCustomPackageSelection(); // генерируем и настраиваем карусель
         });
+
+        // выбираем пакет "2 часа" по умолчанию
+        const defaultPackage = document.querySelector('.package[data-duration="2 часа"]');
+        if (defaultPackage) {
+            defaultPackage.click(); // simulate a click to select it and update bookingData
+        }
     }
 
-    // Функция для расчета цены "Своего пакета"
+    // функция для расчета цены "своего пакета"
     function getCustomPackagePrice(hours) {
         if (hours === 1) return 450;
         if (hours === 2) return 850;
-        if (hours === 2.5) return 1060; // Округлено в сторону гостя
+        if (hours === 2.5) return 1060; // округлено в сторону гостя
         if (hours === 3) return 1200;
-        // Для пакетов более 3 часов, считаем по 400 ₽/час с округлением до 10 ₽ в пользу гостя
+        // для пакетов более 3 часов, считаем по 400 ₽/час с округлением до 10 ₽ в пользу гостя
         return Math.ceil((hours * CUSTOM_HOURLY_RATE) / 10) * 10;
     }
 
-    // Настройка выбора "Своего пакета"
+    // настройка выбора "своего пакета"
     function setupCustomPackageSelection() {
         const customPackageCarousel = document.getElementById('custom-package-carousel');
         let customPackagesHtml = '';
@@ -367,10 +372,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         customPackageDurations.forEach(hours => {
             const currentPrice = getCustomPackagePrice(hours);
             const originalPrice = hours * BASE_HOURLY_RATE;
-            const originalPriceDisplay = originalPrice !== currentPrice && hours !== 1 && hours !== 2 ? `<div class="package-original-price">${originalPrice} ₽</div>` : ''; // Don't show for 1h, 2h as they match base rate
+            const originalPriceDisplay = originalPrice !== currentPrice && hours !== 1 && hours !== 2 ? `<div class="package-original-price">${originalPrice} ₽</div>` : ''; // don't show for 1h, 2h as they match base rate
             
             let displayHours = hours.toString();
-            if (hours % 1 !== 0) { // If it's a decimal (e.g., 2.5)
+            if (hours % 1 !== 0) { // if it's a decimal (e.g., 2.5)
                 displayHours = hours.toFixed(1).replace('.', ',');
             } else {
                 displayHours = hours.toString().padStart(2, '0');
@@ -395,42 +400,54 @@ document.addEventListener('DOMContentLoaded', async function() {
                 this.classList.add('selected');
                 bookingData.duration = this.dataset.duration;
                 bookingData.price = this.dataset.price;
-                bookingData.hours = parseFloat(this.dataset.hours); // Используем parseFloat для дробных часов
+                bookingData.hours = parseFloat(this.dataset.hours); // используем parsefloat для дробных часов
                 document.getElementById('package-summary').textContent = 
-                    `Вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
+                    `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
-                setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
+                setupTimeSlotsGenerator(); // генерируем слоты после выбора пакета
                 
-                // Возвращаемся к основному виду шага пакетов
+                // обновляем текст на кнопке "свой пакет"
+                const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
+                customPackageTriggerText.innerHTML = `${bookingData.duration}<br>(${bookingData.price} ₽)`;
+                document.getElementById('custom-package-trigger').classList.add('selected'); // визуально выделяем
+
+                // возвращаемся к основному виду шага пакетов
                 document.getElementById('custom-package-carousel-container').classList.add('hidden');
-                document.getElementById('package-grid').classList.remove('hidden'); // Показываем основной список
-                updateBreadcrumbs(); // Обновляем хлебные крошки
+                document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+                updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
 
-        // Обработчик для кнопки "Назад к пакетам"
+        // обработчик для кнопки "назад к пакетам"
         document.getElementById('backToMainPackageSelection').addEventListener('click', function() {
             document.getElementById('custom-package-carousel-container').classList.add('hidden');
-            document.getElementById('package-grid').classList.remove('hidden'); // Показываем основной список
-            // Сбрасываем выбранный пакет, если пользователь вернулся
+            document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+            
+            // сбрасываем выбранный пакет, если пользователь вернулся
             document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
             bookingData.duration = null;
             bookingData.price = null;
             bookingData.hours = null;
             document.getElementById('package-summary').textContent = '';
             document.getElementById('toTimePageNew').disabled = true;
+
+            // сбрасываем текст на кнопке "свой пакет"
+            const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
+            customPackageTriggerText.innerHTML = `свой<br>пакет`;
+            document.getElementById('custom-package-trigger').classList.remove('selected'); // снимаем выделение
+
             updateBreadcrumbs();
         });
     }
 
 
-    // Настройка генерации временных слотов на основе выбранного пакета
+    // настройка генерации временных слотов на основе выбранного пакета
     async function setupTimeSlotsGenerator() {
         const timeGrid = document.getElementById('time-grid');
-        timeGrid.innerHTML = ''; // Очищаем предыдущие слоты
+        timeGrid.innerHTML = ''; // очищаем предыдущие слоты
 
         if (!bookingData.hours || !bookingData.date || bookingData.simulator.length === 0) {
-            // Если пакет, дата или симулятор не выбраны, не показываем слоты
+            // если пакет, дата или симулятор не выбраны, не показываем слоты
             return;
         }
 
@@ -439,32 +456,32 @@ document.addEventListener('DOMContentLoaded', async function() {
         const selectedDate = bookingData.date; // e.g., "15.07.2025"
 
         let occupiedSlots = [];
-        if (supabase) { // Check if supabase client is initialized
+        if (supabase) { // check if supabase client is initialized
             try {
                 const { data, error } = await supabase
                     .from('bookings')
-                    .select('time_range, duration_hours, simulator_ids') // Select relevant fields
-                    .eq('date', selectedDate); // Filter by selected date
+                    .select('time_range, duration_hours, simulator_ids') // select relevant fields
+                    .eq('date', selectedDate); // filter by selected date
                 
                 if (error) {
-                    console.error("Error fetching occupied slots from Supabase:", error);
+                    console.error("error fetching occupied slots from supabase:", error);
                 } else {
                     occupiedSlots = data.filter(booking => 
                         booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim))
                     );
-                    console.log("Occupied slots for selected date and simulators:", occupiedSlots);
+                    console.log("occupied slots for selected date and simulators:", occupiedSlots);
                 }
             } catch (error) {
-                console.error("Critical error during Supabase fetch:", error);
+                console.error("critical error during supabase fetch:", error);
             }
         }
 
-        // Generate time slots
+        // generate time slots
         for (let hour = 10; hour <= 23; hour++) {
             let startHour = hour;
             let endHour = startHour + durationHours;
             
-            // Handle fractional hours for start and end times
+            // handle fractional hours for start and end times
             let startMinutes = (startHour % 1) * 60;
             let endMinutes = (endHour % 1) * 60;
 
@@ -477,12 +494,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             let endTimeSuffix = '';
             if (Math.floor(endHour) >= 24) {
                 endHourFormatted = (Math.floor(endHour) - 24).toString().padStart(2, '0');
-                endTimeSuffix = ' (следующий день)'; // Lowercase
+                endTimeSuffix = ' (следующий день)'; // lowercase
             }
 
             const currentTimeSlot = `${startHourFormatted}:${startMinutesFormatted} – ${endHourFormatted}:${endMinutesFormatted}${endTimeSuffix}`;
             
-            // Check if this slot is occupied
+            // check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
                 const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
                 const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
@@ -493,7 +510,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const currentDurationMinutes = durationHours * 60;
                 const currentEndTotalMinutes = currentStartTotalMinutes + currentDurationMinutes;
 
-                // Check for overlap
+                // check for overlap
                 return (currentStartTotalMinutes < occupiedEndTotalMinutes && occupiedStartTotalMinutes < currentEndTotalMinutes);
             });
 
@@ -502,16 +519,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
         }
 
-        // If "Ночь", add special slot (assuming 00:00 - 08:00 is fixed for night)
-        // This slot should only be added if the selected package is exactly 'Ночь'
-        if (bookingData.duration === 'Ночь') {
+        // if "ночь", add special slot (assuming 00:00 - 08:00 is fixed for night)
+        // this slot should only be added if the selected package is exactly 'ночь'
+        if (bookingData.duration === 'ночь') { // changed to lowercase
             const nightSlot = '00:00 – 08:00';
             const isNightSlotOccupied = occupiedSlots.some(occupied => {
                 const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
                 const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
                 
-                // Check if the night slot (00:00 - 08:00) overlaps with any existing booking
-                // Simplified check: if any booking starts at 00:00 or overlaps significantly
+                // check if the night slot (00:00 - 08:00) overlaps with any existing booking
+                // simplified check: if any booking starts at 00:00 or overlaps significantly
                 return (occupiedStartTotalMinutes < (8 * 60) && (occupiedStartTotalMinutes + (occupied.duration_hours * 60)) > 0);
             });
             const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
@@ -520,106 +537,106 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         timeGrid.innerHTML = times.join('');
         
-        // Обработка выбора времени
+        // обработка выбора времени
         document.querySelectorAll('.time-slot:not(.disabled)').forEach(slot => {
             slot.addEventListener('click', function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
                 bookingData.time = this.dataset.timeRange;
-                document.getElementById('toFormPage').disabled = false; // Changed from toWheelPage to toFormPage
-                updateBreadcrumbs(); // Обновляем хлебные крошки
+                document.getElementById('toFormPage').disabled = false; // changed from towheelpage to toformpage
+                updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
-        document.getElementById('toFormPage').disabled = true; // Disable until a slot is selected
+        document.getElementById('toFormPage').disabled = true; // disable until a slot is selected
     }
 
-    // Настройка выбора руля (больше не отдельный шаг)
+    // настройка выбора руля (больше не отдельный шаг)
     function setupWheelSelection() {
-        // Эта функция теперь не нужна, так как выбор руля был удален из макета
+        // эта функция теперь не нужна, так как выбор руля был удален из макета
     }
 
-    // Загрузка данных пользователя из Supabase
+    // загрузка данных пользователя из supabase
     async function loadUserData(telegramId) {
         if (!supabase || !telegramId) return;
 
         try {
-            // Assuming a 'profiles' table with 'telegram_id' as a unique identifier
+            // assuming a 'profiles' table with 'telegram_id' as a unique identifier
             const { data: userData, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('telegram_id', telegramId)
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error for single())
-                console.error("Error loading user data from Supabase:", error);
+            if (error && error.code !== 'pgrst116') { // pgrst116 means no rows found (not an actual error for single())
+                console.error("error loading user data from supabase:", error);
                 return;
             }
 
             if (userData) {
-                console.log("Loaded user data:", userData);
+                console.log("loaded user data:", userData);
                 
-                // Pre-fill form fields
+                // pre-fill form fields
                 const nameInput = document.querySelector('#form-step input[type="text"]');
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
 
                 if (userData.name) nameInput.value = userData.name;
-                if (userData.phone) phoneInput.value = userData.phone; // Assuming full phone is stored
-                if (userData.telegram_username) telegramInput.value = userData.telegram_username; // Assuming telegram_username in DB
+                if (userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
+                if (userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
 
-                // Update bookingData
+                // update bookingdata
                 bookingData.name = userData.name || null;
                 bookingData.phone = userData.phone || null;
-                bookingData.telegram = userData.telegram_username || null; // Use telegram_username from DB
+                bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
 
-                // Check if all required user data is present to potentially skip the form step
+                // check if all required user data is present to potentially skip the form step
                 if (userData.name && userData.phone && userData.telegram_username) {
-                    console.log("User data complete, form pre-filled.");
+                    console.log("user data complete, form pre-filled.");
                 }
             } else {
-                console.log("No existing user data found for Telegram ID:", telegramId);
-                // If no data, ensure form fields are empty or default
+                console.log("no existing user data found for telegram id:", telegramId);
+                // if no data, ensure form fields are empty or default
                 document.querySelector('#form-step input[type="text"]').value = '';
                 document.getElementById('phone').value = '+7 ';
-                document.getElementById('telegram').value = bookingData.telegram; // Pre-fill with Telegram username from WebApp
+                document.getElementById('telegram').value = bookingData.telegram; // pre-fill with telegram username from webapp
             }
         } catch (error) {
-            console.error("Error loading user data:", error);
+            console.error("error loading user data:", error);
         }
     }
 
-    // Сохранение данных пользователя в Supabase
+    // сохранение данных пользователя в supabase
     async function saveUserData() {
         if (!supabase || !bookingData.telegramId) return;
 
         try {
             const userDataToSave = {
-                telegram_id: bookingData.telegramId, // Unique identifier
+                telegram_id: bookingData.telegramId, // unique identifier
                 name: bookingData.name,
-                telegram_username: bookingData.telegram, // Save Telegram username
-                phone: bookingData.phone // Save full phone number
+                telegram_username: bookingData.telegram, // save telegram username
+                phone: bookingData.phone // save full phone number
             };
 
-            // Use upsert to insert or update based on telegram_id
+            // use upsert to insert or update based on telegram_id
             const { data, error } = await supabase
                 .from('profiles')
-                .upsert(userDataToSave, { onConflict: 'telegram_id' }); // Conflict on telegram_id to update existing
+                .upsert(userDataToSave, { onConflict: 'telegram_id' }); // conflict on telegram_id to update existing
 
             if (error) {
-                console.error("Error saving user data to Supabase:", error);
+                console.error("error saving user data to supabase:", error);
             } else {
-                console.log("User data saved/updated in Supabase:", data);
+                console.log("user data saved/updated in supabase:", data);
             }
         } catch (error) {
-            console.error("Error saving user data:", error);
+            console.error("error saving user data:", error);
         }
     }
 
-    // Настройка формы
+    // настройка формы
     function setupForm() {
         const phoneInput = document.getElementById('phone');
         
-        // Форматирование номера телефона
+        // форматирование номера телефона
         phoneInput.addEventListener('input', function(e) {
             let numbers = e.target.value.replace(/\D/g, '');
             if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
@@ -632,66 +649,66 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
             
             e.target.value = formatted;
-            bookingData.phone = formatted; // Update bookingData with formatted phone
+            bookingData.phone = formatted; // update bookingdata with formatted phone
         });
         
-        // Валидация Telegram
+        // валидация telegram
         document.getElementById('telegram').addEventListener('input', function(e) {
             this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
         });
     }
 
-    // Настройка навигации
+    // настройка навигации
     function setupNavigation() {
-        // Кнопки "Далее"
-        document.getElementById('toPackagePage').addEventListener('click', () => showStep(1)); // С даты/симулятора на пакет
-        document.getElementById('toTimePageNew').addEventListener('click', () => showStep(2)); // С пакета на время
-        document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // Со времени на форму (руль удален)
+        // кнопки "далее"
+        document.getElementById('toPackagePage').addEventListener('click', () => showStep(1)); // с даты/симулятора на пакет
+        document.getElementById('toTimePageNew').addEventListener('click', () => showStep(2)); // с пакета на время
+        document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // со времени на форму (руль удален)
         
-        // Кнопки "Назад"
-        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // С пакета на дату/симулятор
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // Со времени на пакет
-        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // С формы на время (руль удален)
+        // кнопки "назад"
+        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
+        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // со времени на пакет
+        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // с формы на время (руль удален)
         
-        // Отправка формы
+        // отправка формы
         document.getElementById('booking-form').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Проверяем валидность формы
+            // проверяем валидность формы
             if (!this.checkValidity()) {
                 this.reportValidity();
                 return;
             }
             
-            // Сохраняем данные
+            // сохраняем данные
             bookingData.name = this.querySelector('input[type="text"]').value;
-            // bookingData.phone уже обновляется в setupForm при вводе
+            // bookingdata.phone уже обновляется в setupform при вводе
             bookingData.telegram = this.querySelector('#telegram').value;
             bookingData.comment = this.querySelector('textarea').value;
             
-            // Сохраняем данные пользователя в базу
+            // сохраняем данные пользователя в базу
             await saveUserData();
             
-            // Показываем подтверждение
+            // показываем подтверждение
             showConfirmation();
         });
     }
 
-    // Обновление хлебных крошек
+    // обновление хлебных крошек
     function updateBreadcrumbs() {
         const breadcrumbDiv = document.getElementById('booking-breadcrumb');
-        // Check if breadcrumbDiv exists before updating
+        // check if breadcrumbdiv exists before updating
         if (!breadcrumbDiv) {
-            console.warn("Breadcrumb element not found. Skipping breadcrumb update.");
+            console.warn("breadcrumb element not found. skipping breadcrumb update.");
             return;
         }
 
         let breadcrumbs = [];
 
-        // Убрал отображение даты из хлебных крошек, так как она теперь в заголовке
-        // if (bookingData.date) {
-        //     breadcrumbs.push(bookingData.date);
-        // }
+        // дата теперь в хлебных крошках
+        if (bookingData.date) {
+            breadcrumbs.push(bookingData.date);
+        }
         if (bookingData.simulator.length > 0) {
             breadcrumbs.push(getSimulatorNames(bookingData.simulator));
         }
@@ -705,67 +722,67 @@ document.addEventListener('DOMContentLoaded', async function() {
         breadcrumbDiv.textContent = breadcrumbs.join(' / ');
     }
 
-    // Показываем страницу подтверждения (изменено отображение симуляторов и сохранение бронирования)
+    // показываем страницу подтверждения (изменено отображение симуляторов и сохранение бронирования)
     async function showConfirmation() {
         const details = document.getElementById('confirmation-details');
         
         details.innerHTML = `
-            <p><strong>Дата:</strong> ${bookingData.date}</p>
-            <p><strong>Тариф:</strong> ${bookingData.duration}</p>
-            <p><strong>Время:</strong> ${bookingData.time}</p>
-            <p><strong>Симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
-            <p><strong>Имя:</strong> ${bookingData.name}</p>
-            <p><strong>Телефон:</strong> ${bookingData.phone}</p>
-            <p><strong>Telegram:</strong> @${bookingData.telegram}</p>
-            ${bookingData.comment ? `<p><strong>Комментарий:</strong> ${bookingData.comment}</p>` : ''}
+            <p><strong>дата:</strong> ${bookingData.date}</p>
+            <p><strong>тариф:</strong> ${bookingData.duration}</p>
+            <p><strong>время:</strong> ${bookingData.time}</p>
+            <p><strong>симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
+            <p><strong>имя:</strong> ${bookingData.name}</p>
+            <p><strong>телефон:</strong> ${bookingData.phone}</p>
+            <p><strong>telegram:</strong> @${bookingData.telegram}</p>
+            ${bookingData.comment ? `<p><strong>комментарий:</strong> ${bookingData.comment}</p>` : ''}
         `;
         
-        // Save booking to Supabase
+        // save booking to supabase
         if (supabase) {
             try {
                 const { data: newBooking, error } = await supabase
                     .from('bookings')
                     .insert({
-                        user_id: userId, // Supabase user ID (from auth or UUID)
-                        telegram_id: bookingData.telegramId, // Telegram user ID
+                        user_id: userId, // supabase user id (from auth or uuid)
+                        telegram_id: bookingData.telegramId, // telegram user id
                         date: bookingData.date,
-                        time_range: bookingData.time, // Renamed to time_range in DB
-                        simulator_ids: bookingData.simulator, // Renamed to simulator_ids in DB
-                        // wheel: bookingData.wheel, // Removed as per new flow
-                        duration_text: bookingData.duration, // Renamed to duration_text in DB
-                        duration_hours: bookingData.hours, // Store hours for easier availability checks
+                        time_range: bookingData.time, // renamed to time_range in db
+                        simulator_ids: bookingData.simulator, // renamed to simulator_ids in db
+                        // wheel: bookingData.wheel, // removed as per new flow
+                        duration_text: bookingData.duration, // renamed to duration_text in db
+                        duration_hours: bookingData.hours, // store hours for easier availability checks
                         price: bookingData.price,
                         name: bookingData.name,
-                        phone: bookingData.phone, // Save full phone number
-                        telegram_username: bookingData.telegram, // Save full Telegram username
+                        phone: bookingData.phone, // save full phone number
+                        telegram_username: bookingData.telegram, // save full telegram username
                         comment: bookingData.comment,
-                        status: 'pending', // Default status for new bookings
-                        created_at: new Date().toISOString() // ISO string for Supabase timestamp
+                        status: 'pending', // default status for new bookings
+                        created_at: new Date().toISOString() // iso string for supabase timestamp
                     })
-                    .select(); // Select the inserted row to get its ID
+                    .select(); // select the inserted row to get its id
 
                 if (error) {
-                    console.error("Error saving booking to Supabase:", error);
+                    console.error("error saving booking to supabase:", error);
                 } else if (newBooking && newBooking.length > 0) {
-                    console.log("Booking saved to Supabase with ID:", newBooking[0].id);
+                    console.log("booking saved to supabase with id:", newBooking[0].id);
 
-                    // No longer calling Edge Function directly from client.
-                    // The Python bot will monitor Supabase Realtime for new 'pending' bookings.
+                    // no longer calling edge function directly from client.
+                    // the python bot will monitor supabase realtime for new 'pending' bookings.
                 }
             } catch (error) {
-                console.error("Critical error during Supabase booking save:", error);
+                console.error("critical error during supabase booking save:", error);
             }
         }
 
-        showStep(4); // Show confirmation step
+        showStep(4); // show confirmation step
     }
 
-    // Настройка действий на странице подтверждения (без изменений)
+    // настройка действий на странице подтверждения (без изменений)
     function setupConfirmationActions() {
-        // Записаться снова
+        // записаться снова
         document.getElementById('book-again').addEventListener('click', resetBooking);
         
-        // Перенести запись
+        // перенести запись
         document.getElementById('reschedule').addEventListener('click', function() {
             document.getElementById('reschedule-message').style.display = 'block';
             setTimeout(() => {
@@ -773,7 +790,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }, 3000);
         });
         
-        // Отменить запись
+        // отменить запись
         document.getElementById('cancel-booking').addEventListener('click', function() {
             document.getElementById('cancel-modal').style.display = 'flex';
         });
@@ -792,102 +809,114 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Настройка кнопок карты и такси (без изменений)
+    // настройка кнопок карты и такси (без изменений)
     function setupMapButtons() {
-        const address = 'Ростов-на-Дону, ул. Б. Садовая, 70';
+        const address = 'ростов-на-дону, ул. б. садовая, 70'; // lowercase
         
-        // Кнопка "Проложить маршрут"
+        // кнопка "проложить маршрут"
         document.getElementById('route-btn').addEventListener('click', function() {
             const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(address)}`;
             window.open(url, '_blank');
         });
         
-        // Кнопка "Вызвать такси"
+        // кнопка "вызвать такси"
         document.getElementById('taxi-btn').addEventListener('click', function() {
             const url = `https://3.redirect.appmetrica.yandex.com/route?end-lat=47.222078&end-lon=39.720349&end-name=${encodeURIComponent(address)}`;
             window.open(url, '_blank');
         });
     }
 
-    // Сброс бронирования (изменено)
+    // сброс бронирования (изменено)
     function resetBooking() {
-        // Очищаем данные
+        // очищаем данные
         for (const key in bookingData) {
             if (key === 'simulator') {
-                bookingData[key] = []; // Сброс массива
+                bookingData[key] = []; // сброс массива
             } else if (key === 'telegramId' || key === 'telegram') {
-                // Не сбрасываем Telegram ID и ник, так как они приходят из WebApp
+                // не сбрасываем telegram id и ник, так как они приходят из webapp
                 continue;
             } else {
                 bookingData[key] = null;
             }
         }
         
-        // Сбрасываем форму
+        // сбрасываем форму
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = '+7 '; // Reset phone to default prefix
+        document.getElementById('phone').value = '+7 '; // reset phone to default prefix
         
-        // Снимаем выделения и скрываем крестики
+        // снимаем выделения и скрываем крестики
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
         
-        // Сбрасываем кнопки
-        document.querySelectorAll('.button').forEach(btn => btn.disabled = false); // Re-enable all buttons
-        document.getElementById('toPackagePage').disabled = true; // Disable next on step 0 until selection
-        document.getElementById('toTimePageNew').disabled = true; // Disable next on step 1 until selection
-        document.getElementById('toFormPage').disabled = true; // Disable next on step 2 until selection
+        // сбрасываем кнопки
+        document.querySelectorAll('.button').forEach(btn => btn.disabled = false); // re-enable all buttons
+        document.getElementById('toPackagePage').disabled = true; // disable next on step 0 until selection
+        document.getElementById('toTimePageNew').disabled = true; // disable next on step 1 until selection
+        document.getElementById('toFormPage').disabled = true; // disable next on step 2 until selection
 
-        // Скрываем карусель "Свой пакет" и показываем основную сетку
+        // скрываем карусель "свой пакет" и показываем основную сетку
         document.getElementById('custom-package-carousel-container').classList.add('hidden');
         document.getElementById('package-grid').classList.remove('hidden');
 
-        // Сбрасываем отображение выбранного пакета
+        // сбрасываем отображение выбранного пакета
         document.getElementById('package-summary').textContent = '';
 
-        // Переинициализируем выбор симуляторов, чтобы 01 снова был выбран по умолчанию
+        // сбрасываем текст на кнопке "свой пакет"
+        const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
+        if (customPackageTriggerText) {
+            customPackageTriggerText.innerHTML = `свой<br>пакет`;
+        }
+        const customPackageTrigger = document.getElementById('custom-package-trigger');
+        if (customPackageTrigger) {
+            customPackageTrigger.classList.remove('selected');
+        }
+
+        // переинициализируем выбор симуляторов, чтобы 01 снова был выбран по умолчанию
         setupSimulatorSelection();
+        // переинициализируем выбор пакетов, чтобы "2 часа" снова был выбран по умолчанию
+        setupPackageSelection();
 
         showStep(0);
     }
 
-    // Вспомогательные функции
+    // вспомогательные функции
     function getWheelName(wheelId) {
-        // This function is no longer used in the main flow, but kept for reference if needed
+        // this function is no longer used in the main flow, but kept for reference if needed
         const wheels = {
-            'ks': 'Штурвал KS',
-            'cs': 'Круглый CS',
-            'nobutton': 'Круглый без кнопок',
-            'any': 'Выберу на месте'
+            'ks': 'штурвал ks', // lowercase
+            'cs': 'круглый cs', // lowercase
+            'nobutton': 'круглый без кнопок', // lowercase
+            'any': 'выберу на месте' // lowercase
         };
         return wheels[wheelId] || wheelId;
     }
 
     function getSimulatorNames(simulatorIds) {
-        // Теперь нет опции "Любой", только конкретные симуляторы
-        return simulatorIds.map(id => `Симулятор #${id}`).join(', '); // Lowercase
+        // теперь нет опции "любой", только конкретные симуляторы
+        return simulatorIds.map(id => `симулятор #${id}`).join(', '); // lowercase
     }
 
-    // Вспомогательная функция для склонения слова "час"
+    // вспомогательная функция для склонения слова "час"
     function getHourUnit(hours) {
         if (hours === 1) {
-            return 'час'; // Lowercase
+            return 'час'; // lowercase
         }
-        // Для дробных часов, всегда "часа" или "часов" в зависимости от целой части
+        // для дробных часов, всегда "часа" или "часов" в зависимости от целой части
         const lastDigit = Math.floor(hours) % 10;
         const lastTwoDigits = Math.floor(hours) % 100;
 
         if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
-            return 'часов'; // Lowercase
+            return 'часов'; // lowercase
         }
         if (lastDigit === 1) {
-            return 'час'; // Lowercase
+            return 'час'; // lowercase
         }
         if (lastDigit >= 2 && lastDigit <= 4) {
-            return 'часа'; // Lowercase
+            return 'часа'; // lowercase
         }
-        return 'часов'; // Lowercase
+        return 'часов'; // lowercase
     }
 
-    // Запускаем приложение
+    // запускаем приложение
     init();
 });

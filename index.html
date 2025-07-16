@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Бронирование автосимулятора</title>
+    <title>бронирование автосимулятора</title>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <!-- Telegram Web App SDK -->
+    <!-- telegram web app sdk -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Глобальный сброс box-sizing для более предсказуемой компоновки */
+        /* глобальный сброс box-sizing для более предсказуемой компоновки */
         html {
             box-sizing: border-box;
         }
@@ -17,13 +17,13 @@
             box-sizing: inherit;
         }
 
-        /* Общие стили для body, контейнера и шагов */
+        /* общие стили для body, контейнера и шагов */
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica Neue', system-ui, sans-serif; /* Основной текст */
-            background-color: #ffffff; /* Белый фон */
-            color: #000000; /* Черный текст */
+            font-family: 'helvetica neue', system-ui, sans-serif; /* основной текст */
+            background-color: #ffffff; /* белый фон */
+            color: #000000; /* черный текст */
             display: flex;
             justify-content: center;
             align-items: flex-start;
@@ -38,167 +38,167 @@
             max-width: 480px;
             min-width: 320px;
             margin: 0 auto;
-            padding: 16px; /* Отступы по краям */
+            padding: 16px; /* отступы по краям */
             position: relative;
             overflow: hidden;
-            margin-top: 104px; /* Отступ для основного контента, чтобы не перекрывался фиксированным заголовком (100px header + 4px progress bar) */
-            background-color: #ffffff; /* Белый фон для основного блока */
-            color: #000000; /* Черный текст для основного блока */
-            border-radius: 0; /* Нет скруглений */
-            box-shadow: none; /* Нет теней */
+            margin-top: 104px; /* отступ для основного контента, чтобы не перекрывался фиксированным заголовком (100px header + 4px progress bar) */
+            background-color: #ffffff; /* белый фон для основного блока */
+            color: #000000; /* черный текст для основного блока */
+            border-radius: 0; /* нет скруглений */
+            box-shadow: none; /* нет теней */
         }
 
-        /* Шаги */
+        /* шаги */
         .step-page {
             display: none;
-            /* Анимации отсутствуют (брутализм не про плавность) */
+            /* анимации отсутствуют (брутализм не про плавность) */
         }
 
         .step-page.active {
             display: block;
         }
 
-        /* Прогресс-бар (глобальный) */
+        /* прогресс-бар (глобальный) */
         .progress-bar-container-global {
             height: 4px;
-            background: #d9d9d9; /* Неактивные элементы, фон выбора */
+            background: #d9d9d9; /* неактивные элементы, фон выбора */
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            border-radius: 0; /* Нет скруглений */
+            border-radius: 0; /* нет скруглений */
         }
 
         .progress-bar-global {
             height: 100%;
-            background: #000000; /* Активные элементы */
+            background: #000000; /* активные элементы */
             width: 0%;
-            border-radius: 0; /* Нет скруглений */
+            border-radius: 0; /* нет скруглений */
         }
 
-        /* Заголовок */
+        /* заголовок */
         .header-container {
             display: flex;
-            align-items: flex-start; /* Выравнивание контента по верхнему краю */
-            justify-content: flex-start; /* Выравнивание контента по левому краю */
-            background-color: #000000; /* Черный фон для обрамления */
-            padding: 0; /* Убираем padding, так как фон будет картинкой */
-            position: fixed; /* Фиксированный заголовок */
-            top: 4px; /* Под глобальным прогресс-баром */
+            align-items: flex-start; /* выравнивание контента по верхнему краю */
+            justify-content: flex-start; /* выравнивание контента по левому краю */
+            background-color: #000000; /* черный фон для обрамления */
+            padding: 0; /* убираем padding, так как фон будет картинкой */
+            position: fixed; /* фиксированный заголовок */
+            top: 4px; /* под глобальным прогресс-баром */
             left: 0;
-            width: 120vw; /* Изменено по запросу пользователя */
-            z-index: 999; /* Выше основного контента, но ниже глобального прогресс-бара */
-            height: 60px; /* Изменено по запросу пользователя */
-            background-image: url('images/header.png'); /* Новая картинка */
-            background-size: cover; /* Покрытие всей области */
-            background-position: center; /* Центрирование картинки */
-            background-repeat: no-repeat; /* Не повторять */
+            width: 120vw; /* изменено по запросу пользователя */
+            z-index: 999; /* выше основного контента, но ниже глобального прогресс-бара */
+            height: 60px; /* изменено по запросу пользователя */
+            background-image: url('images/header.png'); /* новая картинка */
+            background-size: cover; /* покрытие всей области */
+            background-position: center; /* центрирование картинки */
+            background-repeat: no-repeat; /* не повторять */
         }
 
-        .logo-group { /* Этот блок теперь не нужен, но оставляем его стили, если он еще где-то используется */
-            display: none; /* Скрываем, так как используем одну картинку */
+        .logo-group { /* этот блок теперь не нужен, но оставляем его стили, если он еще где-то используется */
+            display: none; /* скрываем, так как используем одну картинку */
         }
 
         .header-text {
-            flex-grow: 1; /* Позволяем заголовку занимать доступное пространство */
-            text-align: left; /* Выравнивание заголовка по левому краю */
-            color: #ffffff; /* Белый текст для заголовка */
-            position: absolute; /* Размещаем текст поверх картинки */
+            flex-grow: 1; /* позволяем заголовку занимать доступное пространство */
+            text-align: left; /* выравнивание заголовка по левому краю */
+            color: #ffffff; /* белый текст для заголовка */
+            position: absolute; /* размещаем текст поверх картинки */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: flex; /* Используем flexbox для центрирования текста внутри */
-            align-items: center; /* Центрируем по вертикали */
+            display: flex; /* используем flexbox для центрирования текста внутри */
+            align-items: center; /* центрируем по вертикали */
             padding-left: calc(134 / 2358 * 100vw + 16px); /* 134px из 2358px + padding контейнера */
             padding-right: calc(777 / 2358 * 100vw + 16px); /* 777px из 2358px + padding контейнера */
             box-sizing: border-box;
         }
 
         .header-text h1 {
-            font-family: 'Helvetica Neue Condensed Black', sans-serif;
-            text-transform: uppercase; /* Заголовок остается в верхнем регистре */
+            font-family: 'helvetica neue condensed black', sans-serif;
+            text-transform: uppercase; /* заголовок остается в верхнем регистре */
             font-weight: bold;
-            font-size: 24px; /* Заголовки: 24-28px */
+            font-size: 24px; /* заголовки: 24-28px */
             margin: 0;
             line-height: 1.2;
         }
 
-        /* Кнопки и блоки выбора */
+        /* кнопки и блоки выбора */
         .block {
             display: inline-block;
             padding: 16px;
             text-align: center;
-            background-color: #d9d9d9; /* Светло-серый */
-            color: #000000; /* Черный */
+            background-color: #d9d9d9; /* светло-серый */
+            color: #000000; /* черный */
             cursor: pointer;
-            border-radius: 0; /* Нет скруглений */
-            box-shadow: none; /* Нет теней */
-            margin: 0; /* УДАЛЕНО: margin-bottom, все плотно */
-            font-size: 16px; /* Основной текст */
-            border: none; /* УДАЛЕНО: обводка */
+            border-radius: 0; /* нет скруглений */
+            box-shadow: none; /* нет теней */
+            margin: 0; /* удалено: margin-bottom, все плотно */
+            font-size: 16px; /* основной текст */
+            border: none; /* удалено: обводка */
         }
         .block.active {
-            background-color: #000000; /* Черный */
-            color: #ffffff; /* Белый */
+            background-color: #000000; /* черный */
+            color: #ffffff; /* белый */
         }
         .block.disabled {
             background-color: #d9d9d9;
-            color: #a0a0a0; /* Серый для зачёркнутого */
+            color: #a0a0a0; /* серый для зачёркнутого */
             text-decoration: line-through;
             pointer-events: none;
-            border: none; /* УДАЛЕНО: обводка */
+            border: none; /* удалено: обводка */
         }
 
         .button {
             display: block;
             width: 100%;
             padding: 16px;
-            border: none; /* УДАЛЕНО: обводка */
+            border: none; /* удалено: обводка */
             cursor: not-allowed;
             border-radius: 0;
             box-shadow: none;
-            font-size: 18px; /* Крупнее, чем основной текст */
-            margin: 0; /* УДАЛЕНО: margin-bottom */
-            background-color: #d9d9d9; /* Светло-серый */
-            color: #000000; /* Черный */
+            font-size: 18px; /* крупнее, чем основной текст */
+            margin: 0; /* удалено: margin-bottom */
+            background-color: #d9d9d9; /* светло-серый */
+            color: #000000; /* черный */
             text-align: center;
             font-weight: bold;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         .button.active {
-            background-color: #000000; /* Черный */
-            color: #ffffff; /* Белый */
+            background-color: #000000; /* черный */
+            color: #ffffff; /* белый */
             cursor: pointer;
         }
         .button.back-btn {
-            background-color: #d9d9d9; /* Светло-серый */
-            color: #000000; /* Черный */
+            background-color: #d9d9d9; /* светло-серый */
+            color: #000000; /* черный */
         }
         .button.back-btn:hover:not(:disabled) {
-            background-color: #a0a0a0; /* Чуть темнее серый при наведении */
+            background-color: #a0a0a0; /* чуть темнее серый при наведении */
         }
 
-        /* Хлебные крошки */
+        /* хлебные крошки */
         .breadcrumb {
             font-size: 12px;
             text-align: right;
-            color: #000000; /* Черный текст на белом фоне */
-            margin-bottom: 32px; /* Отступ увеличен в 2 раза (было 16px) */
-            text-transform: none; /* Убран капслок */
-            position: fixed; /* Фиксированное позиционирование */
-            top: 70px; /* Под заголовком (60px header + 4px progress + 6px margin) */
-            right: 16px; /* Отступ справа */
-            z-index: 998; /* Ниже заголовка, но выше основного контента */
-            width: calc(100% - 32px); /* Ширина с учетом padding контейнера */
-            max-width: 448px; /* Максимальная ширина */
+            color: #000000; /* черный текст на белом фоне */
+            margin-bottom: 32px; /* отступ увеличен в 2 раза (было 16px) */
+            text-transform: lowercase; /* все строчные */
+            position: fixed; /* фиксированное позиционирование */
+            top: 70px; /* под заголовком (60px header + 4px progress + 6px margin) */
+            right: 16px; /* отступ справа */
+            z-index: 998; /* ниже заголовка, но выше основного контента */
+            width: calc(100% - 32px); /* ширина с учетом padding контейнера */
+            max-width: 448px; /* максимальная ширина */
         }
 
-        /* Стили для заглушки */
+        /* стили для заглушки */
         #web-app-fallback {
-            background-color: #000000; /* Черный фон для заглушки */
-            color: #ffffff; /* Белый текст */
+            background-color: #000000; /* черный фон для заглушки */
+            color: #ffffff; /* белый текст */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -213,7 +213,7 @@
             z-index: 1000;
         }
         #web-app-fallback .content {
-            background-color: #000000; /* Черный фон */
+            background-color: #000000; /* черный фон */
             border-radius: 0;
             padding: 16px;
             max-width: 400px;
@@ -227,50 +227,49 @@
             margin-bottom: 16px;
         }
         #web-app-fallback h1 {
-            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-family: 'helvetica neue condensed black', sans-serif;
             font-weight: bold;
             font-size: 28px;
             margin-bottom: 16px;
             color: #ffffff;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         #web-app-fallback p {
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-family: 'helvetica neue', system-ui, sans-serif;
             font-size: 16px;
             margin-bottom: 8px;
             color: #ffffff;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         #web-app-fallback a {
-            color: #ffffff; /* Белые ссылки */
-            text-decoration: underline; /* Подчеркивание */
+            color: #ffffff; /* белые ссылки */
+            text-decoration: underline; /* подчеркивание */
         }
         #web-app-fallback a:hover {
-            color: #d9d9d9; /* Светло-серый при наведении */
+            color: #d9d9d9; /* светло-серый при наведении */
         }
         #web-app-fallback .address {
             font-size: 14px;
             color: #d9d9d9;
-            margin-top: 16px;
         }
 
-        /* Объединенный шаг: Дата и Симулятор */
+        /* объединенный шаг: дата и симулятор */
         .date-simulator-step {
-            margin-bottom: 16px; /* Отступ от нижних элементов */
+            margin-bottom: 16px; /* отступ от нижних элементов */
         }
 
         .date-selection-area {
-            margin-bottom: 16px; /* Отступ между датой и симуляторами */
+            margin-bottom: 16px; /* отступ между датой и симуляторами */
         }
 
         .date-display {
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
-            font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
+            font-family: 'helvetica neue', system-ui, sans-serif;
+            font-size: 10px; /* уменьшен в 2 раза (было 16px) */
             font-weight: bold;
-            text-transform: none; /* Убран капслок */
-            font-style: italic; /* Курсив */
+            text-transform: lowercase; /* все строчные */
+            font-style: italic; /* курсив */
             cursor: pointer;
-            margin-bottom: 8px; /* Отступ от заголовка "ДАТА" */
+            margin-bottom: 8px; /* отступ от заголовка "дата" */
             display: flex;
             align-items: center;
             justify-content: flex-start;
@@ -283,7 +282,7 @@
             height: 0;
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
-            border-top: 6px solid #000000; /* Черная стрелка */
+            border-top: 6px solid #000000; /* черная стрелка */
             transition: transform 0.2s ease;
         }
 
@@ -294,52 +293,52 @@
         .date-carousel {
             display: flex;
             overflow-x: scroll;
-            -webkit-overflow-scrolling: touch; /* Для плавного скролла на iOS */
+            -webkit-overflow-scrolling: touch; /* для плавного скролла на ios */
             scroll-snap-type: x mandatory;
-            gap: 0; /* Плотное прилегание */
-            margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+            gap: 0; /* плотное прилегание */
+            margin-left: -16px; /* вытягиваем на всю ширину, компенсируя padding контейнера */
             margin-right: -16px;
-            padding-left: 16px; /* Добавляем padding для первого элемента */
-            padding-right: 16px; /* Добавляем padding для последнего элемента */
-            margin-bottom: 16px; /* Отступ от симуляторов */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE and Edge */
+            padding-left: 16px; /* добавляем padding для первого элемента */
+            padding-right: 16px; /* добавляем padding для последнего элемента */
+            margin-bottom: 16px; /* отступ от симуляторов */
+            scrollbar-width: none; /* firefox */
+            -ms-overflow-style: none;  /* ie and edge */
         }
 
         .date-carousel::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none; /* chrome, safari, opera */
         }
 
         .date-carousel .date-item {
-            flex: 0 0 auto; /* Не сжимать и не растягивать */
+            flex: 0 0 auto; /* не сжимать и не растягивать */
             width: calc(25% - 0px); /* 4 элемента в ряд, без gap */
-            height: calc(25vw - 0px); /* Делаем квадратным относительно ширины viewport */
-            max-width: 120px; /* Максимальная ширина для больших экранов */
-            max-height: 120px; /* Максимальная высота для больших экранов */
+            height: calc(25vw - 0px); /* делаем квадратным относительно ширины viewport */
+            max-width: 120px; /* максимальная ширина для больших экранов */
+            max-height: 120px; /* максимальная высота для больших экранов */
             background-color: #d9d9d9;
             color: #000000;
-            text-align: left; /* Выравнивание текста по левому краю */
-            padding: 8px; /* Уменьшенный padding для размещения контента по углам */
+            text-align: left; /* выравнивание текста по левому краю */
+            padding: 8px; /* уменьшенный padding для размещения контента по углам */
             cursor: pointer;
             border-radius: 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Размещаем элементы вверху и внизу */
-            align-items: flex-start; /* Выравниваем по левому краю */
+            justify-content: space-between; /* размещаем элементы вверху и внизу */
+            align-items: flex-start; /* выравниваем по левому краю */
             scroll-snap-align: start;
-            font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
-            font-size: 20px; /* Крупные цифры */
+            font-family: 'monaco', monospace; /* моноширинный шрифт для цифр */
+            font-size: 20px; /* крупные цифры */
             font-weight: bold;
-            text-transform: none; /* Цифры остаются в верхнем регистре */
+            text-transform: none; /* цифры остаются в верхнем регистре */
         }
 
         .date-carousel .date-item small {
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
-            font-size: 10px; /* Уменьшен для длинных названий месяцев */
+            font-family: 'helvetica neue', system-ui, sans-serif;
+            font-size: 10px; /* уменьшен для длинных названий месяцев */
             display: block;
-            margin-top: auto; /* Прижимает к низу flex-контейнера */
+            margin-top: auto; /* прижимает к низу flex-контейнера */
             font-weight: normal;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
 
         .date-carousel .date-item.selected {
@@ -347,35 +346,35 @@
             color: #ffffff;
         }
 
-        /* Заголовки шагов */
+        /* заголовки шагов */
         h2 {
-            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-family: 'helvetica neue condensed black', sans-serif;
             font-weight: bold;
             font-size: 24px;
             text-align: center;
             margin-bottom: 16px;
             color: #000000;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
 
-        /* Стилизация заголовков (например, "ВЫБЕРИТЕ СИМУЛЯТОР(Ы)") */
-        .step-title { /* Новый класс для заголовков шагов */
-            font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
-            font-style: italic; /* Курсив */
-            text-transform: none; /* Убран капслок */
-            text-align: left; /* Выравнивание по левому краю */
-            margin-bottom: 16px; /* Отступ снизу */
+        /* стилизация заголовков (например, "выберите симулятор(ы)") */
+        .step-title { /* новый класс для заголовков шагов */
+            font-size: 10px; /* уменьшен в 2 раза (было 16px) */
+            font-style: italic; /* курсив */
+            text-transform: lowercase; /* все строчные */
+            text-align: left; /* выравнивание по левому краю */
+            margin-bottom: 16px; /* отступ снизу */
             color: #000000;
         }
 
 
-        /* Выбор симуляторов */
+        /* выбор симуляторов */
         .simulator-grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr); /* 2 столбца на первом шаге */
-            gap: 0; /* Плотное прилегание */
+            gap: 0; /* плотное прилегание */
             margin-bottom: 16px;
-            margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+            margin-left: -16px; /* вытягиваем на всю ширину, компенсируя padding контейнера */
             margin-right: -16px;
         }
         .grid-item {
@@ -387,36 +386,36 @@
             border-radius: 0;
             box-shadow: none;
             font-size: 16px;
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
-            border: none; /* УДАЛЕНО: обводка */
-            margin: 0; /* Плотное прилегание */
-            position: relative; /* Для позиционирования крестика и текста */
+            font-family: 'helvetica neue', system-ui, sans-serif;
+            border: none; /* удалено: обводка */
+            margin: 0; /* плотное прилегание */
+            position: relative; /* для позиционирования крестика и текста */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            aspect-ratio: 1 / 1; /* Делаем квадратным */
-            min-width: 140px; /* Минимальный размер для адаптивности */
+            aspect-ratio: 1 / 1; /* делаем квадратным */
+            min-width: 140px; /* минимальный размер для адаптивности */
             min-height: 140px;
         }
-        .grid-item .simulator-number { /* Стиль для цифр симуляторов */
-            font-family: 'Monaco', monospace;
-            font-size: 60px; /* Увеличено в 1.5 раза */
+        .grid-item .simulator-number { /* стиль для цифр симуляторов */
+            font-family: 'monaco', monospace;
+            font-size: 60px; /* увеличено в 1.5 раза */
             font-weight: bold;
             line-height: 1;
-            position: absolute; /* Позиционирование */
-            top: 32px; /* Отступ сверху увеличен в 2 раза (было 16px) */
-            left: 32px; /* Отступ слева увеличен в 2 раза (было 16px) */
-            text-transform: none; /* Цифра остается в верхнем регистре */
+            position: absolute; /* позиционирование */
+            top: 32px; /* отступ сверху увеличен в 2 раза (было 16px) */
+            left: 32px; /* отступ слева увеличен в 2 раза (было 16px) */
+            text-transform: none; /* цифра остается в верхнем регистре */
         }
         .grid-item small {
-            font-size: 16px; /* Увеличил размер для "АВТОСИМ" */
+            font-size: 16px; /* увеличил размер для "автосим" */
             display: block;
             margin-top: 4px;
-            position: absolute; /* Позиционирование */
-            bottom: 8px; /* Отступ снизу */
-            left: 32px; /* Выравнивание по левому краю с цифрой */
-            text-transform: none; /* Убран капслок */
+            position: absolute; /* позиционирование */
+            bottom: 8px; /* отступ снизу */
+            left: 32px; /* выравнивание по левому краю с цифрой */
+            text-transform: lowercase; /* все строчные */
         }
         .grid-item.selected {
             background-color: #000000;
@@ -424,17 +423,17 @@
         }
         .grid-item.disabled {
             background-color: #d9d9d9;
-            color: #a0a0a0; /* Серый для зачёркнутого */
+            color: #a0a0a0; /* серый для зачёркнутого */
             text-decoration: line-through;
             pointer-events: none;
-            border: none; /* УДАЛЕНО: обводка */
+            border: none; /* удалено: обводка */
         }
         .grid-item .remove-selection {
             position: absolute;
             top: 0;
             right: 0;
-            background-color: transparent; /* Изменено: нет подложки */
-            color: #000000; /* Изменено: черный цвет */
+            background-color: transparent; /* изменено: нет подложки */
+            color: #000000; /* изменено: черный цвет */
             width: 24px;
             height: 24px;
             display: flex;
@@ -443,20 +442,20 @@
             font-size: 16px;
             cursor: pointer;
             border-radius: 0;
-            font-family: 'Monaco', monospace; /* Моноширинный шрифт для крестика */
+            font-family: 'monaco', monospace; /* моноширинный шрифт для крестика */
         }
         .grid-item.selected .remove-selection {
             display: flex;
-            color: #ffffff; /* Изменено: белый цвет при активном симуляторе */
+            color: #ffffff; /* изменено: белый цвет при активном симуляторе */
         }
 
-        /* Выбор пакета времени */
-        #package-grid { /* Отдельный стиль для сетки пакетов */
+        /* выбор пакета времени */
+        #package-grid { /* отдельный стиль для сетки пакетов */
             grid-template-columns: repeat(3, 1fr); /* 3 столбца на шаге пакетов */
-            display: grid; /* Применяем grid, так как он может быть переопределен */
+            display: grid; /* применяем grid, так как он может быть переопределен */
             gap: 0;
             margin-bottom: 16px;
-            margin-left: -16px; /* Вытягиваем на всю ширину */
+            margin-left: -16px; /* вытягиваем на всю ширину */
             margin-right: -16px;
         }
         .package {
@@ -468,86 +467,86 @@
             border-radius: 0;
             box-shadow: none;
             font-size: 16px;
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-family: 'helvetica neue', system-ui, sans-serif;
             border: none;
             margin: 0;
-            position: relative; /* Для позиционирования внутренних элементов */
+            position: relative; /* для позиционирования внутренних элементов */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            aspect-ratio: 1 / 1; /* Делаем квадратным */
-            min-width: 140px; /* Минимальный размер для адаптивности */
+            aspect-ratio: 1 / 1; /* делаем квадратным */
+            min-width: 140px; /* минимальный размер для адаптивности */
             min-height: 140px;
         }
         .package.selected {
-            background-color: #000000; /* Черный фон */
-            color: #ffffff; /* Белый текст */
+            background-color: #000000; /* черный фон */
+            color: #ffffff; /* белый текст */
         }
-        .package .package-number { /* Стиль для цифр пакетов */
-            font-family: 'Monaco', monospace;
-            font-size: 38.4px; /* 48px * 0.8 = 38.4px */
+        .package .package-number { /* стиль для цифр пакетов */
+            font-family: 'monaco', monospace;
+            font-size: 32px; /* 32px */
             font-weight: bold;
             line-height: 1;
             position: absolute;
-            top: 24px;
-            left: 24px;
+            top: 20px; /* 20px */
+            left: 20px; /* 20px */
             text-transform: none;
         }
-        .package .package-unit { /* Стиль для "час/часа" */
+        .package .package-unit { /* стиль для "час/часа" */
             font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
             display: block;
             position: absolute;
             top: 36px;
-            left: calc(24px + 38.4px); /* Отступ от левого края + ширина цифры */
-            text-transform: none;
+            left: calc(20px + 32px); /* отступ от левого края + ширина цифры */
+            text-transform: lowercase; /* все строчные */
             font-weight: normal;
         }
-        .package .package-night-text { /* Стиль для текста "Ночь" */
-            font-family: 'Helvetica Neue Condensed Black', sans-serif;
-            font-size: 16px; /* 20px * 0.8 = 16px */
+        .package .package-night-text { /* стиль для текста "ночь" */
+            font-family: 'helvetica neue condensed black', sans-serif;
+            font-size: 24px; /* 24px */
             font-weight: bold;
             line-height: 1;
             position: absolute;
-            top: 24px;
-            left: 24px;
-            text-transform: none; /* Убрал uppercase */
+            top: 26px; /* 26px */
+            left: 20px; /* 20px */
+            text-transform: lowercase; /* все строчные */
         }
-        .package .package-night-time { /* Стиль для текста "(00:00 – 08:00)" */
-            font-family: 'Monaco', monospace;
-            font-size: 7.68px; /* 9.6px * 0.8 = 7.68px */
+        .package .package-night-time { /* стиль для текста "(00:00 – 08:00)" */
+            font-family: 'monaco', monospace;
+            font-size: 9px; /* 9px */
             position: absolute;
-            top: 48px; /* Отступ ниже "Ночь" */
-            left: 24px;
+            top: 51px; /* 51px */
+            left: 27px; /* 27px */
             text-transform: none;
         }
-        .package .package-original-price { /* Перечеркнутая цена */
-            font-family: 'Monaco', monospace;
+        .package .package-original-price { /* перечеркнутая цена */
+            font-family: 'monaco', monospace;
             font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
             position: absolute;
-            bottom: 8px;
+            bottom: 11px; /* 11px */
             left: 24px;
             text-decoration: line-through;
-            color: #a0a0a0; /* Серый цвет для перечеркнутой цены */
+            color: #a0a0a0; /* серый цвет для перечеркнутой цены */
         }
-        .package .package-price { /* Актуальная цена */
-            font-family: 'Monaco', monospace;
-            font-size: 15.36px; /* 19.2px * 0.8 = 15.36px */
+        .package .package-price { /* актуальная цена */
+            font-family: 'monaco', monospace;
+            font-size: 14px; /* 14px */
             font-weight: bold;
             position: absolute;
-            bottom: 8px;
-            right: 24px;
+            bottom: 10px; /* 10px */
+            right: 13px; /* 13px */
         }
 
         .custom-package-trigger {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-size: 16px; /* Основной текст */
+            align-items: flex-start; /* выравнивание по левому краю */
+            text-align: left; /* выравнивание по левому краю */
+            font-size: 22px; /* 22px */
             font-weight: bold;
-            text-transform: none;
+            text-transform: lowercase; /* все строчные */
         }
         .custom-package-trigger div {
             line-height: 1.2;
@@ -558,69 +557,69 @@
             color: #000000;
             text-align: center;
             margin-bottom: 16px;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
 
-        /* Выбор времени */
-        #time-grid { /* Отдельный стиль для сетки времени */
+        /* выбор времени */
+        #time-grid { /* отдельный стиль для сетки времени */
             grid-template-columns: repeat(4, 1fr); /* 4 столбца на шаге времени */
-            display: grid; /* Применяем grid, так как он может быть переопределен */
+            display: grid; /* применяем grid, так как он может быть переопределен */
             gap: 0;
-            margin-left: -16px; /* Вытягиваем на всю ширину */
+            margin-left: -16px; /* вытягиваем на всю ширину */
             margin-right: -16px;
             margin-bottom: 16px;
         }
         .time-slot {
-            font-family: 'Monaco', monospace; /* Моноширинный шрифт для слотов */
-            font-size: 16px; /* Уменьшил для 4х колонок */
+            font-family: 'monaco', monospace; /* моноширинный шрифт для слотов */
+            font-size: 16px; /* уменьшил для 4х колонок */
             padding: 12px;
-            border: none; /* УДАЛЕНО: обводка */
-            margin: 0; /* Плотное прилегание */
-            aspect-ratio: 1 / 1; /* Делаем квадратным */
-            min-width: unset; /* Сброс min-width */
-            min-height: unset; /* Сброс min-height */
+            border: none; /* удалено: обводка */
+            margin: 0; /* плотное прилегание */
+            aspect-ratio: 1 / 1; /* делаем квадратным */
+            min-width: unset; /* сброс min-width */
+            min-height: unset; /* сброс min-height */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-transform: none; /* Убран капслок */
+            text-transform: none; /* убран капслок */
         }
         .time-slot.selected {
-            background-color: #000000; /* Черный фон */
-            color: #ffffff; /* Белый текст */
+            background-color: #000000; /* черный фон */
+            color: #ffffff; /* белый текст */
         }
 
-        /* Форма данных */
+        /* форма данных */
         form label {
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-family: 'helvetica neue', system-ui, sans-serif;
             font-size: 14px;
             color: #000000;
             margin-bottom: 4px;
             display: block;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         form input[type="text"],
         form input[type="tel"],
         form textarea {
             width: 100%;
             padding: 12px;
-            border: none; /* УДАЛЕНО: обводка */
+            border: none; /* удалено: обводка */
             border-radius: 0;
             background-color: #d9d9d9;
             color: #000000;
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-family: 'helvetica neue', system-ui, sans-serif;
             font-size: 16px;
             margin-bottom: 16px;
         }
         form input::placeholder,
         form textarea::placeholder {
             color: #a0a0a0;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         form input:focus,
         form textarea:focus {
-            outline: 2px solid #000000; /* Черная обводка при фокусе */
-            border-color: transparent; /* УДАЛЕНО: обводка */
+            outline: 2px solid #000000; /* черная обводка при фокусе */
+            border-color: transparent; /* удалено: обводка */
         }
         textarea {
             resize: vertical;
@@ -629,10 +628,10 @@
         .text-sm {
             font-size: 14px;
             color: #000000;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
 
-        /* Подтверждение */
+        /* подтверждение */
         .confirmation-details {
             background-color: #d9d9d9;
             color: #000000;
@@ -640,9 +639,9 @@
             border-radius: 0;
             margin-bottom: 16px;
             font-size: 16px;
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
-            border: none; /* УДАЛЕНО: обводка */
-            text-transform: none; /* Убран капслок */
+            font-family: 'helvetica neue', system-ui, sans-serif;
+            border: none; /* удалено: обводка */
+            text-transform: lowercase; /* все строчные */
         }
         .confirmation-details strong {
             color: #000000;
@@ -655,17 +654,17 @@
             margin-top: 16px;
             text-align: center;
             font-size: 14px;
-            text-transform: none; /* Убран капслок */
-            border: none; /* УДАЛЕНО: обводка */
+            text-transform: lowercase; /* все строчные */
+            border: none; /* удалено: обводка */
         }
         .message-box.info {
-            background-color: #a0a0a0; /* Серый для информационных сообщений */
+            background-color: #a0a0a0; /* серый для информационных сообщений */
             color: #ffffff;
         }
 
-        /* Модальные окна */
+        /* модальные окна */
         .modal {
-            display: none; /* Скрыто по умолчанию */
+            display: none; /* скрыто по умолчанию */
             position: fixed;
             top: 0;
             left: 0;
@@ -684,26 +683,26 @@
             width: 80%;
             max-width: 400px;
             text-align: center;
-            border: none; /* УДАЛЕНО: обводка */
+            border: none; /* удалено: обводка */
         }
         .modal-content h3 {
-            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-family: 'helvetica neue condensed black', sans-serif;
             font-weight: bold;
             font-size: 20px;
             margin-bottom: 16px;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         .modal-content p {
-            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-family: 'helvetica neue', system-ui, sans-serif;
             font-size: 16px;
             margin-bottom: 16px;
-            text-transform: none; /* Убран капслок */
+            text-transform: lowercase; /* все строчные */
         }
         .modal-buttons .button {
             margin: 0 4px;
         }
 
-        /* Адаптация для мобильных устройств */
+        /* адаптация для мобильных устройств */
         @media (max-width: 480px) {
             .header-text h1 {
                 font-size: 20px;
@@ -718,52 +717,52 @@
                 min-height: unset;
             }
             .grid-item .simulator-number {
-                font-size: 48px; /* Адаптивный размер для цифр симулятора */
-                top: 24px; /* Адаптивный отступ */
-                left: 24px; /* Адаптивный отступ */
+                font-size: 48px; /* адаптивный размер для цифр симулятора */
+                top: 24px; /* адаптивный отступ */
+                left: 24px; /* адаптивный отступ */
             }
             .grid-item small {
                 font-size: 14px;
-                left: 24px; /* Адаптивное выравнивание по левому краю */
+                left: 24px; /* адаптивное выравнивание по левому краю */
             }
             #package-grid {
                 grid-template-columns: repeat(3, 1fr); /* 3 столбца */
             }
-            .package { /* Адаптация для пакета */
+            .package { /* адаптация для пакета */
                 font-size: 14px;
                 padding: 12px;
                 min-width: unset;
                 min-height: unset;
             }
             .package .package-number {
-                font-size: 38.4px; /* Адаптивный размер для цифр пакета */
-                top: 24px;
-                left: 24px;
+                font-size: 32px; /* адаптивный размер для цифр пакета */
+                top: 20px;
+                left: 20px;
             }
             .package .package-unit {
                 font-size: 10.24px;
-                top: 36px; /* Адаптивный отступ */
-                left: calc(24px + 38.4px); /* Отступ от левого края + ширина цифры */
+                top: 36px; /* адаптивный отступ */
+                left: calc(20px + 32px); /* отступ от левого края + ширина цифры */
             }
             .package .package-night-text {
-                font-size: 16px; /* Адаптивный размер для "Ночь" */
-                top: 24px;
-                left: 24px;
+                font-size: 24px; /* адаптивный размер для "ночь" */
+                top: 26px;
+                left: 20px;
             }
             .package .package-night-time {
-                font-size: 7.68px; /* Адаптивный размер для времени ночи */
-                top: 40px;
-                left: 24px;
+                font-size: 9px; /* адаптивный размер для времени ночи */
+                top: 51px;
+                left: 27px;
             }
             .package .package-original-price {
                 font-size: 10.24px;
-                bottom: 8px;
+                bottom: 11px;
                 left: 24px;
             }
             .package .package-price {
-                font-size: 15.36px;
-                bottom: 8px;
-                right: 24px;
+                font-size: 14px;
+                bottom: 10px;
+                right: 13px;
             }
 
             #time-grid {
@@ -785,7 +784,7 @@
                 height: calc(25vw - 0px);
             }
             .date-carousel .date-item small {
-                font-size: 10px; /* Адаптивный размер для месяцев */
+                font-size: 10px; /* адаптивный размер для месяцев */
             }
         }
         @media (max-width: 380px) {
@@ -800,7 +799,7 @@
                 grid-template-columns: repeat(2, 1fr); /* 2 столбца на очень маленьких экранах */
             }
             .package .package-number {
-                font-size: 32px; /* Еще меньше на очень маленьких экранах */
+                font-size: 32px; /* еще меньше на очень маленьких экранах */
                 top: 20px;
                 left: 20px;
             }
@@ -810,12 +809,12 @@
                 left: calc(20px + 32px);
             }
             .package .package-night-text {
-                font-size: 12.8px; /* Адаптивный размер для "Ночь" */
+                font-size: 12.8px; /* адаптивный размер для "ночь" */
                 top: 20px;
                 left: 20px;
             }
             .package .package-night-time {
-                font-size: 6.14px; /* Адаптивный размер для времени ночи */
+                font-size: 6.14px; /* адаптивный размер для времени ночи */
                 top: 34px;
                 left: 20px;
             }
@@ -838,7 +837,7 @@
             }
         }
 
-        /* Стили для карусели "Свой пакет" */
+        /* стили для карусели "свой пакет" */
         .custom-package-carousel-container {
             display: flex;
             overflow-x: scroll;
@@ -870,11 +869,11 @@
         .custom-package-carousel-container .package .package-unit,
         .custom-package-carousel-container .package .package-original-price,
         .custom-package-carousel-container .package .package-price {
-            position: static; /* Сбрасываем абсолютное позиционирование */
-            font-size: inherit; /* Используем размер родителя */
+            position: static; /* сбрасываем абсолютное позиционирование */
+            font-size: inherit; /* используем размер родителя */
             margin: 0;
             padding: 0;
-            text-align: center; /* Центрируем текст */
+            text-align: center; /* центрируем текст */
         }
         .custom-package-carousel-container .package .package-number {
              font-size: 25.6px; /* 32px * 0.8 = 25.6px */
@@ -906,21 +905,21 @@
             font-size: 6.4px; /* 8px * 0.8 = 6.4px */
         }
 
-        /* Скрытый класс */
+        /* скрытый класс */
         .hidden {
             display: none !important;
         }
 
-        /* Предупреждение для длительных броней */
+        /* предупреждение для длительных броней */
         #long-booking-warning {
-            background-color: #ffeb3b; /* Желтый фон */
+            background-color: #ffeb3b; /* желтый фон */
             color: #333;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 16px;
             font-size: 14px;
             text-align: left;
-            display: none; /* Скрыто по умолчанию */
+            display: none; /* скрыто по умолчанию */
         }
         #long-booking-warning strong {
             color: #000;
@@ -928,178 +927,178 @@
     </style>
 </head>
 <body>
-    <!-- Прогресс-бар (глобальный, фиксированный) -->
+    <!-- прогресс-бар (глобальный, фиксированный) -->
     <div class="progress-bar-container-global">
         <div class="progress-bar-global" id="booking-progress-global"></div>
     </div>
 
-    <!-- Заголовок (глобальный, фиксированный) -->
+    <!-- заголовок (глобальный, фиксированный) -->
     <div class="header-container">
         <div class="header-text">
-            <h1>Бронирование автосимуляторов</h1>
+            <h1>бронирование автосимуляторов</h1>
         </div>
     </div>
 
-    <!-- Хлебные крошки -->
+    <!-- хлебные крошки -->
     <div class="breadcrumb" id="booking-breadcrumb"></div>
 
-    <!-- Fallback для открытия вне Telegram Web App -->
+    <!-- fallback для открытия вне telegram web app -->
     <div id="web-app-fallback" class="hidden">
         <div class="content">
-            <h1>Рад тебя видеть — стюард на связи 🏁</h1>
+            <h1>рад тебя видеть — стюард на связи 🏁</h1>
             <p>
-                Готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
+                готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
             </p>
             <p>
-                Если что-то упустил — загляни в наше сообщество 
-                <a href="https://t.me/c/2381161383/2" target="_blank">Sim Racing Клуб</a>,<br>
+                если что-то упустил — загляни в наше сообщество 
+                <a href="https://t.me/c/2381161383/2" target="_blank">sim racing клуб</a>,<br>
                 там всегда свежие новости, обсуждения и планы на заезды.
             </p>
             <p class="address">
-                📍 Ростов-на-Дону, Б. Садовая, 70 (киберклуб Бункер)
+                📍 ростов-на-дону, б. садовая, 70 (киберклуб бункер)
             </p>
             <video autoplay loop muted playsinline>
-                <source src="images/Video-main.mp4" type="video/mp4">
-                Ваш браузер не поддерживает видео.
+                <source src="images/video-main.mp4" type="video/mp4">
+                ваш браузер не поддерживает видео.
             </video>
             <p class="text-sm">
-                Пожалуйста, откройте это приложение через Telegram для полноценного бронирования.
+                пожалуйста, откройте это приложение через telegram для полноценного бронирования.
             </p>
         </div>
     </div>
 
-    <!-- Основной контент приложения -->
+    <!-- основной контент приложения -->
     <div id="main-booking-content" class="container">
-        <!-- Шаг 0: Выбор даты и симулятора (объединенный шаг) -->
+        <!-- шаг 0: выбор даты и симулятора (объединенный шаг) -->
         <div id="date-simulator-step" class="step-page active">
-            <h2 class="step-title">Дата</h2>
+            <h2 class="step-title">дата</h2>
             <div class="date-selection-area">
                 <div class="date-display" id="date-toggle">
-                    Сегодня, <span id="current-date-display">16.07.2025</span>
+                    сегодня
                     <span class="arrow-down"></span>
                 </div>
                 <div id="date-carousel-container" class="date-carousel-container">
                     <div class="date-carousel" id="date-carousel">
-                        <!-- Даты будут сгенерированы JS -->
+                        <!-- даты будут сгенерированы js -->
                     </div>
                 </div>
             </div>
 
-            <h2 class="step-title">Выберите симулятор(ы)</h2>
+            <h2 class="step-title">выберите симулятор(ы)</h2>
             <div class="simulator-grid-container">
                 <div class="grid-item simulator-box" data-id="1">
                     <div class="simulator-number">01</div>
-                    <small>Автосим</small>
+                    <small>автосим</small>
                     <div class="remove-selection">✕</div>
                 </div>
                 <div class="grid-item simulator-box" data-id="2">
                     <div class="simulator-number">02</div>
-                    <small>Автосим</small>
+                    <small>автосим</small>
                     <div class="remove-selection">✕</div>
                 </div>
             </div>
-            <button id="toPackagePage" class="button active" disabled>Далее</button>
+            <button id="toPackagePage" class="button active" disabled>далее</button>
         </div>
 
-        <!-- Шаг 1: Выбор пакета времени -->
+        <!-- шаг 1: выбор пакета времени -->
         <div id="package-step" class="step-page">
-            <h2 class="step-title">Выберите пакет времени</h2>
+            <h2 class="step-title">выберите пакет времени</h2>
             <div id="package-grid">
-                <!-- Пакеты будут сгенерированы JS -->
+                <!-- пакеты будут сгенерированы js -->
             </div>
-            <!-- Карусель для "Своего пакета" -->
+            <!-- карусель для "своего пакета" -->
             <div id="custom-package-carousel-container" class="custom-package-carousel-container hidden">
                 <div class="custom-package-carousel" id="custom-package-carousel">
-                    <!-- Пользовательские пакеты будут сгенерированы JS -->
+                    <!-- пользовательские пакеты будут сгенерированы js -->
                 </div>
-                <button id="backToMainPackageSelection" class="button back-btn active mt-4">Назад к пакетам</button>
+                <button id="backToMainPackageSelection" class="button back-btn active mt-4">назад к пакетам</button>
             </div>
 
             <p id="package-summary" class="text-center mb-6"></p>
             <div class="flex justify-between gap-4 mt-6">
-                <button id="backToDateSimulatorPage" class="button back-btn active">Назад</button>
-                <button id="toTimePageNew" class="button active" disabled>Далее</button>
+                <button id="backToDateSimulatorPage" class="button back-btn active">назад</button>
+                <button id="toTimePageNew" class="button active" disabled>далее</button>
             </div>
         </div>
 
-        <!-- Шаг 2: Выбор времени -->
+        <!-- шаг 2: выбор времени -->
         <div id="time-select-step" class="step-page">
-            <h2 class="step-title">Выберите время</h2>
+            <h2 class="step-title">выберите время</h2>
             <div id="long-booking-warning" class="message-box info">
-                <strong>⚠️ Важно:</strong> Для длительных броней (12 часов и более) мы предварительно свяжемся с гостем. Это помогает нам избежать неявок и сохранить симуляторы доступными для всех. В редких случаях может потребоваться предоплата. Спасибо за понимание!
+                <strong>⚠️ важно:</strong> для длительных броней (12 часов и более) мы предварительно свяжемся с гостем. это помогает нам избежать неявок и сохранить симуляторы доступными для всех. в редких случаях может потребоваться предоплата. спасибо за понимание!
             </div>
             <div id="time-grid">
-                <!-- Временные слоты будут сгенерированы JS -->
+                <!-- временные слоты будут сгенерированы js -->
             </div>
             <div class="flex justify-between gap-4 mt-6">
-                <button id="backToPackagePage" class="button back-btn active">Назад</button>
-                <button id="toFormPage" class="button active" disabled>Далее</button>
+                <button id="backToPackagePage" class="button back-btn active">назад</button>
+                <button id="toFormPage" class="button active" disabled>далее</button>
             </div>
         </div>
 
-        <!-- Шаг 3: Заполнение формы -->
+        <!-- шаг 3: заполнение формы -->
         <div id="form-step" class="step-page">
-            <h2 class="step-title">Ваши данные</h2>
+            <h2 class="step-title">ваши данные</h2>
             <form id="booking-form">
                 <div class="form-group">
-                    <label for="name">Ваше имя</label>
-                    <input type="text" id="name" name="name" required placeholder="Иван Иванов">
+                    <label for="name">ваше имя</label>
+                    <input type="text" id="name" name="name" required placeholder="иван иванов">
                 </div>
                 <div class="form-group">
-                    <label for="phone">Телефон</label>
-                    <input type="tel" id="phone" name="phone" required placeholder="+7 (XXX) XXX-1234">
+                    <label for="phone">телефон</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+7 (xxx) xxx-1234">
                 </div>
                 <div class="form-group">
-                    <label for="telegram">Telegram (ник без @)</label>
+                    <label for="telegram">telegram (ник без @)</label>
                     <input type="text" id="telegram" name="telegram" placeholder="ваш_ник" required>
                 </div>
                 <div class="form-group">
-                    <label for="comment">Комментарий (необязательно)</label>
-                    <textarea id="comment" name="comment" rows="3" placeholder="Особые пожелания"></textarea>
+                    <label for="comment">комментарий (необязательно)</label>
+                    <textarea id="comment" name="comment" rows="3" placeholder="особые пожелания"></textarea>
                 </div>
                 
                 <p class="text-sm text-center mt-4 mb-4">
-                    Нажимая кнопку далее вы соглашаетесь на обработку ваших данных
+                    нажимая кнопку далее вы соглашаетесь на обработку ваших данных
                 </p>
 
                 <div class="flex justify-between gap-4 mt-6">
-                    <button id="backToTimePageNew" type="button" class="button back-btn active">Назад</button>
-                    <button type="submit" class="button active">Далее</button>
+                    <button id="backToTimePageNew" type="button" class="button back-btn active">назад</button>
+                    <button type="submit" class="button active">далее</button>
                 </div>
             </form>
         </div>
 
-        <!-- Шаг 4: Подтверждение -->
+        <!-- шаг 4: подтверждение -->
         <div id="confirmation-step" class="step-page">
-            <h2 class="step-title">Ваша заявка принята!</h2>
-            <p class="text-center mb-6">Мы свяжемся с вами в ближайшее время для подтверждения.</p>
+            <h2 class="step-title">ваша заявка принята!</h2>
+            <p class="text-center mb-6">мы свяжемся с вами в ближайшее время для подтверждения.</p>
             <div id="confirmation-details" class="confirmation-details">
-                <!-- Детали бронирования будут сгенерированы JS -->
+                <!-- детали бронирования будут сгенерированы js -->
             </div>
             <div class="flex flex-col gap-4 mt-6">
-                <button id="book-again" class="button active">Забронировать еще раз</button>
-                <button id="reschedule" class="button back-btn active">Перенести бронирование</button>
-                <button id="cancel-booking" class="button back-btn active">Отменить бронирование</button>
-                <button id="route-btn" class="button back-btn active">Проложить маршрут</button>
-                <button id="taxi-btn" class="button back-btn active">Вызвать такси</button>
+                <button id="book-again" class="button active">забронировать еще раз</button>
+                <button id="reschedule" class="button back-btn active">перенести бронирование</button>
+                <button id="cancel-booking" class="button back-btn active">отменить бронирование</button>
+                <button id="route-btn" class="button back-btn active">проложить маршрут</button>
+                <button id="taxi-btn" class="button back-btn active">вызвать такси</button>
             </div>
             <div id="reschedule-message" class="message-box info">
-                Для переноса свяжитесь со стюардом.
+                для переноса свяжитесь со стюардом.
             </div>
             <div id="cancel-message" class="message-box info">
-                Заявка на отмену отправлена стюарду.
+                заявка на отмену отправлена стюарду.
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно отмены -->
+    <!-- модальное окно отмены -->
     <div id="cancel-modal" class="modal">
         <div class="modal-content">
-            <h3>Подтвердите отмену</h3>
-            <p>Вы уверены, что хотите отменить бронирование?</p>
+            <h3>подтвердите отмену</h3>
+            <p>вы уверены, что хотите отменить бронирование?</p>
             <div class="modal-buttons">
-                <button id="confirm-cancel" class="button active">Да, отменить</button>
-                <button id="cancel-cancel" class="button back-btn active">Нет, оставить</button>
+                <button id="confirm-cancel" class="button active">да, отменить</button>
+                <button id="cancel-cancel" class="button back-btn active">нет, оставить</button>
             </div>
         </div>
     </div>
