@@ -480,26 +480,26 @@
         }
         .package .package-number { /* Стиль для цифр пакетов */
             font-family: 'Monaco', monospace;
-            font-size: 48px; /* 60px * 0.8 = 48px */
+            font-size: 38.4px; /* 48px * 0.8 = 38.4px */
             font-weight: bold;
             line-height: 1;
             position: absolute;
-            top: 24px; /* 32px * 0.8 = 25.6px, округлим до 24px */
-            left: 24px; /* 32px * 0.8 = 25.6px, округлим до 24px */
+            top: 24px;
+            left: 24px;
             text-transform: none;
         }
         .package .package-unit { /* Стиль для "час/часа" */
-            font-size: 12.8px; /* 16px * 0.8 = 12.8px */
+            font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
             display: block;
             position: absolute;
-            top: 36px; /* 48px * 0.8 = 38.4px, округлим до 36px */
-            left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
+            top: 36px;
+            left: calc(24px + 38.4px); /* Отступ от левого края + ширина цифры */
             text-transform: none;
             font-weight: normal;
         }
         .package .package-night-text { /* Стиль для текста "Ночь" */
             font-family: 'Helvetica Neue Condensed Black', sans-serif;
-            font-size: 20px; /* 24px * 0.8 = 19.2px, округлим до 20px */
+            font-size: 16px; /* 20px * 0.8 = 16px */
             font-weight: bold;
             line-height: 1;
             position: absolute;
@@ -509,7 +509,7 @@
         }
         .package .package-night-time { /* Стиль для текста "(00:00 – 08:00)" */
             font-family: 'Monaco', monospace;
-            font-size: 9.6px; /* 12px * 0.8 = 9.6px */
+            font-size: 7.68px; /* 9.6px * 0.8 = 7.68px */
             position: absolute;
             top: 48px; /* Отступ ниже "Ночь" */
             left: 24px;
@@ -517,7 +517,7 @@
         }
         .package .package-original-price { /* Перечеркнутая цена */
             font-family: 'Monaco', monospace;
-            font-size: 12.8px; /* 16px * 0.8 = 12.8px */
+            font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
             position: absolute;
             bottom: 8px;
             left: 24px;
@@ -526,7 +526,7 @@
         }
         .package .package-price { /* Актуальная цена */
             font-family: 'Monaco', monospace;
-            font-size: 19.2px; /* 24px * 0.8 = 19.2px */
+            font-size: 15.36px; /* 19.2px * 0.8 = 15.36px */
             font-weight: bold;
             position: absolute;
             bottom: 8px;
@@ -658,6 +658,18 @@
         }
 
         /* Модальные окна */
+        .modal {
+            display: none; /* Скрыто по умолчанию */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
         .modal-content {
             background-color: #d9d9d9;
             color: #000000;
@@ -718,14 +730,14 @@
                 min-height: unset;
             }
             .package .package-number {
-                font-size: 48px; /* Адаптивный размер для цифр пакета */
+                font-size: 38.4px; /* Адаптивный размер для цифр пакета */
                 top: 24px;
                 left: 24px;
             }
             .package .package-unit {
-                font-size: 12.8px;
+                font-size: 10.24px;
                 top: 36px; /* Адаптивный отступ */
-                left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
+                left: calc(24px + 38.4px); /* Отступ от левого края + ширина цифры */
             }
             .package .package-night-text {
                 font-size: 16px; /* Адаптивный размер для "Ночь" */
@@ -733,17 +745,17 @@
                 left: 24px;
             }
             .package .package-night-time {
-                font-size: 8px; /* Адаптивный размер для времени ночи */
+                font-size: 7.68px; /* Адаптивный размер для времени ночи */
                 top: 40px;
                 left: 24px;
             }
             .package .package-original-price {
-                font-size: 12.8px;
+                font-size: 10.24px;
                 bottom: 8px;
                 left: 24px;
             }
             .package .package-price {
-                font-size: 19.2px;
+                font-size: 15.36px;
                 bottom: 8px;
                 right: 24px;
             }
@@ -782,32 +794,32 @@
                 grid-template-columns: repeat(2, 1fr); /* 2 столбца на очень маленьких экранах */
             }
             .package .package-number {
-                font-size: 40px; /* Еще меньше на очень маленьких экранах */
+                font-size: 32px; /* Еще меньше на очень маленьких экранах */
                 top: 20px;
                 left: 20px;
             }
             .package .package-unit {
-                font-size: 10.4px; /* 13px * 0.8 = 10.4px */
+                font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
                 top: 30px;
-                left: calc(20px + 40px);
+                left: calc(20px + 32px);
             }
             .package .package-night-text {
-                font-size: 14px; /* Адаптивный размер для "Ночь" */
+                font-size: 12.8px; /* Адаптивный размер для "Ночь" */
                 top: 20px;
                 left: 20px;
             }
             .package .package-night-time {
-                font-size: 7px; /* Адаптивный размер для времени ночи */
+                font-size: 6.14px; /* Адаптивный размер для времени ночи */
                 top: 34px;
                 left: 20px;
             }
             .package .package-original-price {
-                font-size: 10.4px;
+                font-size: 8.19px;
                 bottom: 6px;
                 left: 20px;
             }
             .package .package-price {
-                font-size: 16px;
+                font-size: 12.28px;
                 bottom: 6px;
                 right: 20px;
             }
@@ -859,18 +871,18 @@
             text-align: center; /* Центрируем текст */
         }
         .custom-package-carousel-container .package .package-number {
-             font-size: 32px; /* Чуть меньше для карусели */
+             font-size: 25.6px; /* 32px * 0.8 = 25.6px */
         }
         .custom-package-carousel-container .package .package-unit {
-            font-size: 10px;
+            font-size: 8px; /* 10px * 0.8 = 8px */
         }
         .custom-package-carousel-container .package .package-original-price {
-            font-size: 10px;
+            font-size: 8px; /* 10px * 0.8 = 8px */
             text-decoration: line-through;
             color: #a0a0a0;
         }
         .custom-package-carousel-container .package .package-price {
-            font-size: 14px;
+            font-size: 11.2px; /* 14px * 0.8 = 11.2px */
             font-weight: bold;
         }
         .custom-package-carousel-container .package .package-night-text,
@@ -882,10 +894,10 @@
             text-align: center;
         }
         .custom-package-carousel-container .package .package-night-text {
-            font-size: 16px;
+            font-size: 12.8px; /* 16px * 0.8 = 12.8px */
         }
         .custom-package-carousel-container .package .package-night-time {
-            font-size: 8px;
+            font-size: 6.4px; /* 8px * 0.8 = 6.4px */
         }
 
         /* Скрытый класс */
@@ -976,21 +988,6 @@
                     <small>АВТОСИМ</small>
                     <div class="remove-selection">✕</div>
                 </div>
-                <div class="grid-item simulator-box" data-id="3">
-                    <div class="simulator-number">03</div>
-                    <small>АВТОСИМ</small>
-                    <div class="remove-selection">✕</div>
-                </div>
-                <div class="grid-item simulator-box" data-id="4">
-                    <div class="simulator-number">04</div>
-                    <small>АВТОСИМ</small>
-                    <div class="remove-selection">✕</div>
-                </div>
-                <div class="grid-item simulator-box" data-id="any">
-                    <div class="simulator-number"></div>
-                    <small>ЛЮБОЙ</small>
-                    <div class="remove-selection">✕</div>
-                </div>
             </div>
             <button id="toPackagePage" class="button active" disabled>ДАЛЕЕ</button>
         </div>
@@ -1020,7 +1017,7 @@
         <div id="time-select-step" class="step-page">
             <h2 class="step-title">ВЫБЕРИТЕ ВРЕМЯ</h2>
             <div id="long-booking-warning" class="message-box info">
-                <strong>⚠️ Важно:</strong> Для длительных броней (12 часов и более) мы предварительно связываемся с гостем. Это помогает нам избежать неявок и сохранить симуляторы доступными для всех. В редких случаях может потребоваться предоплата. Спасибо за понимание!
+                <strong>⚠️ Важно:</strong> Для длительных броней (12 часов и более) мы предварительно свяжемся с гостем. Это помогает нам избежать неявок и сохранить симуляторы доступными для всех. В редких случаях может потребоваться предоплата. Спасибо за понимание!
             </div>
             <div id="time-grid">
                 <!-- Временные слоты будут сгенерированы JS -->
@@ -1074,7 +1071,6 @@
                 <button id="book-again" class="button active">ЗАБРОНИРОВАТЬ ЕЩЕ РАЗ</button>
                 <button id="reschedule" class="button back-btn active">ПЕРЕНЕСТИ БРОНИРОВАНИЕ</button>
                 <button id="cancel-booking" class="button back-btn active">ОТМЕНИТЬ БРОНИРОВАНИЕ</button>
-                <button id="ask-ai-steward" class="button back-btn active">✨ СПРОСИТЬ СТЮАРДА (AI)</button>
                 <button id="route-btn" class="button back-btn active">ПРОЛОЖИТЬ МАРШРУТ</button>
                 <button id="taxi-btn" class="button back-btn active">ВЫЗВАТЬ ТАКСИ</button>
             </div>
@@ -1095,21 +1091,6 @@
             <div class="modal-buttons">
                 <button id="confirm-cancel" class="button active">ДА, ОТМЕНИТЬ</button>
                 <button id="cancel-cancel" class="button back-btn active">НЕТ, ОСТАВИТЬ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно AI Чата -->
-    <div id="ai-chat-modal" class="modal">
-        <div class="modal-content">
-            <h3>СПРОСИТЬ СТЮАРДА (AI)</h3>
-            <div id="ai-chat-response">
-                Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!
-            </div>
-            <input type="text" id="ai-chat-input" placeholder="Введите ваш вопрос...">
-            <div class="button-group">
-                <button id="ai-chat-submit" class="button active">ЗАДАТЬ ВОПРОС</button>
-                <button id="ai-chat-close" class="button back-btn active">ЗАКРЫТЬ</button>
             </div>
         </div>
     </div>

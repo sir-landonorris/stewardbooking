@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             setupNavigation();
             setupConfirmationActions();
             setupMapButtons();
-            setupAIChatFeature(); // Setup AI Chat
+            // setupAIChatFeature(); // AI Chat Feature Removed
             showStep(0); // Start at the first step
 
         } catch (error) {
@@ -251,27 +251,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
-                    if (simulatorId === 'any') {
-                        // Если выбран "Любой", снимаем выбор со всех остальных
-                        document.querySelectorAll('.simulator-box.selected').forEach(s => {
-                            s.classList.remove('selected');
-                            const sRemoveBtn = s.querySelector('.remove-selection');
-                            if (sRemoveBtn) sRemoveBtn.style.display = 'none';
-                        });
-                        bookingData.simulator = ['any'];
-                    } else {
-                        // Если выбран конкретный, снимаем выбор с "Любой"
-                        const anySim = document.querySelector('.simulator-box[data-id="any"]');
-                        if (anySim && anySim.classList.contains('selected')) {
-                            anySim.classList.remove('selected');
-                            const anyRemoveBtn = anySim.querySelector('.remove-selection');
-                            if (anyRemoveBtn) anyRemoveBtn.style.display = 'none';
-                            bookingData.simulator = [];
-                        }
-                        
-                        if (!bookingData.simulator.includes(simulatorId)) {
-                            bookingData.simulator.push(simulatorId);
-                        }
+                    // Теперь нет опции "любой", только конкретные симуляторы
+                    if (!bookingData.simulator.includes(simulatorId)) {
+                        bookingData.simulator.push(simulatorId);
                     }
                     this.classList.add('selected');
                     if (removeBtn) removeBtn.style.display = 'flex';
@@ -358,6 +340,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Обработчик для кнопки "Свой пакет"
         document.getElementById('custom-package-trigger').addEventListener('click', function() {
+            document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // Снимаем выбор с обычных пакетов
             document.getElementById('package-grid').classList.add('hidden'); // Скрываем основной список
             document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // Показываем карусель
             setupCustomPackageSelection(); // Генерируем и настраиваем карусель
@@ -879,9 +862,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     function getSimulatorNames(simulatorIds) {
-        if (simulatorIds.includes('any')) {
-            return 'ЛЮБОЙ';
-        }
+        // Теперь нет опции "Любой", только конкретные симуляторы
         return simulatorIds.map(id => `СИМУЛЯТОР #${id}`).join(', ');
     }
 
@@ -904,100 +885,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             return 'ЧАСА';
         }
         return 'ЧАСОВ';
-    }
-
-    // --- Функции для AI Чата ---
-    const aiChatModal = document.getElementById('ai-chat-modal');
-    const aiChatInput = document.getElementById('ai-chat-input');
-    const aiChatResponse = document.getElementById('ai-chat-response');
-    const aiChatSubmitBtn = document.getElementById('ai-chat-submit');
-    const aiChatCloseBtn = document.getElementById('ai-chat-close');
-
-    function setupAIChatFeature() {
-        if (aiChatSubmitBtn) {
-            aiChatSubmitBtn.addEventListener('click', handleAIChatSubmit);
-        }
-        if (aiChatCloseBtn) {
-            aiChatCloseBtn.addEventListener('click', closeAIChatModal);
-        }
-        if (aiChatInput) {
-            aiChatInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleAIChatSubmit();
-                }
-            });
-        }
-    }
-
-    function openAIChatModal() {
-        if (aiChatModal) {
-            aiChatModal.style.display = 'flex';
-            aiChatInput.value = ''; // Очищаем поле ввода
-            aiChatResponse.innerHTML = 'ПРИВЕТ! Я здесь, чтобы ответить на ваши вопросы о клубе. СПРАШИВАЙТЕ!'; // Сброс текста ответа
-            aiChatInput.focus();
-        }
-    }
-
-    function closeAIChatModal() {
-        if (aiChatModal) {
-            aiChatModal.style.display = 'none';
-        }
-    }
-
-    async function handleAIChatSubmit() {
-        const question = aiChatInput.value.trim();
-        if (!question) {
-            console.error('Пожалуйста, введите ваш вопрос.');
-            aiChatResponse.innerHTML = '<div class="text-center" style="color: #f44336;">Пожалуйста, введите ваш вопрос.</div>'; // Red text for error
-            setTimeout(() => {
-                aiChatResponse.innerHTML = 'ПРИВЕТ! Я здесь, чтобы ответить на ваши вопросы о клубе. СПРАШИВАЙТЕ!';
-            }, 2000);
-            return;
-        }
-
-        aiChatResponse.innerHTML = '<div class="text-center" style="color: #2196F3;">ЗАГРУЗКА...</div>'; // Blue text for loading
-        aiChatSubmitBtn.disabled = true;
-        aiChatInput.disabled = true;
-
-        try {
-            const responseText = await callGeminiAPI(question);
-            aiChatResponse.innerHTML = responseText;
-        } catch (error) {
-            console.error("Ошибка при вызове Gemini API:", error);
-            aiChatResponse.innerHTML = 'ИЗВИНИТЕ, ПРОИЗОШЛА ОШИБКА ПРИ ПОЛУЧЕНИИ ОТВЕТА. ПОПРОБУЙТЕ ЕЩЕ РАЗ.';
-        } finally {
-            aiChatSubmitBtn.disabled = false;
-            aiChatInput.disabled = false;
-            aiChatInput.value = ''; // Очищаем поле после отправки
-        }
-    }
-
-    async function callGeminiAPI(userQuestion) {
-        const prompt = `Вы полезный и дружелюбный стюард клуба симуляторов гонок. Ответьте на следующий вопрос о клубе, ценах, услугах, расписании или правилах. Старайтесь быть кратким и по делу. Если вы не знаете ответа на вопрос, вежливо сообщите, что у вас нет этой информации и предложите связаться с администратором напрямую. Вопрос: ${userQuestion}`;
-        
-        let chatHistory = [];
-        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-        const payload = { contents: chatHistory };
-        const apiKey = ""; // Canvas автоматически предоставит ключ во время выполнения
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-        
-        if (result.candidates && result.candidates.length > 0 &&
-            result.candidates[0].content && result.candidates[0].content.parts &&
-            result.candidates[0].content.parts.length > 0) {
-            return result.candidates[0].content.parts[0].text;
-        } else {
-            console.error("Неожиданная структура ответа от Gemini API:", result);
-            return "ИЗВИНИТЕ, НЕ УДАЛОСЬ ПОЛУЧИТЬ ОТВЕТ ОТ AI. ПОЖАЛУЙСТА, ПОПРОБУЙТЕ ПЕРЕФРАЗИРОВАТЬ ВОПРОС.";
-        }
     }
 
     // Запускаем приложение
