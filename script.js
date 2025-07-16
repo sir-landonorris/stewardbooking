@@ -335,6 +335,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('toTimePageNew').disabled = false;
                 setupTimeSlotsGenerator(); // генерируем слоты после выбора пакета
                 updateBreadcrumbs(); // обновляем хлебные крошки
+
+                // сбрасываем текст на кнопке "свой пакет" при выборе обычного пакета
+                const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
+                if (customPackageTriggerText) {
+                    customPackageTriggerText.innerHTML = `свой<br>пакет`;
+                }
+                document.getElementById('custom-package-trigger').classList.remove('selected');
             });
         });
 

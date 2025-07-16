@@ -118,7 +118,7 @@
 
         .header-text h1 {
             font-family: 'helvetica neue condensed black', sans-serif;
-            text-transform: uppercase; /* заголовок остается в верхнем регистре */
+            text-transform: lowercase; /* все строчные */
             font-weight: bold;
             font-size: 24px; /* заголовки: 24-28px */
             margin: 0;
@@ -173,11 +173,11 @@
             cursor: pointer;
         }
         .button.back-btn {
-            background-color: #d9d9d9; /* светло-серый */
-            color: #000000; /* черный */
+            background-color: transparent; /* нет фона */
+            color: #000000; /* черный текст */
         }
         .button.back-btn:hover:not(:disabled) {
-            background-color: #a0a0a0; /* чуть темнее серый при наведении */
+            background-color: #d9d9d9; /* чуть темнее серый при наведении */
         }
 
         /* хлебные крошки */
@@ -498,7 +498,7 @@
             display: block;
             position: absolute;
             top: 36px;
-            left: calc(20px + 32px); /* отступ от левого края + ширина цифры */
+            left: calc(20px + 32px + 5px); /* отступ от левого края + ширина цифры + 5px */
             text-transform: lowercase; /* все строчные */
             font-weight: normal;
         }
@@ -543,12 +543,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: flex-start; /* выравнивание по левому краю */
-            text-align: left; /* выравнивание по левому краю */
-            font-size: 22px; /* 22px */
+            font-size: 24px; /* увеличен до 24px */
             font-weight: bold;
             text-transform: lowercase; /* все строчные */
+            position: relative; /* для абсолютного позиционирования внутреннего текста */
+            padding: 0; /* убираем padding */
         }
-        .custom-package-trigger div {
+        .custom-package-trigger .custom-package-text { /* новый класс для внутреннего текста */
+            position: absolute;
+            top: 26px; /* соответствует top для .package .package-night-text */
+            left: 20px; /* соответствует left для .package .package-night-text */
             line-height: 1.2;
         }
 
@@ -742,7 +746,7 @@
             .package .package-unit {
                 font-size: 10.24px;
                 top: 36px; /* адаптивный отступ */
-                left: calc(20px + 32px); /* отступ от левого края + ширина цифры */
+                left: calc(20px + 32px + 5px); /* отступ от левого края + ширина цифры + 5px */
             }
             .package .package-night-text {
                 font-size: 24px; /* адаптивный размер для "ночь" */
@@ -1015,9 +1019,9 @@
             </div>
 
             <p id="package-summary" class="text-center mb-6"></p>
-            <div class="flex justify-between gap-4 mt-6">
-                <button id="backToDateSimulatorPage" class="button back-btn active">назад</button>
+            <div class="flex flex-col gap-4 mt-6">
                 <button id="toTimePageNew" class="button active" disabled>далее</button>
+                <button id="backToDateSimulatorPage" class="button back-btn active">назад</button>
             </div>
         </div>
 
@@ -1030,9 +1034,9 @@
             <div id="time-grid">
                 <!-- временные слоты будут сгенерированы js -->
             </div>
-            <div class="flex justify-between gap-4 mt-6">
-                <button id="backToPackagePage" class="button back-btn active">назад</button>
+            <div class="flex flex-col gap-4 mt-6">
                 <button id="toFormPage" class="button active" disabled>далее</button>
+                <button id="backToPackagePage" class="button back-btn active">назад</button>
             </div>
         </div>
 
@@ -1061,9 +1065,9 @@
                     нажимая кнопку далее вы соглашаетесь на обработку ваших данных
                 </p>
 
-                <div class="flex justify-between gap-4 mt-6">
-                    <button id="backToTimePageNew" type="button" class="button back-btn active">назад</button>
+                <div class="flex flex-col gap-4 mt-6">
                     <button type="submit" class="button active">далее</button>
+                    <button id="backToTimePageNew" type="button" class="button back-btn active">назад</button>
                 </div>
             </form>
         </div>
