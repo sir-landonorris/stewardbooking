@@ -1,51 +1,30 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Firebase variables (provided by the Canvas environment)
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    let firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; // Use 'let' to allow modification
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    // Supabase variables (provided by the Canvas environment)
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; // Canvas-specific app ID
+    const supabaseConfig = typeof __supabase_config !== 'undefined' ? JSON.parse(__supabase_config) : {};
+    
+    let supabaseUrl = supabaseConfig.supabaseUrl || "https://jvzogsjammwaityyqfjq.supabase.co"; // Замените на ваш Supabase URL
+    let supabaseAnonKey = supabaseConfig.supabaseAnonKey || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw"; // Замените на ваш Supabase Anon Key
 
-    // --- START: Safeguard for missing Firebase config properties ---
-    // This is a temporary measure for development/debugging if __firebase_config is incomplete.
-    // In a production Canvas environment, __firebase_config should always be fully provided.
-    if (!firebaseConfig.projectId || firebaseConfig.projectId === "dummy-project-id") {
-        console.error("CRITICAL ERROR: Firebase 'projectId' is missing or is a dummy value from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
-        firebaseConfig.projectId = "dummy-project-id"; // Fallback for initialization, but auth will fail
+    // Critical check for Supabase credentials
+    if (supabaseUrl === "https://jvzogsjammwaityyqfjq.supabase.co" || supabaseAnonKey === "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw") {
+        console.error("КРИТИЧЕСКАЯ ОШИБКА: Supabase URL или Anon Key отсутствует или является заглушкой. Пожалуйста, убедитесь, что ваша среда Canvas предоставляет полную и действительную конфигурацию Supabase через __supabase_config.");
+        // В продакшене здесь можно отобразить сообщение об ошибке пользователю или отключить функциональность.
+        // Для отладки мы продолжим с заглушками, но операции с базой данных будут завершаться с ошибкой.
     }
-    if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "dummy-api-key") {
-        console.error("CRITICAL ERROR: Firebase 'apiKey' is missing or is a dummy value from __firebase_config. Please ensure your Canvas environment provides a complete and valid Firebase config.");
-        firebaseConfig.apiKey = "dummy-api-key"; // Fallback for initialization, but auth will fail
-    }
-    if (!firebaseConfig.authDomain) {
-        console.warn("Firebase 'authDomain' is missing from __firebase_config. Using a dummy auth domain. Please ensure your Canvas environment provides a complete and valid Firebase config.");
-        firebaseConfig.authDomain = "dummy-auth-domain.firebaseapp.com";
-    }
-    if (!firebaseConfig.storageBucket) {
-        console.warn("Firebase 'storageBucket' is missing from __firebase_config. Using a dummy storage bucket. Please ensure your Canvas environment provides a complete and valid Firebase config.");
-        firebaseConfig.storageBucket = "dummy-project-id.appspot.com";
-    }
-    if (!firebaseConfig.messagingSenderId) {
-        console.warn("Firebase 'messagingSenderId' is missing from __firebase_config. Using a dummy messaging sender ID. Please ensure your Canvas environment provides a complete and valid Firebase config.");
-        firebaseConfig.messagingSenderId = "1234567890"; // Example dummy ID
-    }
-    if (!firebaseConfig.appId) {
-        console.warn("Firebase 'appId' is missing from __firebase_config. Using a dummy app ID. Please ensure your Canvas environment provides a complete and valid Firebase config.");
-        firebaseConfig.appId = "1:1234567890:web:abcdef1234567890abcdef"; // Example dummy ID
-    }
-    // --- END: Safeguard ---
 
-    let app, db, auth, userId;
-    let isAuthReady = false;
+    let supabase; // Supabase client instance
+    let userId; // Supabase user ID
+    let isAuthReady = false; // Флаг готовности аутентификации
 
     // Все данные бронирования
     const bookingData = {
         date: null,
         time: null,
         simulator: [], // Изменено на массив для множественного выбора
-        wheel: null,
+        wheel: null, // Удален из макета, но оставлен для совместимости
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
@@ -66,58 +45,51 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Инициализация приложения
     async function init() {
-        // Initialize Firebase
         try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
+            // Инициализация Supabase клиента
+            supabase = createClient(supabaseUrl, supabaseAnonKey);
+            console.log("Supabase клиент инициализирован.");
 
-            // Authenticate user
-            if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
+            // Анонимная аутентификация
+            const { data, error } = await supabase.auth.signInAnonymously();
+            if (error) {
+                console.error("Ошибка анонимного входа в Supabase:", error);
+                // Отобразить сообщение об ошибке пользователю
+                return; // Остановить инициализацию, если аутентификация не удалась
+            }
+            userId = data.user.id; // Получаем ID пользователя Supabase
+            isAuthReady = true; // Клиент Supabase готов, и пользователь "аутентифицирован" анонимно
+            console.log("Пользователь Supabase вошел анонимно. ID пользователя:", userId);
+
+            // Инициализация Telegram Web App
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                console.log("Telegram Web App готов.");
+
+                const userTg = Telegram.WebApp.initDataUnsafe.user;
+                if (userTg) {
+                    bookingData.telegramId = userTg.id.toString(); // Сохраняем Telegram ID
+                    console.log("Данные пользователя Telegram:", userTg);
+                    await loadUserData(bookingData.telegramId); // Загружаем данные пользователя
+                }
             } else {
-                await signInAnonymously(auth);
+                console.warn("Telegram Web App SDK не найден или не готов.");
             }
 
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    isAuthReady = true;
-                    console.log("Firebase initialized and authenticated. User ID:", userId);
-                    
-                    // Initialize Telegram Web App
-                    if (window.Telegram && window.Telegram.WebApp) {
-                        Telegram.WebApp.ready();
-                        Telegram.WebApp.expand();
-                        console.log("Telegram Web App ready.");
-
-                        const userTg = Telegram.WebApp.initDataUnsafe.user;
-                        if (userTg) {
-                            bookingData.telegramId = userTg.id.toString(); // Store Telegram ID
-                            console.log("Telegram User Data:", userTg);
-                            await loadUserData(bookingData.telegramId);
-                        }
-                    } else {
-                        console.warn("Telegram Web App SDK not found or not ready.");
-                    }
-
-                    // Call setup functions ONLY AFTER Firebase is ready and user is authenticated
-                    setupCalendar();
-                    setupSimulatorSelection();
-                    setupPackageSelection();
-                    setupTimeSlotsGenerator(); // Will be called again after package selection
-                    setupWheelSelection();
-                    setupForm();
-                    setupNavigation();
-                    setupConfirmationActions();
-                    setupMapButtons();
-                    showStep(0); // Start at the first step
-                } else {
-                    console.log("No user signed in.");
-                }
-            });
+            // Вызываем функции настройки ТОЛЬКО ПОСЛЕ того, как Supabase готов и пользователь аутентифицирован
+            setupCalendar();
+            setupSimulatorSelection();
+            setupPackageSelection();
+            setupTimeSlotsGenerator(); // Будет вызван снова после выбора пакета
+            // setupWheelSelection(); // Удалена, так как выбор руля убран из макета
+            setupForm();
+            setupNavigation();
+            setupConfirmationActions();
+            setupMapButtons();
+            showStep(0); // Начинаем с первого шага
         } catch (error) {
-            console.error("Error initializing Firebase:", error);
+            console.error("Ошибка инициализации приложения:", error);
         }
     }
 
@@ -312,33 +284,35 @@ document.addEventListener('DOMContentLoaded', async function() {
         const durationHours = bookingData.hours;
         const selectedDate = bookingData.date; // e.g., "15.07.2025"
 
-        // Fetch existing bookings for the selected date and simulators
+        // Получаем существующие бронирования для выбранной даты и симуляторов из Supabase
         let occupiedSlots = [];
-        if (isAuthReady && db) {
+        if (isAuthReady && supabase) {
             try {
-                const bookingsRef = collection(db, `artifacts/${appId}/public/data/bookings`);
-                const q = query(bookingsRef, where('date', '==', selectedDate));
-                const querySnapshot = await getDocs(q);
-                
-                querySnapshot.forEach((doc) => {
-                    const booking = doc.data();
-                    // Check if any of the booked simulators overlap with selected simulators
-                    const simulatorOverlap = booking.simulator.some(bookedSim => bookingData.simulator.includes(bookedSim));
-                    if (simulatorOverlap) {
-                        occupiedSlots.push({
-                            time: booking.time,
-                            durationHours: booking.hours // Assuming booking also stores its duration in hours
-                        });
-                    }
-                });
-                console.log("Occupied slots for selected date and simulators:", occupiedSlots);
+                const { data, error } = await supabase
+                    .from('bookings') // Имя вашей таблицы бронирований в Supabase
+                    .select('time_range, hours, simulator_ids') // Выбираем нужные поля
+                    .eq('date', selectedDate)
+                    .eq('status', 'confirmed'); // Учитываем только подтвержденные бронирования как занятые
+
+                if (error) {
+                    console.error("Ошибка при получении занятых слотов из Supabase:", error);
+                    return;
+                }
+
+                if (data) {
+                    occupiedSlots = data.filter(booking =>
+                        // Проверяем, пересекаются ли забронированные симуляторы с выбранными
+                        booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim))
+                    );
+                    console.log("Занятые слоты для выбранной даты и симуляторов:", occupiedSlots);
+                }
 
             } catch (error) {
-                console.error("Error fetching occupied slots:", error);
+                console.error("Неожиданная ошибка при получении занятых слотов:", error);
             }
         }
 
-        // Generate time slots
+        // Генерируем временные слоты
         for (let hour = 10; hour <= 23; hour++) {
             let startHour = hour.toString().padStart(2, '0');
             let endHour = (hour + durationHours).toString().padStart(2, '0');
@@ -351,14 +325,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             const currentTimeSlot = `${startHour}:00 – ${endTimeFormatted}`;
             
-            // Check if this slot is occupied
+            // Проверяем, занят ли этот слот
             const isOccupied = occupiedSlots.some(occupied => {
-                // Simple overlap check: if start times match and durations are compatible
-                const [occupiedStartHour] = occupied.time.split(' ')[0].split(':').map(Number);
+                // Упрощенная проверка на пересечение: если время начала совпадает
+                // Более надежное решение включало бы проверку полного диапазона времени.
+                const [occupiedStartHour] = occupied.time_range.split(' ')[0].split(':').map(Number);
                 const [currentStartHour] = currentTimeSlot.split(' ')[0].split(':').map(Number);
 
-                // This is a simplified check. A more robust solution would involve checking full time range overlap.
-                // For now, if the start hour is the same, we consider it occupied.
                 return occupiedStartHour === currentStartHour;
             });
 
@@ -367,12 +340,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
         }
 
-        // If "Ночь", add special slot
+        // Если "Ночь", добавляем специальный слот
         if (bookingData.duration === 'Ночь') {
             const nightSlot = '00:00 – 08:00';
             const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const [occupiedStartHour] = occupied.time.split(' ')[0].split(':').map(Number);
-                return occupiedStartHour === 0; // Check for 00:00 start
+                const [occupiedStartHour] = occupied.time_range.split(' ')[0].split(':').map(Number);
+                return occupiedStartHour === 0; // Проверка на начало в 00:00
             });
             const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
             times.push(`<div class="time-slot block ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
@@ -386,78 +359,95 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
                 bookingData.time = this.dataset.timeRange;
-                document.getElementById('toFormPage').disabled = false; // Changed from toWheelPage to toFormPage
+                document.getElementById('toFormPage').disabled = false;
                 updateBreadcrumbs(); // Обновляем хлебные крошки
             });
         });
-        document.getElementById('toFormPage').disabled = true; // Disable until a slot is selected
+        document.getElementById('toFormPage').disabled = true; // Отключаем, пока не будет выбран слот
     }
 
-    // Настройка выбора руля (больше не отдельный шаг)
+    // Настройка выбора руля (функция больше не используется, так как руль удален из макета)
     function setupWheelSelection() {
-        // Эта функция теперь не нужна, так как выбор руля был удален из макета
+        // Эта функция теперь пуста, так как выбор руля был удален из макета
     }
 
-    // Загрузка данных пользователя из Firestore
+    // Загрузка данных пользователя из Supabase
     async function loadUserData(telegramId) {
-        if (!isAuthReady || !db || !telegramId) return;
+        if (!isAuthReady || !supabase || !telegramId) return;
 
         try {
-            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/user_data`);
-            const userDocSnap = await getDoc(userDocRef);
+            // Предполагаем, что данные пользователя хранятся в таблице 'user_profiles'
+            // и 'telegramId' является уникальным идентификатором.
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('telegram_id', telegramId) // Используем 'telegram_id' для соответствия базе данных
+                .single(); // Используем .single(), если ожидаем одну строку
 
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                console.log("Loaded user data:", userData);
+            if (error && error.code !== 'PGRST116') { // PGRST116 - это "Строки не найдены"
+                console.error("Ошибка при загрузке данных пользователя из Supabase:", error);
+                return;
+            }
+
+            if (data) {
+                const userData = data;
+                console.log("Загружены данные пользователя из Supabase:", userData);
                 
-                // Pre-fill form fields
+                // Предзаполняем поля формы
                 const nameInput = document.querySelector('#form-step input[type="text"]');
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
 
                 if (userData.name) nameInput.value = userData.name;
                 if (userData.phone) phoneInput.value = userData.phone;
-                if (userData.telegram) telegramInput.value = userData.telegram;
+                if (userData.telegram_username) telegramInput.value = userData.telegram_username; // Используем telegram_username
 
-                // Update bookingData
+                // Обновляем bookingData
                 bookingData.name = userData.name || null;
                 bookingData.phone = userData.phone || null;
-                bookingData.telegram = userData.telegram || null;
+                bookingData.telegram = userData.telegram_username || null; // Используем telegram_username
 
-                // Check if all required user data is present to potentially skip the form step
-                if (userData.name && userData.phone && userData.telegram) {
-                    // Optionally, skip to the next step if user data is complete
-                    // For now, we'll just pre-fill and let the user proceed
-                    console.log("User data complete, form pre-filled.");
+                if (userData.name && userData.phone && userData.telegram_username) {
+                    console.log("Данные пользователя полные, форма предзаполнена.");
                 }
             } else {
-                console.log("No existing user data found for Telegram ID:", telegramId);
-                // If no data, ensure form fields are empty or default
+                console.log("Существующие данные пользователя для Telegram ID не найдены:", telegramId);
+                // Если данных нет, убедимся, что поля формы пустые или по умолчанию
                 document.querySelector('#form-step input[type="text"]').value = '';
                 document.getElementById('phone').value = '+7 ';
                 document.getElementById('telegram').value = '';
             }
         } catch (error) {
-            console.error("Error loading user data:", error);
+            console.error("Неожиданная ошибка при загрузке данных пользователя:", error);
         }
     }
 
-    // Сохранение данных пользователя в Firestore
+    // Сохранение данных пользователя в Supabase
     async function saveUserData() {
-        if (!isAuthReady || !db || !bookingData.telegramId) return;
+        if (!isAuthReady || !supabase || !bookingData.telegramId) return;
 
         try {
-            const userDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/user_data`);
             const userDataToSave = {
+                id: userId, // Supabase user ID из аутентификации
                 name: bookingData.name,
-                telegram: bookingData.telegram,
-                telegramId: bookingData.telegramId,
-                phone: bookingData.phone // Save full phone number for user's own data
+                telegram_username: bookingData.telegram, // Сохраняем как telegram_username
+                telegram_id: bookingData.telegramId, // Сохраняем как telegram_id
+                phone: bookingData.phone // Сохраняем полный номер телефона для собственных данных пользователя
             };
-            await setDoc(userDocRef, userDataToSave, { merge: true });
-            console.log("User data saved to Firestore.");
+
+            // Upsert: вставляем, если не существует, обновляем, если существует, на основе 'id'
+            const { data, error } = await supabase
+                .from('user_profiles') // Имя вашей таблицы профилей пользователя
+                .upsert(userDataToSave, { onConflict: 'id' }) // Используем 'id' для разрешения конфликтов
+                .select(); // Запрашиваем вставленные/обновленные данные обратно
+
+            if (error) {
+                console.error("Ошибка при сохранении данных пользователя в Supabase:", error);
+                return;
+            }
+            console.log("Данные пользователя сохранены в Supabase:", data);
         } catch (error) {
-            console.error("Error saving user data:", error);
+            console.error("Неожиданная ошибка при сохранении данных пользователя:", error);
         }
     }
 
@@ -539,10 +529,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (bookingData.time) {
             breadcrumbs.push(bookingData.time);
         }
-        // Руль больше не часть бронирования
-        // if (bookingData.wheel) {
-        //     breadcrumbs.push(getWheelName(bookingData.wheel));
-        // }
 
         breadcrumbDiv.textContent = breadcrumbs.join(' / ');
     }
@@ -562,32 +548,42 @@ document.addEventListener('DOMContentLoaded', async function() {
             ${bookingData.comment ? `<p><strong>комментарий:</strong> ${bookingData.comment}</p>` : ''}
         `;
         
-        // Save booking to Firestore
-        if (isAuthReady && db) {
+        // Сохраняем бронирование в Supabase
+        if (isAuthReady && supabase) {
             try {
-                const bookingsCollectionRef = collection(db, `artifacts/${appId}/public/data/bookings`);
-                const docRef = await addDoc(bookingsCollectionRef, {
-                    userId: userId, // User ID from Firebase Auth
-                    telegramId: bookingData.telegramId, // Telegram user ID
-                    date: bookingData.date,
-                    time: bookingData.time,
-                    simulator: bookingData.simulator,
-                    duration: bookingData.duration,
-                    hours: bookingData.hours, // Store hours for easier availability checks
-                    price: bookingData.price,
-                    name: bookingData.name,
-                    phone: bookingData.phone.replace(/\D/g, '').slice(-4), // Save only last 4 digits of phone
-                    telegram: bookingData.telegram,
-                    comment: bookingData.comment,
-                    timestamp: new Date()
-                });
-                console.log("Booking saved to Firestore with ID:", docRef.id);
+                const { data, error } = await supabase
+                    .from('bookings') // Имя вашей таблицы бронирований
+                    .insert({
+                        user_id: userId, // ID пользователя Supabase
+                        telegram_id: bookingData.telegramId, // Telegram ID пользователя
+                        date: bookingData.date,
+                        time_range: bookingData.time, // Используем time_range для соответствия Python боту
+                        simulator_ids: bookingData.simulator, // Используем simulator_ids для соответствия Python боту
+                        duration: bookingData.duration,
+                        hours: bookingData.hours,
+                        price: bookingData.price,
+                        name: bookingData.name,
+                        phone: bookingData.phone.replace(/\D/g, '').slice(-4), // Сохраняем только последние 4 цифры телефона
+                        telegram_username: bookingData.telegram, // Используем telegram_username для соответствия Python боту
+                        comment: bookingData.comment,
+                        status: 'pending', // Начальный статус бронирования
+                        // created_at: new Date().toISOString() // Supabase автоматически добавляет created_at
+                    }).select(); // Запрашиваем вставленные данные обратно
 
-                // Call Edge Function to notify steward
-                const EDGE_FUNCTION_URL = 'https://your-project-ref.supabase.co/functions/v1'; // Замените на реальный URL вашей функции
-                // Пример: https://abcdefg.supabase.co/functions/v1
+                if (error) {
+                    console.error("Ошибка при сохранении бронирования в Supabase:", error);
+                    // Отобразить сообщение об ошибке пользователю
+                    return;
+                }
 
-                console.log("Calling Edge Function to notify steward...");
+                const newBooking = data[0]; // Предполагаем, что data - это массив с вставленной строкой
+                console.log("Бронирование сохранено в Supabase с ID:", newBooking.id);
+
+                // Вызываем Edge Function для уведомления Стюарда
+                // Замените на реальный URL вашей Edge Function, полученный после развертывания
+                const EDGE_FUNCTION_URL = 'https://your-project-ref.supabase.co/functions/v1'; 
+
+                console.log("Вызов Edge Function для уведомления Стюарда...");
                 try {
                     const edgeFunctionResponse = await fetch(`${EDGE_FUNCTION_URL}/notify-steward`, {
                         method: 'POST',
@@ -595,28 +591,28 @@ document.addEventListener('DOMContentLoaded', async function() {
                         body: JSON.stringify({
                             name: bookingData.name,
                             date: bookingData.date,
-                            time_range: bookingData.time, // Changed from 'time' to 'time_range' to match Python bot
+                            time_range: bookingData.time,
                             simulator_ids: bookingData.simulator,
-                            booking_id: docRef.id, // ID новой записи бронирования из Supabase
-                            telegram_id_guest: bookingData.telegramId, // Telegram ID гостя
-                            telegram_username_guest: bookingData.telegram // Telegram ник гостя
+                            booking_id: newBooking.id, // ID новой записи бронирования из Supabase
+                            telegram_id_guest: bookingData.telegramId,
+                            telegram_username_guest: bookingData.telegram
                         })
                     });
                     const edgeFunctionResult = await edgeFunctionResponse.json();
-                    console.log("Edge Function response:", edgeFunctionResult);
+                    console.log("Ответ Edge Function:", edgeFunctionResult);
                 } catch (edgeFunctionError) {
-                    console.error("Error calling Edge Function:", edgeFunctionError);
+                    console.error("Ошибка при вызове Edge Function:", edgeFunctionError);
                 }
 
             } catch (error) {
-                console.error("Error saving booking:", error);
+                console.error("Неожиданная ошибка при сохранении бронирования или вызове Edge Function:", error);
             }
         }
 
         showStep(4);
     }
 
-    // Настройка действий на странице подтверждения (без изменений)
+    // Настройка действий на странице подтверждения
     function setupConfirmationActions() {
         // Записаться снова
         document.getElementById('book-again').addEventListener('click', resetBooking);
@@ -648,7 +644,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Настройка кнопок карты и такси (без изменений)
+    // Настройка кнопок карты и такси
     function setupMapButtons() {
         const address = 'Ростов-на-Дону, ул. Б. Садовая, 70';
         
@@ -665,7 +661,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // Сброс бронирования (изменено)
+    // Сброс бронирования
     function resetBooking() {
         // Очищаем данные
         for (const key in bookingData) {
