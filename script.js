@@ -350,9 +350,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('package-grid').classList.add('hidden'); // скрываем основной список
             document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // показываем карусель
             document.getElementById('package-step-title').textContent = 'выберите свой пакет'; // Меняем заголовок
+
+            // Manage button visibility
             document.getElementById('toTimePageNew').classList.add('hidden'); // Прячем кнопку "далее"
             document.getElementById('backToPackagePage').classList.add('hidden'); // Прячем кнопку "назад" (которая на предыдущий шаг)
             document.getElementById('backToMainPackageSelection').classList.remove('hidden'); // Показываем кнопку "назад к пакетам"
+            
             setupCustomPackageSelection(); // генерируем и настраиваем карусель
         });
 
@@ -440,6 +443,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('custom-package-carousel-container').classList.add('hidden');
                 document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
                 document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
+
+                // Manage button visibility
                 document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
                 document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
                 document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
@@ -453,6 +458,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('custom-package-carousel-container').classList.add('hidden');
             document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
             document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
+
+            // Manage button visibility
             document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
             document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
             document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
@@ -710,8 +717,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // со времени на форму (руль удален)
         
         // кнопки "назад"
-        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // со времени на пакет
+        // document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // Removed as this button is not in HTML
+        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
+        document.getElementById('backToTimeStep').addEventListener('click', () => showStep(1)); // со времени на пакет (Updated ID)
         document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // с формы на время (руль удален)
         
         // отправка формы

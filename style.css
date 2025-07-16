@@ -388,7 +388,7 @@ h2 {
     font-size: 60px; /* увеличено в 1.5 раза */
     font-weight: bold;
     line-height: 1;
-    position: absolute; /* позиционирование */
+    position: absolute;
     top: 32px; /* отступ сверху увеличен в 2 раза (было 16px) */
     left: 32px; /* отступ слева увеличен в 2 раза (было 16px) */
     text-transform: none; /* цифра остается в верхнем регистре */
@@ -397,7 +397,7 @@ h2 {
     font-size: 16px; /* увеличил размер для "автосим" */
     display: block;
     margin-top: 4px;
-    position: absolute; /* позиционирование */
+    position: absolute;
     bottom: 8px; /* отступ снизу */
     left: 32px; /* выравнивание по левому краю с цифрой */
     text-transform: lowercase; /* все строчные */
@@ -730,8 +730,8 @@ textarea {
     }
     .package .package-unit {
         font-size: 10.24px;
-        top: 36px; /* адаптивный отступ */
-        left: calc(20px + 32px + 5px); /* отступ от левого края + ширина цифры + 5px */
+        top: 36px;
+        left: calc(20px + 32px + 5px);
     }
     .package .package-night-text {
         font-size: 24px; /* адаптивный размер для "ночь" */
@@ -829,6 +829,7 @@ textarea {
 /* стили для карусели "свой пакет" */
 .custom-package-carousel-container {
     /* Контейнер теперь просто обертка, без flex или overflow */
+    /* Убрана flex-direction: column и gap: 4px для кнопок, так как кнопки перенесены ниже */
 }
 
 .custom-package-carousel {
@@ -837,6 +838,7 @@ textarea {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     gap: 0;
+    width: 100%; /* Explicitly set width to 100% */
     margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
     margin-right: -16px;
     padding-left: 16px; /* Добавляем padding для первого элемента */
@@ -858,12 +860,26 @@ textarea {
     aspect-ratio: 1 / 1;
     padding: 16px; /* Соответствует стандартным пакетам */
 
+    background-color: #d9d9d9;
+    color: #000000;
+    cursor: pointer;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 16px;
+    font-family: 'helvetica neue', system-ui, sans-serif;
+    border: none;
+    margin: 0;
     position: relative; /* ensure children can be absolutely positioned */
     display: flex; /* keep flex for general centering if needed, but absolute will override */
     flex-direction: column;
     justify-content: center; /* Центрирование содержимого */
     align-items: flex-start; /* Выравнивание по левому краю */
 }
+.custom-package-carousel .package.selected {
+    background-color: #000000; /* черный фон */
+    color: #ffffff; /* белый текст */
+}
+
 
 .custom-package-carousel .package .package-number {
     font-family: 'monaco', monospace;
