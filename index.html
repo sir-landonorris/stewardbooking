@@ -4,178 +4,1112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Бронирование автосимулятора</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключение шрифтов для брутализма -->
-    <link href="https://fonts.googleapis.com/css2?family=Monaco&family=Courier+New&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <!-- Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Глобальный сброс box-sizing для более предсказуемой компоновки */
+        html {
+            box-sizing: border-box;
+        }
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        /* Общие стили для body, контейнера и шагов */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', system-ui, sans-serif; /* Основной текст */
+            background-color: #ffffff; /* Белый фон */
+            color: #000000; /* Черный текст */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            min-width: 320px;
+            margin: 0 auto;
+            padding: 16px; /* Отступы по краям */
+            position: relative;
+            overflow: hidden;
+            margin-top: 104px; /* Отступ для основного контента, чтобы не перекрывался фиксированным заголовком (100px header + 4px progress bar) */
+            background-color: #ffffff; /* Белый фон для основного блока */
+            color: #000000; /* Черный текст для основного блока */
+            border-radius: 0; /* Нет скруглений */
+            box-shadow: none; /* Нет теней */
+        }
+
+        /* Шаги */
+        .step-page {
+            display: none;
+            /* Анимации отсутствуют (брутализм не про плавность) */
+        }
+
+        .step-page.active {
+            display: block;
+        }
+
+        /* Прогресс-бар (глобальный) */
+        .progress-bar-container-global {
+            height: 4px;
+            background: #d9d9d9; /* Неактивные элементы, фон выбора */
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-radius: 0; /* Нет скруглений */
+        }
+
+        .progress-bar-global {
+            height: 100%;
+            background: #000000; /* Активные элементы */
+            width: 0%;
+            border-radius: 0; /* Нет скруглений */
+        }
+
+        /* Заголовок */
+        .header-container {
+            display: flex;
+            align-items: flex-start; /* Выравнивание контента по верхнему краю */
+            justify-content: flex-start; /* Выравнивание контента по левому краю */
+            background-color: #000000; /* Черный фон для обрамления */
+            padding: 0; /* Убираем padding, так как фон будет картинкой */
+            position: fixed; /* Фиксированный заголовок */
+            top: 4px; /* Под глобальным прогресс-баром */
+            left: 0;
+            width: 120vw; /* Изменено по запросу пользователя */
+            z-index: 999; /* Выше основного контента, но ниже глобального прогресс-бара */
+            height: 60px; /* Изменено по запросу пользователя */
+            background-image: url('images/header.png'); /* Новая картинка */
+            background-size: cover; /* Покрытие всей области */
+            background-position: center; /* Центрирование картинки */
+            background-repeat: no-repeat; /* Не повторять */
+        }
+
+        .logo-group { /* Этот блок теперь не нужен, но оставляем его стили, если он еще где-то используется */
+            display: none; /* Скрываем, так как используем одну картинку */
+        }
+
+        .header-text {
+            flex-grow: 1; /* Позволяем заголовку занимать доступное пространство */
+            text-align: left; /* Выравнивание заголовка по левому краю */
+            color: #ffffff; /* Белый текст для заголовка */
+            position: absolute; /* Размещаем текст поверх картинки */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex; /* Используем flexbox для центрирования текста внутри */
+            align-items: center; /* Центрируем по вертикали */
+            padding-left: calc(134 / 2358 * 100vw + 16px); /* 134px из 2358px + padding контейнера */
+            padding-right: calc(777 / 2358 * 100vw + 16px); /* 777px из 2358px + padding контейнера */
+            box-sizing: border-box;
+        }
+
+        .header-text h1 {
+            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            text-transform: uppercase; /* Заголовок остается в верхнем регистре */
+            font-weight: bold;
+            font-size: 24px; /* Заголовки: 24-28px */
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        /* Кнопки и блоки выбора */
+        .block {
+            display: inline-block;
+            padding: 16px;
+            text-align: center;
+            background-color: #d9d9d9; /* Светло-серый */
+            color: #000000; /* Черный */
+            cursor: pointer;
+            border-radius: 0; /* Нет скруглений */
+            box-shadow: none; /* Нет теней */
+            margin: 0; /* УДАЛЕНО: margin-bottom, все плотно */
+            font-size: 16px; /* Основной текст */
+            border: none; /* УДАЛЕНО: обводка */
+        }
+        .block.active {
+            background-color: #000000; /* Черный */
+            color: #ffffff; /* Белый */
+        }
+        .block.disabled {
+            background-color: #d9d9d9;
+            color: #a0a0a0; /* Серый для зачёркнутого */
+            text-decoration: line-through;
+            pointer-events: none;
+            border: none; /* УДАЛЕНО: обводка */
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none; /* УДАЛЕНО: обводка */
+            cursor: not-allowed;
+            border-radius: 0;
+            box-shadow: none;
+            font-size: 18px; /* Крупнее, чем основной текст */
+            margin: 0; /* УДАЛЕНО: margin-bottom */
+            background-color: #d9d9d9; /* Светло-серый */
+            color: #000000; /* Черный */
+            text-align: center;
+            font-weight: bold;
+            text-transform: none; /* Убран капслок */
+        }
+        .button.active {
+            background-color: #000000; /* Черный */
+            color: #ffffff; /* Белый */
+            cursor: pointer;
+        }
+        .button.back-btn {
+            background-color: #d9d9d9; /* Светло-серый */
+            color: #000000; /* Черный */
+        }
+        .button.back-btn:hover:not(:disabled) {
+            background-color: #a0a0a0; /* Чуть темнее серый при наведении */
+        }
+
+        /* Хлебные крошки */
+        .breadcrumb {
+            font-size: 12px;
+            text-align: right;
+            color: #000000; /* Черный текст на белом фоне */
+            margin-bottom: 32px; /* Отступ увеличен в 2 раза (было 16px) */
+            text-transform: none; /* Убран капслок */
+        }
+
+        /* Стили для заглушки */
+        #web-app-fallback {
+            background-color: #000000; /* Черный фон для заглушки */
+            color: #ffffff; /* Белый текст */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+        #web-app-fallback .content {
+            background-color: #000000; /* Черный фон */
+            border-radius: 0;
+            padding: 16px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: none;
+            color: #ffffff;
+        }
+        #web-app-fallback video {
+            width: 100%;
+            border-radius: 0;
+            margin-bottom: 16px;
+        }
+        #web-app-fallback h1 {
+            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-weight: bold;
+            font-size: 28px;
+            margin-bottom: 16px;
+            color: #ffffff;
+            text-transform: none; /* Убран капслок */
+        }
+        #web-app-fallback p {
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #ffffff;
+            text-transform: none; /* Убран капслок */
+        }
+        #web-app-fallback a {
+            color: #ffffff; /* Белые ссылки */
+            text-decoration: underline; /* Подчеркивание */
+        }
+        #web-app-fallback a:hover {
+            color: #d9d9d9; /* Светло-серый при наведении */
+        }
+        #web-app-fallback .address {
+            font-size: 14px;
+            color: #d9d9d9;
+            margin-top: 16px;
+        }
+
+        /* Объединенный шаг: Дата и Симулятор */
+        .date-simulator-step {
+            margin-bottom: 16px; /* Отступ от нижних элементов */
+        }
+
+        .date-selection-area {
+            margin-bottom: 16px; /* Отступ между датой и симуляторами */
+        }
+
+        .date-display {
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
+            font-weight: bold;
+            text-transform: none; /* Убран капслок */
+            font-style: italic; /* Курсив */
+            cursor: pointer;
+            margin-bottom: 8px; /* Отступ от заголовка "ДАТА" */
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+
+        .date-display .arrow-down {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid #000000; /* Черная стрелка */
+            transition: transform 0.2s ease;
+        }
+
+        .date-display.expanded .arrow-down {
+            transform: rotate(180deg);
+        }
+
+        .date-carousel {
+            display: flex;
+            overflow-x: scroll;
+            -webkit-overflow-scrolling: touch; /* Для плавного скролла на iOS */
+            scroll-snap-type: x mandatory;
+            gap: 0; /* Плотное прилегание */
+            margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+            margin-right: -16px;
+            padding-left: 16px; /* Добавляем padding для первого элемента */
+            padding-right: 16px; /* Добавляем padding для последнего элемента */
+            margin-bottom: 16px; /* Отступ от симуляторов */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE and Edge */
+        }
+
+        .date-carousel::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .date-carousel .date-item {
+            flex: 0 0 auto; /* Не сжимать и не растягивать */
+            width: calc(25% - 0px); /* 4 элемента в ряд, без gap */
+            height: calc(25vw - 0px); /* Делаем квадратным относительно ширины viewport */
+            max-width: 120px; /* Максимальная ширина для больших экранов */
+            max-height: 120px; /* Максимальная высота для больших экранов */
+            background-color: #d9d9d9;
+            color: #000000;
+            text-align: left; /* Выравнивание текста по левому краю */
+            padding: 8px; /* Уменьшенный padding для размещения контента по углам */
+            cursor: pointer;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Размещаем элементы вверху и внизу */
+            align-items: flex-start; /* Выравниваем по левому краю */
+            scroll-snap-align: start;
+            font-family: 'Monaco', monospace; /* Моноширинный шрифт для цифр */
+            font-size: 20px; /* Крупные цифры */
+            font-weight: bold;
+            text-transform: none; /* Цифры остаются в верхнем регистре */
+        }
+
+        .date-carousel .date-item small {
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-size: 11px; /* На 20% меньше (было 14px) */
+            display: block;
+            margin-top: auto; /* Прижимает к низу flex-контейнера */
+            font-weight: normal;
+            text-transform: none; /* Убран капслок */
+        }
+
+        .date-carousel .date-item.selected {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        /* Заголовки шагов */
+        h2 {
+            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-weight: bold;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+            color: #000000;
+            text-transform: none; /* Убран капслок */
+        }
+
+        /* Стилизация заголовков (например, "ВЫБЕРИТЕ СИМУЛЯТОР(Ы)") */
+        .step-title { /* Новый класс для заголовков шагов */
+            font-size: 10px; /* Уменьшен в 2 раза (было 16px) */
+            font-style: italic; /* Курсив */
+            text-transform: none; /* Убран капслок */
+            text-align: left; /* Выравнивание по левому краю */
+            margin-bottom: 16px; /* Отступ снизу */
+            color: #000000;
+        }
+
+
+        /* Выбор симуляторов */
+        .simulator-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 столбца на первом шаге */
+            gap: 0; /* Плотное прилегание */
+            margin-bottom: 16px;
+            margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
+            margin-right: -16px;
+        }
+        .grid-item {
+            padding: 16px;
+            text-align: center;
+            background-color: #d9d9d9;
+            color: #000000;
+            cursor: pointer;
+            border-radius: 0;
+            box-shadow: none;
+            font-size: 16px;
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            border: none; /* УДАЛЕНО: обводка */
+            margin: 0; /* Плотное прилегание */
+            position: relative; /* Для позиционирования крестика и текста */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1 / 1; /* Делаем квадратным */
+            min-width: 140px; /* Минимальный размер для адаптивности */
+            min-height: 140px;
+        }
+        .grid-item .simulator-number { /* Стиль для цифр симуляторов */
+            font-family: 'Monaco', monospace;
+            font-size: 60px; /* Увеличено в 1.5 раза */
+            font-weight: bold;
+            line-height: 1;
+            position: absolute; /* Позиционирование */
+            top: 32px; /* Отступ сверху увеличен в 2 раза (было 16px) */
+            left: 32px; /* Отступ слева увеличен в 2 раза (было 16px) */
+            text-transform: none; /* Цифра остается в верхнем регистре */
+        }
+        .grid-item small {
+            font-size: 16px; /* Увеличил размер для "АВТОСИМ" */
+            display: block;
+            margin-top: 4px;
+            position: absolute; /* Позиционирование */
+            bottom: 8px; /* Отступ снизу */
+            left: 32px; /* Выравнивание по левому краю с цифрой */
+            text-transform: none; /* Убран капслок */
+        }
+        .grid-item.selected {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .grid-item.disabled {
+            background-color: #d9d9d9;
+            color: #a0a0a0; /* Серый для зачёркнутого */
+            text-decoration: line-through;
+            pointer-events: none;
+            border: none; /* УДАЛЕНО: обводка */
+        }
+        .grid-item .remove-selection {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: transparent; /* Изменено: нет подложки */
+            color: #000000; /* Изменено: черный цвет */
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 0;
+            font-family: 'Monaco', monospace; /* Моноширинный шрифт для крестика */
+        }
+        .grid-item.selected .remove-selection {
+            display: flex;
+            color: #ffffff; /* Изменено: белый цвет при активном симуляторе */
+        }
+
+        /* Выбор пакета времени */
+        #package-grid { /* Отдельный стиль для сетки пакетов */
+            grid-template-columns: repeat(3, 1fr); /* 3 столбца на шаге пакетов */
+            display: grid; /* Применяем grid, так как он может быть переопределен */
+            gap: 0;
+            margin-bottom: 16px;
+            margin-left: -16px; /* Вытягиваем на всю ширину */
+            margin-right: -16px;
+        }
+        .package {
+            padding: 16px;
+            text-align: center;
+            background-color: #d9d9d9;
+            color: #000000;
+            cursor: pointer;
+            border-radius: 0;
+            box-shadow: none;
+            font-size: 16px;
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            border: none;
+            margin: 0;
+            position: relative; /* Для позиционирования внутренних элементов */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1 / 1; /* Делаем квадратным */
+            min-width: 140px; /* Минимальный размер для адаптивности */
+            min-height: 140px;
+        }
+        .package.selected {
+            background-color: #000000; /* Черный фон */
+            color: #ffffff; /* Белый текст */
+        }
+        .package .package-number { /* Стиль для цифр пакетов */
+            font-family: 'Monaco', monospace;
+            font-size: 48px; /* 60px * 0.8 = 48px */
+            font-weight: bold;
+            line-height: 1;
+            position: absolute;
+            top: 24px; /* 32px * 0.8 = 25.6px, округлим до 24px */
+            left: 24px; /* 32px * 0.8 = 25.6px, округлим до 24px */
+            text-transform: none;
+        }
+        .package .package-unit { /* Стиль для "час/часа" */
+            font-size: 12.8px; /* 16px * 0.8 = 12.8px */
+            display: block;
+            position: absolute;
+            top: 36px; /* 48px * 0.8 = 38.4px, округлим до 36px */
+            left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
+            text-transform: none;
+            font-weight: normal;
+        }
+        .package .package-night-text { /* Стиль для текста "Ночь" */
+            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-size: 20px; /* 24px * 0.8 = 19.2px, округлим до 20px */
+            font-weight: bold;
+            line-height: 1;
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            text-transform: uppercase;
+        }
+        .package .package-night-time { /* Стиль для текста "(00:00 – 08:00)" */
+            font-family: 'Monaco', monospace;
+            font-size: 9.6px; /* 12px * 0.8 = 9.6px */
+            position: absolute;
+            top: 48px; /* Отступ ниже "Ночь" */
+            left: 24px;
+            text-transform: none;
+        }
+        .package .package-original-price { /* Перечеркнутая цена */
+            font-family: 'Monaco', monospace;
+            font-size: 12.8px; /* 16px * 0.8 = 12.8px */
+            position: absolute;
+            bottom: 8px;
+            left: 24px;
+            text-decoration: line-through;
+            color: #a0a0a0; /* Серый цвет для перечеркнутой цены */
+        }
+        .package .package-price { /* Актуальная цена */
+            font-family: 'Monaco', monospace;
+            font-size: 19.2px; /* 24px * 0.8 = 19.2px */
+            font-weight: bold;
+            position: absolute;
+            bottom: 8px;
+            right: 24px;
+        }
+
+        .custom-package-trigger {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 16px; /* Основной текст */
+            font-weight: bold;
+            text-transform: none;
+        }
+        .custom-package-trigger div {
+            line-height: 1.2;
+        }
+
+        #package-summary {
+            font-size: 16px;
+            color: #000000;
+            text-align: center;
+            margin-bottom: 16px;
+            text-transform: none; /* Убран капслок */
+        }
+
+        /* Выбор времени */
+        #time-grid { /* Отдельный стиль для сетки времени */
+            grid-template-columns: repeat(4, 1fr); /* 4 столбца на шаге времени */
+            display: grid; /* Применяем grid, так как он может быть переопределен */
+            gap: 0;
+            margin-left: -16px; /* Вытягиваем на всю ширину */
+            margin-right: -16px;
+            margin-bottom: 16px;
+        }
+        .time-slot {
+            font-family: 'Monaco', monospace; /* Моноширинный шрифт для слотов */
+            font-size: 16px; /* Уменьшил для 4х колонок */
+            padding: 12px;
+            border: none; /* УДАЛЕНО: обводка */
+            margin: 0; /* Плотное прилегание */
+            aspect-ratio: 1 / 1; /* Делаем квадратным */
+            min-width: unset; /* Сброс min-width */
+            min-height: unset; /* Сброс min-height */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-transform: none; /* Убран капслок */
+        }
+        .time-slot.selected {
+            background-color: #000000; /* Черный фон */
+            color: #ffffff; /* Белый текст */
+        }
+
+        /* Форма данных */
+        form label {
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-size: 14px;
+            color: #000000;
+            margin-bottom: 4px;
+            display: block;
+            text-transform: none; /* Убран капслок */
+        }
+        form input[type="text"],
+        form input[type="tel"],
+        form textarea {
+            width: 100%;
+            padding: 12px;
+            border: none; /* УДАЛЕНО: обводка */
+            border-radius: 0;
+            background-color: #d9d9d9;
+            color: #000000;
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        form input::placeholder,
+        form textarea::placeholder {
+            color: #a0a0a0;
+            text-transform: none; /* Убран капслок */
+        }
+        form input:focus,
+        form textarea:focus {
+            outline: 2px solid #000000; /* Черная обводка при фокусе */
+            border-color: transparent; /* УДАЛЕНО: обводка */
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .text-sm {
+            font-size: 14px;
+            color: #000000;
+            text-transform: none; /* Убран капслок */
+        }
+
+        /* Подтверждение */
+        .confirmation-details {
+            background-color: #d9d9d9;
+            color: #000000;
+            padding: 16px;
+            border-radius: 0;
+            margin-bottom: 16px;
+            font-size: 16px;
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            border: none; /* УДАЛЕНО: обводка */
+            text-transform: none; /* Убран капслок */
+        }
+        .confirmation-details strong {
+            color: #000000;
+        }
+        .message-box {
+            background-color: #d9d9d9;
+            color: #000000;
+            padding: 12px;
+            border-radius: 0;
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            text-transform: none; /* Убран капслок */
+            border: none; /* УДАЛЕНО: обводка */
+        }
+        .message-box.info {
+            background-color: #a0a0a0; /* Серый для информационных сообщений */
+            color: #ffffff;
+        }
+
+        /* Модальные окна */
+        .modal-content {
+            background-color: #d9d9d9;
+            color: #000000;
+            padding: 16px;
+            border-radius: 0;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border: none; /* УДАЛЕНО: обводка */
+        }
+        .modal-content h3 {
+            font-family: 'Helvetica Neue Condensed Black', sans-serif;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 16px;
+            text-transform: none; /* Убран капслок */
+        }
+        .modal-content p {
+            font-family: 'Helvetica Neue', system-ui, sans-serif;
+            font-size: 16px;
+            margin-bottom: 16px;
+            text-transform: none; /* Убран капслок */
+        }
+        .modal-buttons .button {
+            margin: 0 4px;
+        }
+
+        /* Адаптация для мобильных устройств */
+        @media (max-width: 480px) {
+            .header-text h1 {
+                font-size: 20px;
+            }
+            .simulator-grid-container {
+                grid-template-columns: repeat(2, 1fr); /* 2 столбца */
+            }
+            .grid-item {
+                font-size: 14px;
+                padding: 12px;
+                min-width: unset;
+                min-height: unset;
+            }
+            .grid-item .simulator-number {
+                font-size: 48px; /* Адаптивный размер для цифр симулятора */
+                top: 24px; /* Адаптивный отступ */
+                left: 24px; /* Адаптивный отступ */
+            }
+            .grid-item small {
+                font-size: 14px;
+                left: 24px; /* Адаптивное выравнивание по левому краю */
+            }
+            #package-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 столбца */
+            }
+            .package { /* Адаптация для пакета */
+                font-size: 14px;
+                padding: 12px;
+                min-width: unset;
+                min-height: unset;
+            }
+            .package .package-number {
+                font-size: 48px; /* Адаптивный размер для цифр пакета */
+                top: 24px;
+                left: 24px;
+            }
+            .package .package-unit {
+                font-size: 12.8px;
+                top: 36px; /* Адаптивный отступ */
+                left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
+            }
+            .package .package-night-text {
+                font-size: 16px; /* Адаптивный размер для "Ночь" */
+                top: 24px;
+                left: 24px;
+            }
+            .package .package-night-time {
+                font-size: 8px; /* Адаптивный размер для времени ночи */
+                top: 40px;
+                left: 24px;
+            }
+            .package .package-original-price {
+                font-size: 12.8px;
+                bottom: 8px;
+                left: 24px;
+            }
+            .package .package-price {
+                font-size: 19.2px;
+                bottom: 8px;
+                right: 24px;
+            }
+
+            #time-grid {
+                grid-template-columns: repeat(4, 1fr); /* 4 столбца */
+            }
+            .time-slot {
+                font-size: 14px;
+            }
+            .button {
+                font-size: 16px;
+                padding: 14px;
+            }
+            form input, form textarea {
+                font-size: 14px;
+                padding: 10px;
+            }
+            .date-carousel .date-item {
+                width: calc(25% - 0px); /* 4 элемента в ряд */
+                height: calc(25vw - 0px);
+            }
+            .date-carousel .date-item small {
+                font-size: 12px;
+            }
+        }
+        @media (max-width: 380px) {
+            .simulator-grid-container {
+                grid-template-columns: repeat(2, 1fr); /* 2 столбца */
+            }
+            .grid-item {
+                min-width: unset;
+                min-height: unset;
+            }
+            #package-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 столбца на очень маленьких экранах */
+            }
+            .package .package-number {
+                font-size: 40px; /* Еще меньше на очень маленьких экранах */
+                top: 20px;
+                left: 20px;
+            }
+            .package .package-unit {
+                font-size: 10.4px; /* 13px * 0.8 = 10.4px */
+                top: 30px;
+                left: calc(20px + 40px);
+            }
+            .package .package-night-text {
+                font-size: 14px; /* Адаптивный размер для "Ночь" */
+                top: 20px;
+                left: 20px;
+            }
+            .package .package-night-time {
+                font-size: 7px; /* Адаптивный размер для времени ночи */
+                top: 34px;
+                left: 20px;
+            }
+            .package .package-original-price {
+                font-size: 10.4px;
+                bottom: 6px;
+                left: 20px;
+            }
+            .package .package-price {
+                font-size: 16px;
+                bottom: 6px;
+                right: 20px;
+            }
+            #time-grid {
+                grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */
+            }
+            .date-carousel .date-item {
+                width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
+                height: calc(33.333vw - 0px);
+            }
+        }
+
+        /* Стили для карусели "Свой пакет" */
+        .custom-package-carousel-container {
+            display: flex;
+            overflow-x: scroll;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x mandatory;
+            gap: 0;
+            margin-left: -16px;
+            margin-right: -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .custom-package-carousel-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .custom-package-carousel-container .package {
+            flex: 0 0 auto;
+            width: calc(33.333% - 0px); /* 3 элемента в ряд */
+            height: calc(33.333vw - 0px);
+            max-width: 120px;
+            max-height: 120px;
+        }
+
+        .custom-package-carousel-container .package .package-number,
+        .custom-package-carousel-container .package .package-unit,
+        .custom-package-carousel-container .package .package-original-price,
+        .custom-package-carousel-container .package .package-price {
+            position: static; /* Сбрасываем абсолютное позиционирование */
+            font-size: inherit; /* Используем размер родителя */
+            margin: 0;
+            padding: 0;
+            text-align: center; /* Центрируем текст */
+        }
+        .custom-package-carousel-container .package .package-number {
+             font-size: 32px; /* Чуть меньше для карусели */
+        }
+        .custom-package-carousel-container .package .package-unit {
+            font-size: 10px;
+        }
+        .custom-package-carousel-container .package .package-original-price {
+            font-size: 10px;
+            text-decoration: line-through;
+            color: #a0a0a0;
+        }
+        .custom-package-carousel-container .package .package-price {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .custom-package-carousel-container .package .package-night-text,
+        .custom-package-carousel-container .package .package-night-time {
+            position: static;
+            font-size: inherit;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .custom-package-carousel-container .package .package-night-text {
+            font-size: 16px;
+        }
+        .custom-package-carousel-container .package .package-night-time {
+            font-size: 8px;
+        }
+
+        /* Скрытый класс */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Предупреждение для длительных броней */
+        #long-booking-warning {
+            background-color: #ffeb3b; /* Желтый фон */
+            color: #333;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            text-align: left;
+            display: none; /* Скрыто по умолчанию */
+        }
+        #long-booking-warning strong {
+            color: #000;
+        }
+    </style>
 </head>
 <body>
-    <!-- Глобальный прогресс-бар, фиксированный вверху -->
+    <!-- Прогресс-бар (глобальный, фиксированный) -->
     <div class="progress-bar-container-global">
         <div class="progress-bar-global" id="booking-progress-global"></div>
     </div>
 
-    <!-- Заголовок с черным обрамлением и фоновой картинкой -->
+    <!-- Заголовок (глобальный, фиксированный) -->
     <div class="header-container">
         <div class="header-text">
-            <h1>БРОНИРОВАНИЕ АВТОСИМОВ</h1>
+            <h1>Бронирование автосимуляторов</h1>
         </div>
-        <!-- Логотипы убраны, так как используется единое изображение header.png -->
     </div>
 
     <!-- Fallback для открытия вне Telegram Web App -->
-    <div id="web-app-fallback" style="display: none;">
+    <div id="web-app-fallback" class="hidden">
         <div class="content">
-            <h1>рад тебя видеть — стюард на связи 🏁</h1>
+            <h1>Рад тебя видеть — стюард на связи 🏁</h1>
             <p>
-                готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
+                Готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
             </p>
             <p>
-                если что-то упустил — загляни в наше сообщество
-                <a href="https://t.me/c/2381161383/2" target="_blank">sim racing клуб</a>,<br>
+                Если что-то упустил — загляни в наше сообщество 
+                <a href="https://t.me/c/2381161383/2" target="_blank">Sim Racing Клуб</a>,<br>
                 там всегда свежие новости, обсуждения и планы на заезды.
             </p>
             <p class="address">
-                📍 <i>ростов-на-дону, б. садовая, 70 (киберклуб бункер)</i>
+                📍 Ростов-на-Дону, Б. Садовая, 70 (киберклуб Бункер)
             </p>
-            <!-- Видео для заглушки -->
             <video autoplay loop muted playsinline>
                 <source src="images/Video-main.mp4" type="video/mp4">
                 Ваш браузер не поддерживает видео.
             </video>
             <p class="text-sm">
-                пожалуйста, откройте это приложение через telegram для полноценного бронирования.
+                Пожалуйста, откройте это приложение через Telegram для полноценного бронирования.
             </p>
         </div>
     </div>
 
-    <!-- Основной контент приложения - теперь виден по умолчанию -->
+    <!-- Основной контент приложения -->
     <div id="main-booking-content" class="container">
-        <div class="breadcrumb" id="booking-breadcrumb">
-            <!-- Хлебные крошки будут здесь -->
-        </div>
-
-        <!-- Шаг 1: Объединенный выбор даты и симулятора -->
-        <div id="date-simulator-step" class="step-page active date-simulator-step">
+        <!-- Шаг 0: Выбор даты и симулятора (объединенный шаг) -->
+        <div id="date-simulator-step" class="step-page active">
+            <h2 class="step-title">ВЫБЕРИТЕ ДАТУ</h2>
             <div class="date-selection-area">
-                <div class="date-display expanded" id="date-toggle">
-                    дата <span class="arrow-down"></span>
+                <div class="date-display" id="date-toggle">
+                    Сегодня, <span id="current-date-display">16.07.2025</span>
+                    <span class="arrow-down"></span>
                 </div>
                 <div id="date-carousel-container" class="date-carousel-container">
-                    <div id="date-carousel" class="date-carousel">
+                    <div class="date-carousel" id="date-carousel">
                         <!-- Даты будут сгенерированы JS -->
                     </div>
                 </div>
             </div>
 
-            <div class="step-title">выберите симулятор(ы)</div>
+            <h2 class="step-title">ВЫБЕРИТЕ СИМУЛЯТОР(Ы)</h2>
             <div class="simulator-grid-container">
-                <div class="grid-item simulator-box selected" data-id="1">
-                    <div class="simulator-number">01</div><small>автосим</small>
+                <div class="grid-item simulator-box" data-id="1">
+                    <div class="simulator-number">01</div>
+                    <small>АВТОСИМ</small>
                     <div class="remove-selection">✕</div>
                 </div>
                 <div class="grid-item simulator-box" data-id="2">
-                    <div class="simulator-number">02</div><small>автосим</small>
+                    <div class="simulator-number">02</div>
+                    <small>АВТОСИМ</small>
                     <div class="remove-selection">✕</div>
                 </div>
-                <!-- Кнопка "Любой симулятор" удалена -->
+                <div class="grid-item simulator-box" data-id="3">
+                    <div class="simulator-number">03</div>
+                    <small>АВТОСИМ</small>
+                    <div class="remove-selection">✕</div>
+                </div>
+                <div class="grid-item simulator-box" data-id="4">
+                    <div class="simulator-number">04</div>
+                    <small>АВТОСИМ</small>
+                    <div class="remove-selection">✕</div>
+                </div>
+                <div class="grid-item simulator-box" data-id="any">
+                    <div class="simulator-number"></div>
+                    <small>ЛЮБОЙ</small>
+                    <div class="remove-selection">✕</div>
+                </div>
             </div>
-            <div class="flex justify-between gap-4 mt-6">
-                <!-- Кнопка "Назад" не нужна на первом шаге -->
-                <button id="toPackagePage" class="button w-full" disabled>далее</button>
-            </div>
+            <button id="toPackagePage" class="button active" disabled>ДАЛЕЕ</button>
         </div>
 
-        <!-- Шаг 2: Выбор пакета времени -->
-        <div id="package-step" class="step-page hidden">
-            <div class="step-title">выберите пакет времени</div>
-            <div id="package-grid" class="grid-container">
+        <!-- Шаг 1: Выбор пакета времени -->
+        <div id="package-step" class="step-page">
+            <h2 class="step-title">ВЫБЕРИТЕ ПАКЕТ ВРЕМЕНИ</h2>
+            <div id="package-grid">
                 <!-- Пакеты будут сгенерированы JS -->
             </div>
-            <p id="package-summary"></p>
+            <!-- Карусель для "Своего пакета" -->
+            <div id="custom-package-carousel-container" class="custom-package-carousel-container hidden">
+                <div class="custom-package-carousel" id="custom-package-carousel">
+                    <!-- Пользовательские пакеты будут сгенерированы JS -->
+                </div>
+                <button id="backToMainPackageSelection" class="button back-btn active mt-4">НАЗАД К ПАКЕТАМ</button>
+            </div>
+
+            <p id="package-summary" class="text-center mb-6"></p>
             <div class="flex justify-between gap-4 mt-6">
-                <button id="backToDateSimulatorPage" class="button back-btn w-1/2">назад</button>
-                <button id="toTimePageNew" class="button w-1/2" disabled>далее</button>
+                <button id="backToDateSimulatorPage" class="button back-btn active">НАЗАД</button>
+                <button id="toTimePageNew" class="button active" disabled>ДАЛЕЕ</button>
             </div>
         </div>
 
-        <!-- Шаг 3: Выбор времени -->
-        <div id="time-select-step" class="step-page hidden">
-            <div class="step-title">выбор слота</div>
-            <div id="time-grid" class="grid-container">
+        <!-- Шаг 2: Выбор времени -->
+        <div id="time-select-step" class="step-page">
+            <h2 class="step-title">ВЫБЕРИТЕ ВРЕМЯ</h2>
+            <div id="long-booking-warning" class="message-box info">
+                <strong>⚠️ Важно:</strong> Для длительных броней (12 часов и более) мы предварительно связываемся с гостем. Это помогает нам избежать неявок и сохранить симуляторы доступными для всех. В редких случаях может потребоваться предоплата. Спасибо за понимание!
+            </div>
+            <div id="time-grid">
                 <!-- Временные слоты будут сгенерированы JS -->
             </div>
             <div class="flex justify-between gap-4 mt-6">
-                <button id="backToPackagePage" class="button back-btn w-1/2">назад</button>
-                <button id="toFormPage" class="button w-1/2" disabled>далее</button>
+                <button id="backToPackagePage" class="button back-btn active">НАЗАД</button>
+                <button id="toFormPage" class="button active" disabled>ДАЛЕЕ</button>
             </div>
         </div>
 
-        <!-- Шаг 4: Заполнение формы -->
-        <div id="form-step" class="step-page hidden">
-            <div class="step-title">ваши данные</div>
+        <!-- Шаг 3: Заполнение формы -->
+        <div id="form-step" class="step-page">
+            <h2 class="step-title">ВАШИ ДАННЫЕ</h2>
             <form id="booking-form">
                 <div class="form-group">
-                    <label for="name">ваше имя</label>
-                    <input type="text" id="name" name="name" required placeholder="иван иванов">
+                    <label for="name">Ваше имя</label>
+                    <input type="text" id="name" name="name" required placeholder="Иван Иванов">
                 </div>
                 <div class="form-group">
-                    <label for="phone">телефон</label>
-                    <input type="tel" id="phone" name="phone" required placeholder="+7 (xxx) xxx-1234">
+                    <label for="phone">Телефон</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+7 (XXX) XXX-1234">
                 </div>
                 <div class="form-group">
-                    <label for="telegram">telegram (ник без @)</label>
+                    <label for="telegram">Telegram (ник без @)</label>
                     <input type="text" id="telegram" name="telegram" placeholder="ваш_ник" required>
                 </div>
                 <div class="form-group">
-                    <label for="comment">комментарий (необязательно)</label>
-                    <textarea id="comment" name="comment" rows="3" placeholder="особые пожелания"></textarea>
+                    <label for="comment">Комментарий (необязательно)</label>
+                    <textarea id="comment" name="comment" rows="3" placeholder="Особые пожелания"></textarea>
                 </div>
                 
                 <p class="text-sm text-center mt-4 mb-4">
-                    нажимая кнопку далее вы соглашаетесь на обработку ваших данных
+                    Нажимая кнопку далее вы соглашаетесь на обработку ваших данных
                 </p>
 
                 <div class="flex justify-between gap-4 mt-6">
-                    <button id="backToTimePageNew" type="button" class="button back-btn w-1/2">назад</button>
-                    <button type="submit" class="button w-1/2">далее</button>
+                    <button id="backToTimePageNew" type="button" class="button back-btn active">НАЗАД</button>
+                    <button type="submit" class="button active">ДАЛЕЕ</button>
                 </div>
             </form>
         </div>
 
-        <!-- Шаг 5: Подтверждение -->
-        <div id="confirmation-step" class="step-page hidden">
-            <h2>ваша заявка принята!</h2>
-            <p class="text-center text-gray-700 mb-6">мы свяжемся с вами в ближайшее время для подтверждения.</p>
+        <!-- Шаг 4: Подтверждение -->
+        <div id="confirmation-step" class="step-page">
+            <h2 class="step-title">ВАША ЗАЯВКА ПРИНЯТА!</h2>
+            <p class="text-center mb-6">Мы свяжемся с вами в ближайшее время для подтверждения.</p>
             <div id="confirmation-details" class="confirmation-details">
                 <!-- Детали бронирования будут сгенерированы JS -->
             </div>
             <div class="flex flex-col gap-4 mt-6">
-                <button id="book-again" class="button active">забронировать еще раз</button>
-                <button id="reschedule" class="button">перенести бронирование</button>
-                <button id="cancel-booking" class="button">отменить бронирование</button>
-                <button id="route-btn" class="button">построить маршрут</button>
-                <button id="taxi-btn" class="button">вызвать такси</button>
+                <button id="book-again" class="button active">ЗАБРОНИРОВАТЬ ЕЩЕ РАЗ</button>
+                <button id="reschedule" class="button back-btn active">ПЕРЕНЕСТИ БРОНИРОВАНИЕ</button>
+                <button id="cancel-booking" class="button back-btn active">ОТМЕНИТЬ БРОНИРОВАНИЕ</button>
+                <button id="ask-ai-steward" class="button back-btn active">✨ СПРОСИТЬ СТЮАРДА (AI)</button>
+                <button id="route-btn" class="button back-btn active">ПРОЛОЖИТЬ МАРШРУТ</button>
+                <button id="taxi-btn" class="button back-btn active">ВЫЗВАТЬ ТАКСИ</button>
             </div>
-            <div id="reschedule-message" class="message-box info mt-4" style="display: none;">
-                для переноса свяжитесь со стюардом.
+            <div id="reschedule-message" class="message-box info">
+                Для переноса свяжитесь со стюардом.
             </div>
-            <div id="cancel-message" class="message-box info mt-4" style="display: none;">
-                заявка на отмену отправлена стюарду.
+            <div id="cancel-message" class="message-box info">
+                Заявка на отмену отправлена стюарду.
             </div>
         </div>
     </div>
 
     <!-- Модальное окно отмены -->
-    <div id="cancel-modal" class="modal" style="display: none;">
+    <div id="cancel-modal" class="modal">
         <div class="modal-content">
-            <h3>подтвердите отмену</h3>
-            <p>вы уверены, что хотите отменить бронирование?</p>
+            <h3>ПОДТВЕРДИТЕ ОТМЕНУ</h3>
+            <p>Вы уверены, что хотите отменить бронирование?</p>
             <div class="modal-buttons">
-                <button id="confirm-cancel" class="button active confirm">да, отменить</button>
-                <button id="cancel-cancel" class="button cancel">нет, оставить</button>
+                <button id="confirm-cancel" class="button active">ДА, ОТМЕНИТЬ</button>
+                <button id="cancel-cancel" class="button back-btn active">НЕТ, ОСТАВИТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно AI Чата -->
+    <div id="ai-chat-modal" class="modal">
+        <div class="modal-content">
+            <h3>СПРОСИТЬ СТЮАРДА (AI)</h3>
+            <div id="ai-chat-response">
+                Привет! Я здесь, чтобы ответить на ваши вопросы о клубе. Спрашивайте!
+            </div>
+            <input type="text" id="ai-chat-input" placeholder="Введите ваш вопрос...">
+            <div class="button-group">
+                <button id="ai-chat-submit" class="button active">ЗАДАТЬ ВОПРОС</button>
+                <button id="ai-chat-close" class="button back-btn active">ЗАКРЫТЬ</button>
             </div>
         </div>
     </div>

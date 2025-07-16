@@ -438,11 +438,9 @@ h2 {
     grid-template-columns: repeat(3, 1fr); /* 3 столбца на шаге пакетов */
     display: grid; /* Применяем grid, так как он может быть переопределен */
     gap: 0;
+    margin-bottom: 16px;
     margin-left: -16px; /* Вытягиваем на всю ширину */
     margin-right: -16px;
-    /* padding-left: 16px; */ /* Удалены для выравнивания от края до края */
-    /* padding-right: 16px; */ /* Удалены для выравнивания от края до края */
-    margin-bottom: 16px;
 }
 .package {
     padding: 16px;
@@ -471,39 +469,71 @@ h2 {
 }
 .package .package-number { /* Стиль для цифр пакетов */
     font-family: 'Monaco', monospace;
-    font-size: 60px;
+    font-size: 48px; /* 60px * 0.8 = 48px */
     font-weight: bold;
     line-height: 1;
     position: absolute;
-    top: 32px;
-    left: 32px;
+    top: 24px; /* 32px * 0.8 = 25.6px, округлим до 24px */
+    left: 24px; /* 32px * 0.8 = 25.6px, округлим до 24px */
     text-transform: none;
 }
 .package .package-unit { /* Стиль для "час/часа" */
-    font-size: 16px;
+    font-size: 12.8px; /* 16px * 0.8 = 12.8px */
     display: block;
     position: absolute;
-    top: 48px; /* Смещено относительно цифры */
-    left: calc(32px + 60px); /* Отступ от левого края + ширина цифры */
+    top: 36px; /* 48px * 0.8 = 38.4px, округлим до 36px */
+    left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
     text-transform: none;
     font-weight: normal;
 }
+.package .package-night-text { /* Стиль для текста "Ночь" */
+    font-family: 'Helvetica Neue Condensed Black', sans-serif;
+    font-size: 20px; /* 24px * 0.8 = 19.2px, округлим до 20px */
+    font-weight: bold;
+    line-height: 1;
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    text-transform: uppercase;
+}
+.package .package-night-time { /* Стиль для текста "(00:00 – 08:00)" */
+    font-family: 'Monaco', monospace;
+    font-size: 9.6px; /* 12px * 0.8 = 9.6px */
+    position: absolute;
+    top: 48px; /* Отступ ниже "Ночь" */
+    left: 24px;
+    text-transform: none;
+}
 .package .package-original-price { /* Перечеркнутая цена */
     font-family: 'Monaco', monospace;
-    font-size: 16px;
+    font-size: 12.8px; /* 16px * 0.8 = 12.8px */
     position: absolute;
     bottom: 8px;
-    left: 32px;
+    left: 24px;
     text-decoration: line-through;
     color: #a0a0a0; /* Серый цвет для перечеркнутой цены */
 }
 .package .package-price { /* Актуальная цена */
     font-family: 'Monaco', monospace;
-    font-size: 24px; /* Крупнее */
+    font-size: 19.2px; /* 24px * 0.8 = 19.2px */
     font-weight: bold;
     position: absolute;
     bottom: 8px;
-    right: 32px;
+    right: 24px;
+}
+
+.custom-package-trigger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 16px; /* Основной текст */
+    font-weight: bold;
+    text-transform: none;
+}
+.custom-package-trigger div {
+    line-height: 1.2;
 }
 
 #package-summary {
@@ -521,8 +551,6 @@ h2 {
     gap: 0;
     margin-left: -16px; /* Вытягиваем на всю ширину */
     margin-right: -16px;
-    /* padding-left: 16px; */ /* Удалены для выравнивания от края до края */
-    /* padding-right: 16px; */ /* Удалены для выравнивания от края до края */
     margin-bottom: 16px;
 }
 .time-slot {
@@ -684,17 +712,27 @@ textarea {
         left: 24px;
     }
     .package .package-unit {
-        font-size: 14px;
+        font-size: 12.8px;
         top: 36px; /* Адаптивный отступ */
         left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
     }
+    .package .package-night-text {
+        font-size: 16px; /* Адаптивный размер для "Ночь" */
+        top: 24px;
+        left: 24px;
+    }
+    .package .package-night-time {
+        font-size: 8px; /* Адаптивный размер для времени ночи */
+        top: 40px;
+        left: 24px;
+    }
     .package .package-original-price {
-        font-size: 14px;
+        font-size: 12.8px;
         bottom: 8px;
         left: 24px;
     }
     .package .package-price {
-        font-size: 18px;
+        font-size: 19.2px;
         bottom: 8px;
         right: 24px;
     }
@@ -738,12 +776,22 @@ textarea {
         left: 20px;
     }
     .package .package-unit {
-        font-size: 12px;
+        font-size: 10.4px; /* 13px * 0.8 = 10.4px */
         top: 30px;
         left: calc(20px + 40px);
     }
+    .package .package-night-text {
+        font-size: 14px; /* Адаптивный размер для "Ночь" */
+        top: 20px;
+        left: 20px;
+    }
+    .package .package-night-time {
+        font-size: 7px; /* Адаптивный размер для времени ночи */
+        top: 34px;
+        left: 20px;
+    }
     .package .package-original-price {
-        font-size: 12px;
+        font-size: 10.4px;
         bottom: 6px;
         left: 20px;
     }

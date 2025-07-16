@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         date: null,
         time: null,
         simulator: [], // Изменено на массив для множественного выбора
-        wheel: null,
+        wheel: null, // Теперь не используется, но оставлено для совместимости
         duration: null, // Длительность пакета, например "1 час"
         price: null,
         name: null,
@@ -36,14 +36,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Все пакеты времени
     const packages = [
-        { duration: '1 час', price: '450 ₽', value: 450, hours: 1 },
-        { duration: '2 часа', price: '800 ₽', value: 800, hours: 2 },
-        { duration: '3 часа', price: '1050 ₽', value: 1050, hours: 3 },
-        { duration: '5 часов', price: '1600 ₽', value: 1600, hours: 5 },
-        { duration: 'Ночь', price: '2000 ₽', value: 2000, hours: 8 } // Пример для "Ночь" - 8 часов
+        { duration: '1 час', price: '450 ₽', value: 450, hours: 1, originalPrice: 450 },
+        { duration: '2 часа', price: '850 ₽', value: 850, hours: 2, originalPrice: 900 },
+        { duration: '3 часа', price: '1200 ₽', value: 1200, hours: 3, originalPrice: 1350 },
+        { duration: '5 часов', price: '1900 ₽', value: 1900, hours: 5, originalPrice: 2250 },
+        { duration: 'Ночь', price: '2500 ₽', value: 2500, hours: 8, originalPrice: null } // No original price for night
     ];
     // Базовая часовая ставка для расчета перечеркнутой цены
     const BASE_HOURLY_RATE = 450;
+    // Ставка для расчета цен в "Своем пакете" после 3 часов
+    const CUSTOM_HOURLY_RATE = 400; 
 
     // Инициализация приложения
     async function init() {
@@ -61,18 +63,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 userId = session.user.id;
                 console.log("Supabase authenticated. User ID:", userId);
             } else {
-                // If no session, use a random UUID for userId for now.
-                // For actual RLS, anonymous sign-in might be needed:
-                // const { data: anonymousUser, error: anonError } = await supabase.auth.signInAnonymously();
-                // if (anonError) {
-                //     console.error("Error signing in anonymously with Supabase:", anonError);
-                // } else if (anonymousUser && anonymousUser.user) {
-                //     userId = anonymousUser.user.id;
-                //     console.log("Supabase signed in anonymously. User ID:", userId);
-                // } else {
-                    userId = crypto.randomUUID(); // Fallback if no user or anonymous sign-in fails
-                    console.warn("No Supabase user session found. Using a random UUID as user ID:", userId);
-                // }
+                userId = crypto.randomUUID(); // Fallback if no user or anonymous sign-in fails
+                console.warn("No Supabase user session found. Using a random UUID as user ID:", userId);
             }
             isAuthReady = true; // Mark as ready after auth check (even if anonymous/UUID)
 
@@ -85,22 +77,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const userTg = Telegram.WebApp.initDataUnsafe.user;
                 if (userTg) {
                     bookingData.telegramId = userTg.id.toString(); // Store Telegram ID
+                    bookingData.telegram = userTg.username || ''; // Store Telegram username
                     console.log("Telegram User Data:", userTg);
                     await loadUserData(bookingData.telegramId);
                 }
             } else {
                 console.warn("Telegram Web App SDK not found or not ready.");
+                // Fallback for non-Telegram environment
+                document.getElementById('web-app-fallback').classList.remove('hidden');
+                document.getElementById('main-booking-content').style.display = 'none';
             }
 
             setupCalendar();
             setupSimulatorSelection(); // This will now correctly initialize bookingData.simulator
             setupPackageSelection();
             setupTimeSlotsGenerator(); // Will be called again after package selection
-            setupWheelSelection();
+            // setupWheelSelection(); // Removed as per new flow
             setupForm();
             setupNavigation();
             setupConfirmationActions();
             setupMapButtons();
+            setupAIChatFeature(); // Setup AI Chat
             showStep(0); // Start at the first step
 
         } catch (error) {
@@ -110,14 +107,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Показываем нужный шаг и скрываем остальные
     function showStep(stepNumber) {
-        // Скрываем все шаги
         document.querySelectorAll('.step-page').forEach(step => {
             step.classList.remove('active');
         });
         
-        // Показываем нужный шаг
         const steps = [
-            'date-simulator-step', // 0 (объединенный шаг даты и симулятора)
+            'date-simulator-step',   // 0 (объединенный шаг даты и симулятора)
             'package-step',          // 1
             'time-select-step',      // 2
             'form-step',             // 3
@@ -125,13 +120,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         ];
         document.getElementById(steps[stepNumber]).classList.add('active');
         
-        // Обновляем прогресс-бар (всего 5 шагов, но 0-4)
         updateProgress(stepNumber);
+
+        // Показываем предупреждение для длительных броней, если это шаг выбора времени
+        if (stepNumber === 2) { // Шаг выбора времени
+            const longBookingWarning = document.getElementById('long-booking-warning');
+            if (bookingData.hours && bookingData.hours >= 12) {
+                longBookingWarning.style.display = 'block';
+            } else {
+                longBookingWarning.style.display = 'none';
+            }
+        }
     }
 
     // Обновляем прогресс-бар
     function updateProgress(step) {
-        const totalSteps = document.querySelectorAll('.step-page').length;
+        const totalSteps = document.querySelectorAll('.step-page').length; // Correctly count active steps
         const progress = (step / (totalSteps - 1)) * 100;
         document.getElementById('booking-progress-global').style.width = `${progress}%`;
     }
@@ -141,6 +145,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const dateToggle = document.getElementById('date-toggle');
         const dateCarouselContainer = document.getElementById('date-carousel-container');
         const dateCarousel = document.getElementById('date-carousel');
+        const currentDateDisplay = document.getElementById('current-date-display');
         const today = new Date();
         
         // Месяцы для отображения
@@ -158,12 +163,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             const day = date.getDate();
             const monthIndex = date.getMonth();
+            const year = date.getFullYear();
             const isToday = (i === 0); // Первый элемент всегда "сегодня"
             
             const selectedClass = isToday ? 'selected' : ''; // Выбираем "сегодня" по умолчанию
             
             options += `
-                <div class="date-item ${selectedClass}" data-day="${day}" data-month="${monthIndex}">
+                <div class="date-item ${selectedClass}" data-full-date="${day.toString().padStart(2, '0')}.${(monthIndex + 1).toString().padStart(2, '0')}.${year}">
                     ${day.toString().padStart(2, '0')}
                     <small>${months[monthIndex]}</small>
                 </div>
@@ -191,17 +197,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
 
         // Инициализируем bookingData.date и состояние кнопки "далее" при загрузке
-        updateBookingDate();
+        updateBookingDate(); // Call once on load to set initial date
     }
 
     function updateBookingDate() {
         const selectedDateItem = document.querySelector('.date-carousel .date-item.selected');
+        const currentDateDisplay = document.getElementById('current-date-display');
+
         if (selectedDateItem) {
-            const day = selectedDateItem.dataset.day;
-            const monthIndex = parseInt(selectedDateItem.dataset.month);
-            const year = new Date().getFullYear(); // Берем текущий год
-            bookingData.date = `${day.padStart(2, '0')}.${(monthIndex + 1).toString().padStart(2, '0')}.${year}`;
-            document.getElementById('toPackagePage').disabled = false; // Кнопка "Далее" на первом шаге
+            const fullDate = selectedDateItem.dataset.fullDate;
+            bookingData.date = fullDate;
+            currentDateDisplay.textContent = fullDate; // Update the displayed date
+            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; // Check simulator selection
             updateBreadcrumbs(); // Обновляем хлебные крошки
         } else {
             bookingData.date = null;
@@ -209,6 +216,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             updateBreadcrumbs(); // Обновляем хлебные крошки
         }
     }
+
 
     // Настройка выбора симулятора (изменена логика)
     function setupSimulatorSelection() {
@@ -243,9 +251,27 @@ document.addEventListener('DOMContentLoaded', async function() {
                     if (removeBtn) removeBtn.style.display = 'none';
                     bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
                 } else {
-                    // Добавляем выбранный симулятор
-                    if (!bookingData.simulator.includes(simulatorId)) {
-                        bookingData.simulator.push(simulatorId);
+                    if (simulatorId === 'any') {
+                        // Если выбран "Любой", снимаем выбор со всех остальных
+                        document.querySelectorAll('.simulator-box.selected').forEach(s => {
+                            s.classList.remove('selected');
+                            const sRemoveBtn = s.querySelector('.remove-selection');
+                            if (sRemoveBtn) sRemoveBtn.style.display = 'none';
+                        });
+                        bookingData.simulator = ['any'];
+                    } else {
+                        // Если выбран конкретный, снимаем выбор с "Любой"
+                        const anySim = document.querySelector('.simulator-box[data-id="any"]');
+                        if (anySim && anySim.classList.contains('selected')) {
+                            anySim.classList.remove('selected');
+                            const anyRemoveBtn = anySim.querySelector('.remove-selection');
+                            if (anyRemoveBtn) anyRemoveBtn.style.display = 'none';
+                            bookingData.simulator = [];
+                        }
+                        
+                        if (!bookingData.simulator.includes(simulatorId)) {
+                            bookingData.simulator.push(simulatorId);
+                        }
                     }
                     this.classList.add('selected');
                     if (removeBtn) removeBtn.style.display = 'flex';
@@ -279,22 +305,43 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Настройка выбора пакета времени (новый шаг)
     function setupPackageSelection() {
-        document.getElementById('package-grid').innerHTML = packages.map(pkg => {
-            const originalPrice = pkg.duration !== 'Ночь' ? `${pkg.hours * BASE_HOURLY_RATE} ₽` : '';
-            const displayHours = pkg.hours.toString().padStart(2, '0');
-            const hourUnit = getHourUnit(pkg.hours);
-
-            return `
-                <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                    <div class="package-number">${displayHours}</div>
-                    <small class="package-unit">${hourUnit}</small>
-                    ${pkg.duration !== 'Ночь' ? `<div class="package-original-price">${originalPrice}</div>` : ''}
-                    <div class="package-price">${pkg.price}</div>
-                </div>
-            `;
+        const packageGrid = document.getElementById('package-grid');
+        let packagesHtml = packages.map(pkg => {
+            const originalPriceDisplay = pkg.originalPrice !== null ? `<div class="package-original-price">${pkg.originalPrice} ₽</div>` : '';
+            
+            if (pkg.duration === 'Ночь') {
+                return `
+                    <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
+                        <div class="package-night-text">НОЧНОЙ</div>
+                        <small class="package-night-time">(00:00 – 08:00)</small>
+                        ${originalPriceDisplay}
+                        <div class="package-price">${pkg.price}</div>
+                    </div>
+                `;
+            } else {
+                const displayHours = pkg.hours.toString().padStart(2, '0');
+                const hourUnit = getHourUnit(pkg.hours);
+                return `
+                    <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
+                        <div class="package-number">${displayHours}</div>
+                        <small class="package-unit">${hourUnit}</small>
+                        ${originalPriceDisplay}
+                        <div class="package-price">${pkg.price}</div>
+                    </div>
+                `;
+            }
         }).join('');
+
+        // Добавляем кнопку "Свой пакет"
+        packagesHtml += `
+            <div class="package block custom-package-trigger" id="custom-package-trigger">
+                <div class="text-center">СВОЙ<br>ПАКЕТ</div>
+            </div>
+        `;
         
-        document.querySelectorAll('.package').forEach(pkg => {
+        packageGrid.innerHTML = packagesHtml;
+        
+        document.querySelectorAll('.package:not(.custom-package-trigger)').forEach(pkg => {
             pkg.addEventListener('click', function() {
                 document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
                 this.classList.add('selected');
@@ -302,13 +349,96 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseInt(this.dataset.hours); // Сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
-                    `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
+                    `ВЫ ВЫБРАЛИ: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
                 setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
                 updateBreadcrumbs(); // Обновляем хлебные крошки
             });
         });
+
+        // Обработчик для кнопки "Свой пакет"
+        document.getElementById('custom-package-trigger').addEventListener('click', function() {
+            document.getElementById('package-grid').classList.add('hidden'); // Скрываем основной список
+            document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // Показываем карусель
+            setupCustomPackageSelection(); // Генерируем и настраиваем карусель
+        });
     }
+
+    // Функция для расчета цены "Своего пакета"
+    function getCustomPackagePrice(hours) {
+        if (hours === 1) return 450;
+        if (hours === 2) return 850;
+        if (hours === 2.5) return 1060; // Округлено в сторону гостя
+        if (hours === 3) return 1200;
+        // Для пакетов более 3 часов, считаем по 400 ₽/час с округлением до 10 ₽ в пользу гостя
+        return Math.ceil((hours * CUSTOM_HOURLY_RATE) / 10) * 10;
+    }
+
+    // Настройка выбора "Своего пакета"
+    function setupCustomPackageSelection() {
+        const customPackageCarousel = document.getElementById('custom-package-carousel');
+        let customPackagesHtml = '';
+        const customPackageDurations = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12, 18, 24];
+
+        customPackageDurations.forEach(hours => {
+            const currentPrice = getCustomPackagePrice(hours);
+            const originalPrice = hours * BASE_HOURLY_RATE;
+            const originalPriceDisplay = originalPrice !== currentPrice && hours !== 1 && hours !== 2 ? `<div class="package-original-price">${originalPrice} ₽</div>` : ''; // Don't show for 1h, 2h as they match base rate
+            
+            let displayHours = hours.toString();
+            if (hours % 1 !== 0) { // If it's a decimal (e.g., 2.5)
+                displayHours = hours.toFixed(1).replace('.', ',');
+            } else {
+                displayHours = hours.toString().padStart(2, '0');
+            }
+            
+            const hourUnit = getHourUnit(hours);
+
+            customPackagesHtml += `
+                <div class="package block" data-duration="${displayHours} ${hourUnit}" data-price="${currentPrice}" data-hours="${hours}">
+                    <div class="package-number">${displayHours}</div>
+                    <small class="package-unit">${hourUnit}</small>
+                    ${originalPriceDisplay}
+                    <div class="package-price">${currentPrice} ₽</div>
+                </div>
+            `;
+        });
+        customPackageCarousel.innerHTML = customPackagesHtml;
+
+        document.querySelectorAll('#custom-package-carousel .package').forEach(pkg => {
+            pkg.addEventListener('click', function() {
+                document.querySelectorAll('#custom-package-carousel .package').forEach(p => p.classList.remove('selected'));
+                this.classList.add('selected');
+                bookingData.duration = this.dataset.duration;
+                bookingData.price = this.dataset.price;
+                bookingData.hours = parseFloat(this.dataset.hours); // Используем parseFloat для дробных часов
+                document.getElementById('package-summary').textContent = 
+                    `ВЫ ВЫБРАЛИ: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
+                document.getElementById('toTimePageNew').disabled = false;
+                setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
+                
+                // Возвращаемся к основному виду шага пакетов
+                document.getElementById('custom-package-carousel-container').classList.add('hidden');
+                document.getElementById('package-grid').classList.remove('hidden'); // Показываем основной список
+                updateBreadcrumbs(); // Обновляем хлебные крошки
+            });
+        });
+
+        // Обработчик для кнопки "Назад к пакетам"
+        document.getElementById('backToMainPackageSelection').addEventListener('click', function() {
+            document.getElementById('custom-package-carousel-container').classList.add('hidden');
+            document.getElementById('package-grid').classList.remove('hidden'); // Показываем основной список
+            // Сбрасываем выбранный пакет, если пользователь вернулся
+            document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
+            bookingData.duration = null;
+            bookingData.price = null;
+            bookingData.hours = null;
+            document.getElementById('package-summary').textContent = '';
+            document.getElementById('toTimePageNew').disabled = true;
+            updateBreadcrumbs();
+        });
+    }
+
 
     // Настройка генерации временных слотов на основе выбранного пакета
     async function setupTimeSlotsGenerator() {
@@ -324,20 +454,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         const durationHours = bookingData.hours;
         const selectedDate = bookingData.date; // e.g., "15.07.2025"
 
-        // Fetch existing bookings for the selected date and simulators from Supabase
         let occupiedSlots = [];
         if (supabase) { // Check if supabase client is initialized
             try {
                 const { data, error } = await supabase
                     .from('bookings')
-                    .select('time, hours, simulator') // Select relevant fields
+                    .select('time_range, duration_hours, simulator_ids') // Select relevant fields
                     .eq('date', selectedDate); // Filter by selected date
                 
                 if (error) {
                     console.error("Error fetching occupied slots from Supabase:", error);
                 } else {
                     occupiedSlots = data.filter(booking => 
-                        booking.simulator.some(bookedSim => bookingData.simulator.includes(bookedSim))
+                        booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim))
                     );
                     console.log("Occupied slots for selected date and simulators:", occupiedSlots);
                 }
@@ -348,26 +477,40 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Generate time slots
         for (let hour = 10; hour <= 23; hour++) {
-            let startHour = hour.toString().padStart(2, '0');
-            let endHour = (hour + durationHours).toString().padStart(2, '0');
-            let endTimeFormatted = `${endHour}:00`;
+            let startHour = hour;
+            let endHour = startHour + durationHours;
+            
+            // Handle fractional hours for start and end times
+            let startMinutes = (startHour % 1) * 60;
+            let endMinutes = (endHour % 1) * 60;
 
-            if (hour + durationHours >= 24) {
-                endHour = (hour + durationHours - 24).toString().padStart(2, '0');
-                endTimeFormatted = `${endHour}:00 (следующий день)`;
+            let startHourFormatted = Math.floor(startHour).toString().padStart(2, '0');
+            let startMinutesFormatted = startMinutes.toString().padStart(2, '0');
+            
+            let endHourFormatted = Math.floor(endHour).toString().padStart(2, '0');
+            let endMinutesFormatted = endMinutes.toString().padStart(2, '0');
+
+            let endTimeSuffix = '';
+            if (Math.floor(endHour) >= 24) {
+                endHourFormatted = (Math.floor(endHour) - 24).toString().padStart(2, '0');
+                endTimeSuffix = ' (СЛЕДУЮЩИЙ ДЕНЬ)';
             }
 
-            const currentTimeSlot = `${startHour}:00 – ${endTimeFormatted}`;
+            const currentTimeSlot = `${startHourFormatted}:${startMinutesFormatted} – ${endHourFormatted}:${endMinutesFormatted}${endTimeSuffix}`;
             
             // Check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
-                // Simple overlap check: if start times match and durations are compatible
-                const [occupiedStartHour] = occupied.time.split(' ')[0].split(':').map(Number);
-                const [currentStartHour] = currentTimeSlot.split(' ')[0].split(':').map(Number);
+                const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
+                const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
+                const occupiedDurationMinutes = occupied.duration_hours * 60;
+                const occupiedEndTotalMinutes = occupiedStartTotalMinutes + occupiedDurationMinutes;
 
-                // This is a simplified check. A more robust solution would involve checking full time range overlap.
-                // For now, if the start hour is the same, we consider it occupied.
-                return occupiedStartHour === currentStartHour;
+                const currentStartTotalMinutes = hour * 60 + startMinutes;
+                const currentDurationMinutes = durationHours * 60;
+                const currentEndTotalMinutes = currentStartTotalMinutes + currentDurationMinutes;
+
+                // Check for overlap
+                return (currentStartTotalMinutes < occupiedEndTotalMinutes && occupiedStartTotalMinutes < currentEndTotalMinutes);
             });
 
             const disabledClass = isOccupied ? 'disabled' : '';
@@ -375,12 +518,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
         }
 
-        // If "Ночь", add special slot
+        // If "Ночь", add special slot (assuming 00:00 - 08:00 is fixed for night)
+        // This slot should only be added if the selected package is exactly 'Ночь'
         if (bookingData.duration === 'Ночь') {
             const nightSlot = '00:00 – 08:00';
             const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const [occupiedStartHour] = occupied.time.split(' ')[0].split(':').map(Number);
-                return occupiedStartHour === 0; // Check for 00:00 start
+                const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
+                const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
+                
+                // Check if the night slot (00:00 - 08:00) overlaps with any existing booking
+                // Simplified check: if any booking starts at 00:00 or overlaps significantly
+                return (occupiedStartTotalMinutes < (8 * 60) && (occupiedStartTotalMinutes + (occupied.duration_hours * 60)) > 0);
             });
             const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
             times.push(`<div class="time-slot block ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
@@ -432,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const telegramInput = document.getElementById('telegram');
 
                 if (userData.name) nameInput.value = userData.name;
-                if (userData.phone) phoneInput.value = userData.phone;
+                if (userData.phone) phoneInput.value = userData.phone; // Assuming full phone is stored
                 if (userData.telegram_username) telegramInput.value = userData.telegram_username; // Assuming telegram_username in DB
 
                 // Update bookingData
@@ -449,7 +597,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // If no data, ensure form fields are empty or default
                 document.querySelector('#form-step input[type="text"]').value = '';
                 document.getElementById('phone').value = '+7 ';
-                document.getElementById('telegram').value = '';
+                document.getElementById('telegram').value = bookingData.telegram; // Pre-fill with Telegram username from WebApp
             }
         } catch (error) {
             console.error("Error loading user data:", error);
@@ -500,6 +648,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
             
             e.target.value = formatted;
+            bookingData.phone = formatted; // Update bookingData with formatted phone
         });
         
         // Валидация Telegram
@@ -532,7 +681,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // Сохраняем данные
             bookingData.name = this.querySelector('input[type="text"]').value;
-            bookingData.phone = this.querySelector('input[type="tel"]').value;
+            // bookingData.phone уже обновляется в setupForm при вводе
             bookingData.telegram = this.querySelector('#telegram').value;
             bookingData.comment = this.querySelector('textarea').value;
             
@@ -547,6 +696,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Обновление хлебных крошек
     function updateBreadcrumbs() {
         const breadcrumbDiv = document.getElementById('booking-breadcrumb');
+        // Check if breadcrumbDiv exists before updating
+        if (!breadcrumbDiv) {
+            console.warn("Breadcrumb element not found. Skipping breadcrumb update.");
+            return;
+        }
+
         let breadcrumbs = [];
 
         if (bookingData.date) {
@@ -574,14 +729,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         const details = document.getElementById('confirmation-details');
         
         details.innerHTML = `
-            <p><strong>дата:</strong> ${bookingData.date}</p>
-            <p><strong>тариф:</strong> ${bookingData.duration}</p>
-            <p><strong>время:</strong> ${bookingData.time}</p>
-            <p><strong>симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
-            <p><strong>имя:</strong> ${bookingData.name}</p>
-            <p><strong>телефон:</strong> ${bookingData.phone}</p>
-            <p><strong>telegram:</strong> @${bookingData.telegram}</p>
-            ${bookingData.comment ? `<p><strong>комментарий:</strong> ${bookingData.comment}</p>` : ''}
+            <p><strong>ДАТА:</strong> ${bookingData.date}</p>
+            <p><strong>ТАРИФ:</strong> ${bookingData.duration}</p>
+            <p><strong>ВРЕМЯ:</strong> ${bookingData.time}</p>
+            <p><strong>СИМУЛЯТОР(Ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
+            <p><strong>ИМЯ:</strong> ${bookingData.name}</p>
+            <p><strong>ТЕЛЕФОН:</strong> ${bookingData.phone}</p>
+            <p><strong>TELEGRAM:</strong> @${bookingData.telegram}</p>
+            ${bookingData.comment ? `<p><strong>КОММЕНТАРИЙ:</strong> ${bookingData.comment}</p>` : ''}
         `;
         
         // Save booking to Supabase
@@ -593,16 +748,18 @@ document.addEventListener('DOMContentLoaded', async function() {
                         user_id: userId, // Supabase user ID (from auth or UUID)
                         telegram_id: bookingData.telegramId, // Telegram user ID
                         date: bookingData.date,
-                        time: bookingData.time,
-                        simulator: bookingData.simulator,
-                        duration: bookingData.duration,
-                        hours: bookingData.hours, // Store hours for easier availability checks
+                        time_range: bookingData.time, // Renamed to time_range in DB
+                        simulator_ids: bookingData.simulator, // Renamed to simulator_ids in DB
+                        // wheel: bookingData.wheel, // Removed as per new flow
+                        duration_text: bookingData.duration, // Renamed to duration_text in DB
+                        duration_hours: bookingData.hours, // Store hours for easier availability checks
                         price: bookingData.price,
                         name: bookingData.name,
-                        phone: bookingData.phone.replace(/\D/g, '').slice(-4), // Save only last 4 digits of phone
+                        phone: bookingData.phone, // Save full phone number
                         telegram_username: bookingData.telegram, // Save full Telegram username
                         comment: bookingData.comment,
-                        timestamp: new Date().toISOString() // ISO string for Supabase timestamp
+                        status: 'pending', // Default status for new bookings
+                        created_at: new Date().toISOString() // ISO string for Supabase timestamp
                     })
                     .select(); // Select the inserted row to get its ID
 
@@ -611,38 +768,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 } else if (newBooking && newBooking.length > 0) {
                     console.log("Booking saved to Supabase with ID:", newBooking[0].id);
 
-                    // Call Edge Function to notify steward
-                    // Replace with your actual Supabase Edge Function URL
-                    const EDGE_FUNCTION_URL = 'https://your-project-ref.supabase.co/functions/v1/notify-steward'; 
-
-                    console.log("Calling Edge Function to notify steward...");
-                    try {
-                        const edgeFunctionResponse = await fetch(EDGE_FUNCTION_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: bookingData.name,
-                                date: bookingData.date,
-                                time_range: bookingData.time,
-                                simulator_ids: bookingData.simulator,
-                                booking_id: newBooking[0].id, // ID новой записи бронирования из Supabase
-                                telegram_id_guest: bookingData.telegramId, // Telegram ID гостя
-                                telegram_username_guest: bookingData.telegram // Telegram ник гостя
-                            })
-                        });
-                        const edgeFunctionResult = await edgeFunctionResponse.json();
-                        console.log("Edge Function response:", edgeFunctionResult);
-                    } catch (edgeFunctionError) {
-                        console.error("Error calling Edge Function:", edgeFunctionError);
-                    }
-
+                    // No longer calling Edge Function directly from client.
+                    // The Python bot will monitor Supabase Realtime for new 'pending' bookings.
                 }
             } catch (error) {
                 console.error("Critical error during Supabase booking save:", error);
             }
         }
 
-        showStep(4);
+        showStep(4); // Show confirmation step
     }
 
     // Настройка действий на странице подтверждения (без изменений)
@@ -710,22 +844,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Сбрасываем форму
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = '+7 ';
+        document.getElementById('phone').value = '+7 '; // Reset phone to default prefix
         
         // Снимаем выделения и скрываем крестики
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
         document.querySelectorAll('.remove-selection').forEach(el => el.style.display = 'none');
         
         // Сбрасываем кнопки
-        document.querySelectorAll('.next-btn').forEach(btn => btn.disabled = true);
-        const toTimePageBtn = document.getElementById('toTimePage');
-        if (toTimePageBtn) toTimePageBtn.disabled = false;
-        
+        document.querySelectorAll('.button').forEach(btn => btn.disabled = false); // Re-enable all buttons
+        document.getElementById('toPackagePage').disabled = true; // Disable next on step 0 until selection
+        document.getElementById('toTimePageNew').disabled = true; // Disable next on step 1 until selection
+        document.getElementById('toFormPage').disabled = true; // Disable next on step 2 until selection
+
+        // Скрываем карусель "Свой пакет" и показываем основную сетку
+        document.getElementById('custom-package-carousel-container').classList.add('hidden');
+        document.getElementById('package-grid').classList.remove('hidden');
+
+        // Сбрасываем отображение выбранного пакета
+        document.getElementById('package-summary').textContent = '';
+
         showStep(0);
     }
 
     // Вспомогательные функции
     function getWheelName(wheelId) {
+        // This function is no longer used in the main flow, but kept for reference if needed
         const wheels = {
             'ks': 'Штурвал KS',
             'cs': 'Круглый CS',
@@ -737,20 +880,124 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function getSimulatorNames(simulatorIds) {
         if (simulatorIds.includes('any')) {
-            return 'Любой';
+            return 'ЛЮБОЙ';
         }
-        return simulatorIds.map(id => `Симулятор #${id}`).join(', ');
+        return simulatorIds.map(id => `СИМУЛЯТОР #${id}`).join(', ');
     }
 
     // Вспомогательная функция для склонения слова "час"
     function getHourUnit(hours) {
         if (hours === 1) {
-            return 'час';
+            return 'ЧАС';
         }
-        if (hours >= 2 && hours <= 4) {
-            return 'часа';
+        // Для дробных часов, всегда "часа" или "часов" в зависимости от целой части
+        const lastDigit = Math.floor(hours) % 10;
+        const lastTwoDigits = Math.floor(hours) % 100;
+
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+            return 'ЧАСОВ';
         }
-        return 'часов';
+        if (lastDigit === 1) {
+            return 'ЧАС'; 
+        }
+        if (lastDigit >= 2 && lastDigit <= 4) {
+            return 'ЧАСА';
+        }
+        return 'ЧАСОВ';
+    }
+
+    // --- Функции для AI Чата ---
+    const aiChatModal = document.getElementById('ai-chat-modal');
+    const aiChatInput = document.getElementById('ai-chat-input');
+    const aiChatResponse = document.getElementById('ai-chat-response');
+    const aiChatSubmitBtn = document.getElementById('ai-chat-submit');
+    const aiChatCloseBtn = document.getElementById('ai-chat-close');
+
+    function setupAIChatFeature() {
+        if (aiChatSubmitBtn) {
+            aiChatSubmitBtn.addEventListener('click', handleAIChatSubmit);
+        }
+        if (aiChatCloseBtn) {
+            aiChatCloseBtn.addEventListener('click', closeAIChatModal);
+        }
+        if (aiChatInput) {
+            aiChatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleAIChatSubmit();
+                }
+            });
+        }
+    }
+
+    function openAIChatModal() {
+        if (aiChatModal) {
+            aiChatModal.style.display = 'flex';
+            aiChatInput.value = ''; // Очищаем поле ввода
+            aiChatResponse.innerHTML = 'ПРИВЕТ! Я здесь, чтобы ответить на ваши вопросы о клубе. СПРАШИВАЙТЕ!'; // Сброс текста ответа
+            aiChatInput.focus();
+        }
+    }
+
+    function closeAIChatModal() {
+        if (aiChatModal) {
+            aiChatModal.style.display = 'none';
+        }
+    }
+
+    async function handleAIChatSubmit() {
+        const question = aiChatInput.value.trim();
+        if (!question) {
+            console.error('Пожалуйста, введите ваш вопрос.');
+            aiChatResponse.innerHTML = '<div class="text-center" style="color: #f44336;">Пожалуйста, введите ваш вопрос.</div>'; // Red text for error
+            setTimeout(() => {
+                aiChatResponse.innerHTML = 'ПРИВЕТ! Я здесь, чтобы ответить на ваши вопросы о клубе. СПРАШИВАЙТЕ!';
+            }, 2000);
+            return;
+        }
+
+        aiChatResponse.innerHTML = '<div class="text-center" style="color: #2196F3;">ЗАГРУЗКА...</div>'; // Blue text for loading
+        aiChatSubmitBtn.disabled = true;
+        aiChatInput.disabled = true;
+
+        try {
+            const responseText = await callGeminiAPI(question);
+            aiChatResponse.innerHTML = responseText;
+        } catch (error) {
+            console.error("Ошибка при вызове Gemini API:", error);
+            aiChatResponse.innerHTML = 'ИЗВИНИТЕ, ПРОИЗОШЛА ОШИБКА ПРИ ПОЛУЧЕНИИ ОТВЕТА. ПОПРОБУЙТЕ ЕЩЕ РАЗ.';
+        } finally {
+            aiChatSubmitBtn.disabled = false;
+            aiChatInput.disabled = false;
+            aiChatInput.value = ''; // Очищаем поле после отправки
+        }
+    }
+
+    async function callGeminiAPI(userQuestion) {
+        const prompt = `Вы полезный и дружелюбный стюард клуба симуляторов гонок. Ответьте на следующий вопрос о клубе, ценах, услугах, расписании или правилах. Старайтесь быть кратким и по делу. Если вы не знаете ответа на вопрос, вежливо сообщите, что у вас нет этой информации и предложите связаться с администратором напрямую. Вопрос: ${userQuestion}`;
+        
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+        const payload = { contents: chatHistory };
+        const apiKey = ""; // Canvas автоматически предоставит ключ во время выполнения
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+            return result.candidates[0].content.parts[0].text;
+        } else {
+            console.error("Неожиданная структура ответа от Gemini API:", result);
+            return "ИЗВИНИТЕ, НЕ УДАЛОСЬ ПОЛУЧИТЬ ОТВЕТ ОТ AI. ПОЖАЛУЙСТА, ПОПРОБУЙТЕ ПЕРЕФРАЗИРОВАТЬ ВОПРОС.";
+        }
     }
 
     // Запускаем приложение
