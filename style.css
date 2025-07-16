@@ -852,76 +852,77 @@ textarea {
 
 .custom-package-carousel .package {
     flex: 0 0 auto;
-    width: calc(33.333% - 0px); /* 3 элемента в ряд */
-    height: calc(33.333vw - 0px);
-    max-width: 120px;
-    max-height: 120px;
+    /* Размеры как у стандартных пакетов */
+    min-width: 140px;
+    min-height: 140px;
+    aspect-ratio: 1 / 1;
+    padding: 16px; /* Соответствует стандартным пакетам */
+
     position: relative; /* ensure children can be absolutely positioned */
     display: flex; /* keep flex for general centering if needed, but absolute will override */
     flex-direction: column;
-    justify-content: space-between; /* push content to top/bottom */
-    align-items: flex-start; /* align content to left */
-    padding: 8px; /* similar to date-item */
+    justify-content: center; /* Центрирование содержимого */
+    align-items: flex-start; /* Выравнивание по левому краю */
 }
 
-.custom-package-carousel-container .package .package-number {
+.custom-package-carousel .package .package-number {
     font-family: 'monaco', monospace;
-    font-size: 20px; /* similar to date-item day number */
+    font-size: 32px; /* Соответствует стандартным пакетам */
     font-weight: bold;
     line-height: 1;
-    position: absolute; /* re-introduce absolute positioning */
-    top: 8px; /* adjusted for padding */
-    left: 8px; /* adjusted for padding */
+    position: absolute;
+    top: 20px; /* Соответствует стандартным пакетам */
+    left: 20px; /* Соответствует стандартным пакетам */
     text-transform: none;
 }
 
-.custom-package-carousel-container .package .package-unit {
-    font-size: 10px; /* similar to date-item small text */
+.custom-package-carousel .package .package-unit {
+    font-size: 10.24px; /* Соответствует стандартным пакетам */
     display: block;
     position: absolute;
-    top: 24px; /* adjusted based on number size and position */
-    left: calc(8px + 20px + 2px); /* left of number + width of number + small gap */
+    top: 36px; /* Соответствует стандартным пакетам */
+    left: calc(20px + 32px + 5px); /* Соответствует стандартным пакетам */
     text-transform: lowercase;
     font-weight: normal;
 }
 
-.custom-package-carousel-container .package .package-original-price {
+.custom-package-carousel .package .package-original-price {
     font-family: 'monaco', monospace;
-    font-size: 10px; /* similar to date-item small text */
+    font-size: 10.24px; /* Соответствует стандартным пакетам */
     position: absolute;
-    bottom: 8px; /* adjusted for padding */
-    left: 8px; /* adjusted for padding */
+    bottom: 11px; /* Соответствует стандартным пакетам */
+    left: 24px; /* Соответствует стандартным пакетам */
     text-decoration: line-through;
     color: #a0a0a0;
 }
 
-.custom-package-carousel-container .package .package-price {
+.custom-package-carousel .package .package-price {
     font-family: 'monaco', monospace;
-    font-size: 14px; /* slightly larger for price */
+    font-size: 14px; /* Соответствует стандартным пакетам */
     font-weight: bold;
     position: absolute;
-    bottom: 8px; /* adjusted for padding */
-    right: 8px; /* adjusted for padding */
+    bottom: 10px; /* Соответствует стандартным пакетам */
+    right: 13px; /* Соответствует стандартным пакетам */
 }
 
 /* For night package in custom carousel */
-.custom-package-carousel-container .package .package-night-text {
+.custom-package-carousel .package .package-night-text {
     font-family: 'helvetica neue condensed black', sans-serif;
-    font-size: 16px; /* scaled down from 24px */
+    font-size: 24px; /* Соответствует стандартным пакетам */
     font-weight: bold;
     line-height: 1;
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 26px; /* Соответствует стандартным пакетам */
+    left: 20px; /* Соответствует стандартным пакетам */
     text-transform: lowercase;
 }
 
-.custom-package-carousel-container .package .package-night-time {
+.custom-package-carousel .package .package-night-time {
     font-family: 'monaco', monospace;
-    font-size: 8px; /* scaled down from 9px */
+    font-size: 9px; /* Соответствует стандартным пакетам */
     position: absolute;
-    top: 24px; /* adjusted */
-    left: 8px; /* adjusted */
+    top: 51px; /* Соответствует стандартным пакетам */
+    left: 27px; /* Соответствует стандартным пакетам */
     text-transform: none;
 }
 
@@ -943,4 +944,82 @@ textarea {
 }
 #long-booking-warning strong {
     color: #000;
+}
+
+/* Адаптация для мобильных устройств для карусели "свой пакет" */
+@media (max-width: 480px) {
+    .custom-package-carousel .package {
+        min-width: unset; /* Сброс min-width */
+        min-height: unset; /* Сброс min-height */
+        width: calc(33.333% - 0px); /* 3 элемента в ряд */
+        height: calc(33.333vw - 0px);
+        padding: 12px; /* Уменьшенный padding для мобильных */
+    }
+    .custom-package-carousel .package .package-number {
+        font-size: 32px; /* Адаптивный размер */
+        top: 20px;
+        left: 20px;
+    }
+    .custom-package-carousel .package .package-unit {
+        font-size: 10.24px; /* Адаптивный размер */
+        top: 36px;
+        left: calc(20px + 32px + 5px);
+    }
+    .custom-package-carousel .package .package-original-price {
+        font-size: 10.24px; /* Адаптивный размер */
+        bottom: 11px;
+        left: 24px;
+    }
+    .custom-package-carousel .package .package-price {
+        font-size: 14px; /* Адаптивный размер */
+        bottom: 10px;
+        right: 13px;
+    }
+    .custom-package-carousel .package .package-night-text {
+        font-size: 24px; /* Адаптивный размер */
+        top: 26px;
+        left: 20px;
+    }
+    .custom-package-carousel .package .package-night-time {
+        font-size: 9px; /* Адаптивный размер */
+        top: 51px;
+        left: 27px;
+    }
+}
+
+@media (max-width: 380px) {
+    .custom-package-carousel .package {
+        width: calc(50% - 0px); /* 2 элемента в ряд на очень маленьких экранах */
+        height: calc(50vw - 0px);
+    }
+    .custom-package-carousel .package .package-number {
+        font-size: 32px; /* еще меньше на очень маленьких экранах */
+        top: 20px;
+        left: 20px;
+    }
+    .custom-package-carousel .package .package-unit {
+        font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
+        top: 30px;
+        left: calc(20px + 32px);
+    }
+    .custom-package-carousel .package .package-night-text {
+        font-size: 12.8px; /* адаптивный размер для "ночь" */
+        top: 20px;
+        left: 20px;
+    }
+    .custom-package-carousel .package .package-night-time {
+        font-size: 6.14px; /* адаптивный размер для времени ночи */
+        top: 34px;
+        left: 20px;
+    }
+    .custom-package-carousel .package .package-original-price {
+        font-size: 8.19px;
+        bottom: 6px;
+        left: 20px;
+    }
+    .custom-package-carousel .package .package-price {
+        font-size: 12.28px;
+        bottom: 6px;
+        right: 20px;
+    }
 }

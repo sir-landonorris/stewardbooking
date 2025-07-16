@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     let supabase, userId;
     let isAuthReady = false;
+    let previousSelectedPackageDuration = null; // Для хранения предыдущего выбранного пакета
 
     // все данные бронирования
     const bookingData = {
@@ -344,9 +345,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // обработчик для кнопки "свой пакет"
         document.getElementById('custom-package-trigger').addEventListener('click', function() {
+            previousSelectedPackageDuration = bookingData.duration; // Сохраняем текущий выбранный пакет
             document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // снимаем выбор с обычных пакетов
             document.getElementById('package-grid').classList.add('hidden'); // скрываем основной список
             document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // показываем карусель
+            document.getElementById('package-step-title').textContent = 'выберите свой пакет'; // Меняем заголовок
+            document.getElementById('toTimePageNew').classList.add('hidden'); // Прячем кнопку "далее"
+            document.getElementById('backToPackagePage').classList.add('hidden'); // Прячем кнопку "назад" (которая на предыдущий шаг)
+            document.getElementById('backToMainPackageSelection').classList.remove('hidden'); // Показываем кнопку "назад к пакетам"
             setupCustomPackageSelection(); // генерируем и настраиваем карусель
         });
 
@@ -405,6 +411,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.duration = this.dataset.duration;
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseFloat(this.dataset.hours); // используем parsefloat для дробных часов
+                
+                // Форматирование для кнопки "свой пакет"
+                let customPackageTextContent = '';
+                const selectedHours = parseFloat(this.dataset.hours);
+                const selectedPrice = this.dataset.price;
+                const selectedOriginalPrice = parseFloat(this.dataset.originalPrice);
+
+                if (this.dataset.duration === 'ночь') {
+                    customPackageTextContent = `ночной<br>(${selectedPrice})`;
+                } else {
+                    const displayHours = selectedHours % 1 !== 0 ? selectedHours.toFixed(1).replace('.', ',') : selectedHours.toString().padStart(2, '0');
+                    const hourUnit = getHourUnit(selectedHours);
+                    customPackageTextContent = `${displayHours} ${hourUnit}<br>(${selectedPrice})`;
+                }
+
                 document.getElementById('package-summary').textContent = 
                     `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
@@ -412,12 +433,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // обновляем текст на кнопке "свой пакет"
                 const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
-                customPackageTriggerText.innerHTML = `${bookingData.duration}<br>(${bookingData.price} ₽)`;
+                customPackageTriggerText.innerHTML = customPackageTextContent;
                 document.getElementById('custom-package-trigger').classList.add('selected'); // визуально выделяем
 
                 // возвращаемся к основному виду шага пакетов
                 document.getElementById('custom-package-carousel-container').classList.add('hidden');
                 document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+                document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
+                document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
+                document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
+                document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
+
                 updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
@@ -426,6 +452,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('backToMainPackageSelection').addEventListener('click', function() {
             document.getElementById('custom-package-carousel-container').classList.add('hidden');
             document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+            document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
+            document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
+            document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
+            document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
             
             // сбрасываем выбранный пакет, если пользователь вернулся
             document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
@@ -437,8 +467,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // сбрасываем текст на кнопке "свой пакет"
             const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
-            customPackageTriggerText.innerHTML = `свой<br>пакет`;
+            if (customPackageTriggerText) {
+                customPackageTriggerText.innerHTML = `свой<br>пакет`;
+            }
             document.getElementById('custom-package-trigger').classList.remove('selected'); // снимаем выделение
+
+            // Автоматически выделяем предыдущий выбранный пакет, если он был
+            if (previousSelectedPackageDuration) {
+                const prevPackage = document.querySelector(`.package[data-duration="${previousSelectedPackageDuration}"]`);
+                if (prevPackage) {
+                    prevPackage.click(); // Симулируем клик для выбора
+                }
+            }
 
             updateBreadcrumbs();
         });
@@ -874,6 +914,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (customPackageTrigger) {
             customPackageTrigger.classList.remove('selected');
         }
+
+        // Возвращаем заголовок и видимость кнопок
+        document.getElementById('package-step-title').textContent = 'выберите пакет времени';
+        document.getElementById('toTimePageNew').classList.remove('hidden');
+        document.getElementById('backToPackagePage').classList.remove('hidden');
+        document.getElementById('backToMainPackageSelection').classList.add('hidden');
+
 
         // переинициализируем выбор симуляторов, чтобы 01 снова был выбран по умолчанию
         setupSimulatorSelection();
