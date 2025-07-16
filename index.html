@@ -187,6 +187,12 @@
             color: #000000; /* Черный текст на белом фоне */
             margin-bottom: 32px; /* Отступ увеличен в 2 раза (было 16px) */
             text-transform: none; /* Убран капслок */
+            position: fixed; /* Фиксированное позиционирование */
+            top: 70px; /* Под заголовком (60px header + 4px progress + 6px margin) */
+            right: 16px; /* Отступ справа */
+            z-index: 998; /* Ниже заголовка, но выше основного контента */
+            width: calc(100% - 32px); /* Ширина с учетом padding контейнера */
+            max-width: 448px; /* Максимальная ширина */
         }
 
         /* Стили для заглушки */
@@ -329,7 +335,7 @@
 
         .date-carousel .date-item small {
             font-family: 'Helvetica Neue', system-ui, sans-serif;
-            font-size: 11px; /* На 20% меньше (было 14px) */
+            font-size: 10px; /* Уменьшен для длинных названий месяцев */
             display: block;
             margin-top: auto; /* Прижимает к низу flex-контейнера */
             font-weight: normal;
@@ -505,7 +511,7 @@
             position: absolute;
             top: 24px;
             left: 24px;
-            text-transform: uppercase;
+            text-transform: none; /* Убрал uppercase */
         }
         .package .package-night-time { /* Стиль для текста "(00:00 – 08:00)" */
             font-family: 'Monaco', monospace;
@@ -779,7 +785,7 @@
                 height: calc(25vw - 0px);
             }
             .date-carousel .date-item small {
-                font-size: 12px;
+                font-size: 10px; /* Адаптивный размер для месяцев */
             }
         }
         @media (max-width: 380px) {
@@ -934,6 +940,9 @@
         </div>
     </div>
 
+    <!-- Хлебные крошки -->
+    <div class="breadcrumb" id="booking-breadcrumb"></div>
+
     <!-- Fallback для открытия вне Telegram Web App -->
     <div id="web-app-fallback" class="hidden">
         <div class="content">
@@ -963,7 +972,7 @@
     <div id="main-booking-content" class="container">
         <!-- Шаг 0: Выбор даты и симулятора (объединенный шаг) -->
         <div id="date-simulator-step" class="step-page active">
-            <h2 class="step-title">ВЫБЕРИТЕ ДАТУ</h2>
+            <h2 class="step-title">Дата</h2>
             <div class="date-selection-area">
                 <div class="date-display" id="date-toggle">
                     Сегодня, <span id="current-date-display">16.07.2025</span>
@@ -976,25 +985,25 @@
                 </div>
             </div>
 
-            <h2 class="step-title">ВЫБЕРИТЕ СИМУЛЯТОР(Ы)</h2>
+            <h2 class="step-title">Выберите симулятор(ы)</h2>
             <div class="simulator-grid-container">
                 <div class="grid-item simulator-box" data-id="1">
                     <div class="simulator-number">01</div>
-                    <small>АВТОСИМ</small>
+                    <small>Автосим</small>
                     <div class="remove-selection">✕</div>
                 </div>
                 <div class="grid-item simulator-box" data-id="2">
                     <div class="simulator-number">02</div>
-                    <small>АВТОСИМ</small>
+                    <small>Автосим</small>
                     <div class="remove-selection">✕</div>
                 </div>
             </div>
-            <button id="toPackagePage" class="button active" disabled>ДАЛЕЕ</button>
+            <button id="toPackagePage" class="button active" disabled>Далее</button>
         </div>
 
         <!-- Шаг 1: Выбор пакета времени -->
         <div id="package-step" class="step-page">
-            <h2 class="step-title">ВЫБЕРИТЕ ПАКЕТ ВРЕМЕНИ</h2>
+            <h2 class="step-title">Выберите пакет времени</h2>
             <div id="package-grid">
                 <!-- Пакеты будут сгенерированы JS -->
             </div>
@@ -1003,19 +1012,19 @@
                 <div class="custom-package-carousel" id="custom-package-carousel">
                     <!-- Пользовательские пакеты будут сгенерированы JS -->
                 </div>
-                <button id="backToMainPackageSelection" class="button back-btn active mt-4">НАЗАД К ПАКЕТАМ</button>
+                <button id="backToMainPackageSelection" class="button back-btn active mt-4">Назад к пакетам</button>
             </div>
 
             <p id="package-summary" class="text-center mb-6"></p>
             <div class="flex justify-between gap-4 mt-6">
-                <button id="backToDateSimulatorPage" class="button back-btn active">НАЗАД</button>
-                <button id="toTimePageNew" class="button active" disabled>ДАЛЕЕ</button>
+                <button id="backToDateSimulatorPage" class="button back-btn active">Назад</button>
+                <button id="toTimePageNew" class="button active" disabled>Далее</button>
             </div>
         </div>
 
         <!-- Шаг 2: Выбор времени -->
         <div id="time-select-step" class="step-page">
-            <h2 class="step-title">ВЫБЕРИТЕ ВРЕМЯ</h2>
+            <h2 class="step-title">Выберите время</h2>
             <div id="long-booking-warning" class="message-box info">
                 <strong>⚠️ Важно:</strong> Для длительных броней (12 часов и более) мы предварительно свяжемся с гостем. Это помогает нам избежать неявок и сохранить симуляторы доступными для всех. В редких случаях может потребоваться предоплата. Спасибо за понимание!
             </div>
@@ -1023,14 +1032,14 @@
                 <!-- Временные слоты будут сгенерированы JS -->
             </div>
             <div class="flex justify-between gap-4 mt-6">
-                <button id="backToPackagePage" class="button back-btn active">НАЗАД</button>
-                <button id="toFormPage" class="button active" disabled>ДАЛЕЕ</button>
+                <button id="backToPackagePage" class="button back-btn active">Назад</button>
+                <button id="toFormPage" class="button active" disabled>Далее</button>
             </div>
         </div>
 
         <!-- Шаг 3: Заполнение формы -->
         <div id="form-step" class="step-page">
-            <h2 class="step-title">ВАШИ ДАННЫЕ</h2>
+            <h2 class="step-title">Ваши данные</h2>
             <form id="booking-form">
                 <div class="form-group">
                     <label for="name">Ваше имя</label>
@@ -1054,25 +1063,25 @@
                 </p>
 
                 <div class="flex justify-between gap-4 mt-6">
-                    <button id="backToTimePageNew" type="button" class="button back-btn active">НАЗАД</button>
-                    <button type="submit" class="button active">ДАЛЕЕ</button>
+                    <button id="backToTimePageNew" type="button" class="button back-btn active">Назад</button>
+                    <button type="submit" class="button active">Далее</button>
                 </div>
             </form>
         </div>
 
         <!-- Шаг 4: Подтверждение -->
         <div id="confirmation-step" class="step-page">
-            <h2 class="step-title">ВАША ЗАЯВКА ПРИНЯТА!</h2>
+            <h2 class="step-title">Ваша заявка принята!</h2>
             <p class="text-center mb-6">Мы свяжемся с вами в ближайшее время для подтверждения.</p>
             <div id="confirmation-details" class="confirmation-details">
                 <!-- Детали бронирования будут сгенерированы JS -->
             </div>
             <div class="flex flex-col gap-4 mt-6">
-                <button id="book-again" class="button active">ЗАБРОНИРОВАТЬ ЕЩЕ РАЗ</button>
-                <button id="reschedule" class="button back-btn active">ПЕРЕНЕСТИ БРОНИРОВАНИЕ</button>
-                <button id="cancel-booking" class="button back-btn active">ОТМЕНИТЬ БРОНИРОВАНИЕ</button>
-                <button id="route-btn" class="button back-btn active">ПРОЛОЖИТЬ МАРШРУТ</button>
-                <button id="taxi-btn" class="button back-btn active">ВЫЗВАТЬ ТАКСИ</button>
+                <button id="book-again" class="button active">Забронировать еще раз</button>
+                <button id="reschedule" class="button back-btn active">Перенести бронирование</button>
+                <button id="cancel-booking" class="button back-btn active">Отменить бронирование</button>
+                <button id="route-btn" class="button back-btn active">Проложить маршрут</button>
+                <button id="taxi-btn" class="button back-btn active">Вызвать такси</button>
             </div>
             <div id="reschedule-message" class="message-box info">
                 Для переноса свяжитесь со стюардом.
@@ -1086,11 +1095,11 @@
     <!-- Модальное окно отмены -->
     <div id="cancel-modal" class="modal">
         <div class="modal-content">
-            <h3>ПОДТВЕРДИТЕ ОТМЕНУ</h3>
+            <h3>Подтвердите отмену</h3>
             <p>Вы уверены, что хотите отменить бронирование?</p>
             <div class="modal-buttons">
-                <button id="confirm-cancel" class="button active">ДА, ОТМЕНИТЬ</button>
-                <button id="cancel-cancel" class="button back-btn active">НЕТ, ОСТАВИТЬ</button>
+                <button id="confirm-cancel" class="button active">Да, отменить</button>
+                <button id="cancel-cancel" class="button back-btn active">Нет, оставить</button>
             </div>
         </div>
     </div>

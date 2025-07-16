@@ -92,13 +92,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             setupSimulatorSelection(); // This will now correctly initialize bookingData.simulator
             setupPackageSelection();
             setupTimeSlotsGenerator(); // Will be called again after package selection
-            // setupWheelSelection(); // Removed as per new flow
             setupForm();
             setupNavigation();
             setupConfirmationActions();
             setupMapButtons();
-            // setupAIChatFeature(); // AI Chat Feature Removed
             showStep(0); // Start at the first step
+
+            // Ensure modal is hidden on load
+            document.getElementById('cancel-modal').style.display = 'none';
 
         } catch (error) {
             console.error("Error initializing application:", error);
@@ -148,11 +149,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         const currentDateDisplay = document.getElementById('current-date-display');
         const today = new Date();
         
-        // Месяцы для отображения
+        // Месяцы для отображения (полные названия)
         const months = [
-            'янв', 'фев', 'мар', 'апр', 
-            'май', 'июн', 'июл', 'авг',
-            'сен', 'окт', 'ноя', 'дек'
+            'январь', 'февраль', 'март', 'апрель', 
+            'май', 'июнь', 'июль', 'август',
+            'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
         ];
         
         // Генерируем даты на 30 дней вперед
@@ -227,15 +228,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             const removeBtn = sim.querySelector('.remove-selection');
             const simulatorId = sim.dataset.id;
 
-            // Инициализируем bookingData на основе предварительно выбранных симуляторов в HTML
-            if (sim.classList.contains('selected')) {
+            // Устанавливаем симулятор 01 выбранным по умолчанию
+            if (simulatorId === '1') {
+                sim.classList.add('selected');
                 if (!bookingData.simulator.includes(simulatorId)) {
                     bookingData.simulator.push(simulatorId);
                 }
-                // Показываем крестик, если симулятор выбран по умолчанию
                 if (removeBtn) removeBtn.style.display = 'flex';
             } else {
-                // Скрываем крестик, если симулятор не выбран по умолчанию
+                sim.classList.remove('selected');
                 if (removeBtn) removeBtn.style.display = 'none';
             }
 
@@ -294,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (pkg.duration === 'Ночь') {
                 return `
                     <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                        <div class="package-night-text">НОЧНОЙ</div>
+                        <div class="package-night-text">Ночной</div>
                         <small class="package-night-time">(00:00 – 08:00)</small>
                         ${originalPriceDisplay}
                         <div class="package-price">${pkg.price}</div>
@@ -317,7 +318,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Добавляем кнопку "Свой пакет"
         packagesHtml += `
             <div class="package block custom-package-trigger" id="custom-package-trigger">
-                <div class="text-center">СВОЙ<br>ПАКЕТ</div>
+                <div class="text-center">Свой<br>пакет</div>
             </div>
         `;
         
@@ -331,7 +332,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseInt(this.dataset.hours); // Сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
-                    `ВЫ ВЫБРАЛИ: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
+                    `Вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
                 setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
                 updateBreadcrumbs(); // Обновляем хлебные крошки
@@ -396,7 +397,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseFloat(this.dataset.hours); // Используем parseFloat для дробных часов
                 document.getElementById('package-summary').textContent = 
-                    `ВЫ ВЫБРАЛИ: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
+                    `Вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
                 setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
                 
@@ -476,7 +477,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             let endTimeSuffix = '';
             if (Math.floor(endHour) >= 24) {
                 endHourFormatted = (Math.floor(endHour) - 24).toString().padStart(2, '0');
-                endTimeSuffix = ' (СЛЕДУЮЩИЙ ДЕНЬ)';
+                endTimeSuffix = ' (следующий день)'; // Lowercase
             }
 
             const currentTimeSlot = `${startHourFormatted}:${startMinutesFormatted} – ${endHourFormatted}:${endMinutesFormatted}${endTimeSuffix}`;
@@ -687,9 +688,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         let breadcrumbs = [];
 
-        if (bookingData.date) {
-            breadcrumbs.push(bookingData.date);
-        }
+        // Убрал отображение даты из хлебных крошек, так как она теперь в заголовке
+        // if (bookingData.date) {
+        //     breadcrumbs.push(bookingData.date);
+        // }
         if (bookingData.simulator.length > 0) {
             breadcrumbs.push(getSimulatorNames(bookingData.simulator));
         }
@@ -699,10 +701,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (bookingData.time) {
             breadcrumbs.push(bookingData.time);
         }
-        // Руль больше не часть бронирования
-        // if (bookingData.wheel) {
-        //     breadcrumbs.push(getWheelName(bookingData.wheel));
-        // }
 
         breadcrumbDiv.textContent = breadcrumbs.join(' / ');
     }
@@ -712,14 +710,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         const details = document.getElementById('confirmation-details');
         
         details.innerHTML = `
-            <p><strong>ДАТА:</strong> ${bookingData.date}</p>
-            <p><strong>ТАРИФ:</strong> ${bookingData.duration}</p>
-            <p><strong>ВРЕМЯ:</strong> ${bookingData.time}</p>
-            <p><strong>СИМУЛЯТОР(Ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
-            <p><strong>ИМЯ:</strong> ${bookingData.name}</p>
-            <p><strong>ТЕЛЕФОН:</strong> ${bookingData.phone}</p>
-            <p><strong>TELEGRAM:</strong> @${bookingData.telegram}</p>
-            ${bookingData.comment ? `<p><strong>КОММЕНТАРИЙ:</strong> ${bookingData.comment}</p>` : ''}
+            <p><strong>Дата:</strong> ${bookingData.date}</p>
+            <p><strong>Тариф:</strong> ${bookingData.duration}</p>
+            <p><strong>Время:</strong> ${bookingData.time}</p>
+            <p><strong>Симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
+            <p><strong>Имя:</strong> ${bookingData.name}</p>
+            <p><strong>Телефон:</strong> ${bookingData.phone}</p>
+            <p><strong>Telegram:</strong> @${bookingData.telegram}</p>
+            ${bookingData.comment ? `<p><strong>Комментарий:</strong> ${bookingData.comment}</p>` : ''}
         `;
         
         // Save booking to Supabase
@@ -846,6 +844,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Сбрасываем отображение выбранного пакета
         document.getElementById('package-summary').textContent = '';
 
+        // Переинициализируем выбор симуляторов, чтобы 01 снова был выбран по умолчанию
+        setupSimulatorSelection();
+
         showStep(0);
     }
 
@@ -863,28 +864,28 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function getSimulatorNames(simulatorIds) {
         // Теперь нет опции "Любой", только конкретные симуляторы
-        return simulatorIds.map(id => `СИМУЛЯТОР #${id}`).join(', ');
+        return simulatorIds.map(id => `Симулятор #${id}`).join(', '); // Lowercase
     }
 
     // Вспомогательная функция для склонения слова "час"
     function getHourUnit(hours) {
         if (hours === 1) {
-            return 'ЧАС';
+            return 'час'; // Lowercase
         }
         // Для дробных часов, всегда "часа" или "часов" в зависимости от целой части
         const lastDigit = Math.floor(hours) % 10;
         const lastTwoDigits = Math.floor(hours) % 100;
 
         if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
-            return 'ЧАСОВ';
+            return 'часов'; // Lowercase
         }
         if (lastDigit === 1) {
-            return 'ЧАС'; 
+            return 'час'; // Lowercase
         }
         if (lastDigit >= 2 && lastDigit <= 4) {
-            return 'ЧАСА';
+            return 'часа'; // Lowercase
         }
-        return 'ЧАСОВ';
+        return 'часов'; // Lowercase
     }
 
     // Запускаем приложение
