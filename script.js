@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     bookingData.telegramId = userTg.id.toString(); // store telegram id
                     bookingData.telegram = userTg.username || ''; // store telegram username
                     console.log("Данные пользователя Telegram:", userTg);
-                    await loadUserData(bookingData.telegramId);
+                    await loadUserData(bookingData.telegramId); // Загружаем данные пользователя из таблицы 'users'
                 }
             } else {
                 console.warn("SDK Telegram Web App не найден или не готов.");
@@ -559,19 +559,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         // эта функция теперь не нужна, так как выбор руля был удален из макета
     }
 
-    // загрузка данных пользователя из supabase
+    // загрузка данных пользователя из supabase (теперь из таблицы 'users')
     async function loadUserData(telegramId) {
         if (!supabase || !telegramId) return;
 
         try {
-            // assuming a 'profiles' table with 'telegram_id' as a unique identifier
+            // assuming a 'users' table with 'telegram_id' as a unique identifier
             const { data: userData, error } = await supabase
-                .from('profiles')
+                .from('users') // Изменено с 'profiles' на 'users'
                 .select('*')
                 .eq('telegram_id', telegramId)
                 .single();
 
-            if (error && error.code !== 'pgrst116') { // pgrst116 means no rows found (not an actual error for single())
+            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error for single())
                 console.error("Ошибка загрузки пользовательских данных из Supabase:", error);
                 return;
             }
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // сохранение данных пользователя в supabase
+    // сохранение данных пользователя в supabase (теперь в таблицу 'users')
     async function saveUserData() {
         if (!supabase || !bookingData.telegramId) return;
 
@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // use upsert to insert or update based on telegram_id
             const { data, error } = await supabase
-                .from('profiles')
+                .from('users') // Изменено с 'profiles' на 'users'
                 .upsert(userDataToSave, { onConflict: 'telegram_id' }); // conflict on telegram_id to update existing
 
             if (error) {
