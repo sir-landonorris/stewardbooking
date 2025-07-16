@@ -456,6 +456,11 @@ h2 {
     margin-bottom: 16px;
     text-transform: none; /* Убран капслок */
 }
+/* Изменения для активного пакета */
+.package.selected {
+    background-color: #000000; /* Черный фон */
+    color: #ffffff; /* Белый текст */
+}
 
 /* Выбор времени */
 #time-grid { /* Отдельный стиль для сетки времени */
@@ -482,6 +487,11 @@ h2 {
     justify-content: center;
     align-items: center;
     text-transform: none; /* Убран капслок */
+}
+/* Изменения для активного слота времени */
+.time-slot.selected {
+    background-color: #000000; /* Черный фон */
+    color: #ffffff; /* Белый текст */
 }
 
 /* Форма данных */
