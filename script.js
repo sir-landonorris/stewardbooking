@@ -103,19 +103,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // --- Потенциальная проблема с MutationObserver ---
-    // Если вы видите ошибку "TypeError: Argument 1 ('target') to MutationObserver.observe must be an instance of Node"
-    // и она не связана с этим скриптом, проверьте другие ваши скрипты, которые могут использовать MutationObserver.
-    // Убедитесь, что в метод .observe() передается действительный DOM-элемент.
-    // Пример:
-    // const targetNode = document.getElementById('myElement');
-    // if (targetNode instanceof Node) {
-    //     const observer = new MutationObserver(callback);
-    //     observer.observe(targetNode, { childList: true, subtree: true });
-    // }
-    // --- Конец примечания о MutationObserver ---
-
-
     // показываем нужный шаг и скрываем остальные
     function showStep(stepNumber) {
         document.querySelectorAll('.step-page').forEach(step => {
