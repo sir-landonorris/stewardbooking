@@ -444,22 +444,74 @@ h2 {
     /* padding-right: 16px; */ /* Удалены для выравнивания от края до края */
     margin-bottom: 16px;
 }
-.package .price {
-    font-family: 'Monaco', monospace; /* Моноширинный шрифт для цен */
-    font-size: 24px; /* Крупные цифры */
-    margin-top: 8px;
+.package {
+    padding: 16px;
+    text-align: center;
+    background-color: #d9d9d9;
+    color: #000000;
+    cursor: pointer;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 16px;
+    font-family: 'Helvetica Neue', system-ui, sans-serif;
+    border: none;
+    margin: 0;
+    position: relative; /* Для позиционирования внутренних элементов */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 1 / 1; /* Делаем квадратным */
+    min-width: 140px; /* Минимальный размер для адаптивности */
+    min-height: 140px;
 }
+.package.selected {
+    background-color: #000000; /* Черный фон */
+    color: #ffffff; /* Белый текст */
+}
+.package .package-number { /* Стиль для цифр пакетов */
+    font-family: 'Monaco', monospace;
+    font-size: 60px;
+    font-weight: bold;
+    line-height: 1;
+    position: absolute;
+    top: 32px;
+    left: 32px;
+    text-transform: none;
+}
+.package .package-unit { /* Стиль для "час/часа" */
+    font-size: 16px;
+    display: block;
+    position: absolute;
+    top: 48px; /* Смещено относительно цифры */
+    left: calc(32px + 60px); /* Отступ от левого края + ширина цифры */
+    text-transform: none;
+    font-weight: normal;
+}
+.package .package-original-price { /* Перечеркнутая цена */
+    font-family: 'Monaco', monospace;
+    font-size: 16px;
+    position: absolute;
+    bottom: 8px;
+    left: 32px;
+    text-decoration: line-through;
+    color: #a0a0a0; /* Серый цвет для перечеркнутой цены */
+}
+.package .package-price { /* Актуальная цена */
+    font-family: 'Monaco', monospace;
+    font-size: 24px; /* Крупнее */
+    font-weight: bold;
+    position: absolute;
+    bottom: 8px;
+    right: 32px;
+}
+
 #package-summary {
     font-size: 16px;
     color: #000000;
     text-align: center;
     margin-bottom: 16px;
     text-transform: none; /* Убран капслок */
-}
-/* Изменения для активного пакета */
-.package.selected {
-    background-color: #000000; /* Черный фон */
-    color: #ffffff; /* Белый текст */
 }
 
 /* Выбор времени */
@@ -488,7 +540,6 @@ h2 {
     align-items: center;
     text-transform: none; /* Убран капслок */
 }
-/* Изменения для активного слота времени */
 .time-slot.selected {
     background-color: #000000; /* Черный фон */
     color: #ffffff; /* Белый текст */
@@ -621,9 +672,33 @@ textarea {
     #package-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 столбца */
     }
-    .package .price, .time-slot {
-        font-size: 18px;
+    .package { /* Адаптация для пакета */
+        font-size: 14px;
+        padding: 12px;
+        min-width: unset;
+        min-height: unset;
     }
+    .package .package-number {
+        font-size: 48px; /* Адаптивный размер для цифр пакета */
+        top: 24px;
+        left: 24px;
+    }
+    .package .package-unit {
+        font-size: 14px;
+        top: 36px; /* Адаптивный отступ */
+        left: calc(24px + 48px); /* Отступ от левого края + ширина цифры */
+    }
+    .package .package-original-price {
+        font-size: 14px;
+        bottom: 8px;
+        left: 24px;
+    }
+    .package .package-price {
+        font-size: 18px;
+        bottom: 8px;
+        right: 24px;
+    }
+
     #time-grid {
         grid-template-columns: repeat(4, 1fr); /* 4 столбца */
     }
@@ -656,6 +731,26 @@ textarea {
     }
     #package-grid {
         grid-template-columns: repeat(2, 1fr); /* 2 столбца на очень маленьких экранах */
+    }
+    .package .package-number {
+        font-size: 40px; /* Еще меньше на очень маленьких экранах */
+        top: 20px;
+        left: 20px;
+    }
+    .package .package-unit {
+        font-size: 12px;
+        top: 30px;
+        left: calc(20px + 40px);
+    }
+    .package .package-original-price {
+        font-size: 12px;
+        bottom: 6px;
+        left: 20px;
+    }
+    .package .package-price {
+        font-size: 16px;
+        bottom: 6px;
+        right: 20px;
     }
     #time-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */

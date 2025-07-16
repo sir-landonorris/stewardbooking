@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         { duration: '5 часов', price: '1600 ₽', value: 1600, hours: 5 },
         { duration: 'Ночь', price: '2000 ₽', value: 2000, hours: 8 } // Пример для "Ночь" - 8 часов
     ];
+    // Базовая часовая ставка для расчета перечеркнутой цены
+    const BASE_HOURLY_RATE = 450;
 
     // Инициализация приложения
     async function init() {
@@ -277,12 +279,20 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Настройка выбора пакета времени (новый шаг)
     function setupPackageSelection() {
-        document.getElementById('package-grid').innerHTML = packages.map(pkg => `
-            <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                <div>${pkg.duration}</div>
-                <div class="price">${pkg.price}</div>
-            </div>
-        `).join('');
+        document.getElementById('package-grid').innerHTML = packages.map(pkg => {
+            const originalPrice = pkg.duration !== 'Ночь' ? `${pkg.hours * BASE_HOURLY_RATE} ₽` : '';
+            const displayHours = pkg.hours.toString().padStart(2, '0');
+            const hourUnit = getHourUnit(pkg.hours);
+
+            return `
+                <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
+                    <div class="package-number">${displayHours}</div>
+                    <small class="package-unit">${hourUnit}</small>
+                    ${pkg.duration !== 'Ночь' ? `<div class="package-original-price">${originalPrice}</div>` : ''}
+                    <div class="package-price">${pkg.price}</div>
+                </div>
+            `;
+        }).join('');
         
         document.querySelectorAll('.package').forEach(pkg => {
             pkg.addEventListener('click', function() {
@@ -292,7 +302,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseInt(this.dataset.hours); // Сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
-                    `вы выбрали: ${this.dataset.duration} (${this.querySelector('.price').textContent})`;
+                    `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
                 setupTimeSlotsGenerator(); // Генерируем слоты после выбора пакета
                 updateBreadcrumbs(); // Обновляем хлебные крошки
@@ -730,6 +740,17 @@ document.addEventListener('DOMContentLoaded', async function() {
             return 'Любой';
         }
         return simulatorIds.map(id => `Симулятор #${id}`).join(', ');
+    }
+
+    // Вспомогательная функция для склонения слова "час"
+    function getHourUnit(hours) {
+        if (hours === 1) {
+            return 'час';
+        }
+        if (hours >= 2 && hours <= 4) {
+            return 'часа';
+        }
+        return 'часов';
     }
 
     // Запускаем приложение
