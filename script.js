@@ -2,24 +2,13 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 document.addEventListener('DOMContentLoaded', async function() {
     // --- ВАЖНО: КОНФИГУРАЦИЯ SUPABASE ---
-    // Переменные __app_id и __supabase_config должны быть предоставлены вашей средой Canvas.
-    // Если они не определены или содержат заглушки, приложение будет работать с ограниченной функциональностью
-    // и выводить критические ошибки в консоль.
-    // Убедитесь, что в вашей среде Canvas (или в файле .env при локальной разработке)
-    // установлены реальные URL и Anon Key из консоли вашего проекта Supabase.
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    let supabaseConfig = typeof __supabase_config !== 'undefined' ? JSON.parse(__supabase_config) : {};
+    // Переменные __app_id и __supabase_config больше не используются, так как URL и Anon Key жестко закодированы.
+    // Если вы хотите использовать переменные среды Canvas, удалите жестко закодированные значения и раскомментируйте предыдущий код.
     
-    // --- start: safeguard for missing supabase config properties ---
-    if (!supabaseConfig.url || supabaseConfig.url === "https://dummy.supabase.co") {
-        console.error("КРИТИЧЕСКАЯ ОШИБКА: URL Supabase отсутствует или является заглушкой из __supabase_config. Пожалуйста, убедитесь, что ваша среда Canvas предоставляет полную и действительную конфигурацию Supabase из вашей консоли Supabase.");
-        supabaseConfig.url = "https://dummy.supabase.co"; // fallback for initialization, but app won't work
-    }
-    if (!supabaseConfig.anonKey || supabaseConfig.anonKey === "dummy-anon-key") {
-        console.error("КРИТИЧЕСКАЯ ОШИБКА: Anon Key Supabase отсутствует или является заглушкой из __supabase_config. Пожалуйста, убедитесь, что ваша среда Canvas предоставляет полную и действительную конфигурацию Supabase из вашей консоли Supabase.");
-        supabaseConfig.anonKey = "dummy-anon-key"; // fallback for initialization, but app won't work
-    }
-    // --- end: safeguard ---
+    // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
+    // Убедитесь, что это строки в кавычках.
+    const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     let supabase, userId;
     let isAuthReady = false;
@@ -55,8 +44,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // инициализация приложения
     async function init() {
         try {
-            supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+            // Инициализация Supabase
+            supabase = createClient(supabaseUrl, supabaseAnonKey);
             console.log("Клиент Supabase инициализирован.");
+            console.log("Supabase URL:", supabaseUrl);
+            console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...');
 
             // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
