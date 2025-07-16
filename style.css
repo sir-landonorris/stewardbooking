@@ -828,25 +828,29 @@ textarea {
 
 /* стили для карусели "свой пакет" */
 .custom-package-carousel-container {
+    /* Контейнер теперь просто обертка, без flex или overflow */
+}
+
+.custom-package-carousel {
     display: flex;
     overflow-x: scroll;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     gap: 0;
-    margin-left: -16px;
+    margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
     margin-right: -16px;
-    padding-left: 16px;
-    padding-right: 16px;
-    margin-bottom: 16px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    padding-left: 16px; /* Добавляем padding для первого элемента */
+    padding-right: 16px; /* Добавляем padding для последнего элемента */
+    margin-bottom: 16px; /* Отступ от нижних элементов */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
 }
 
-.custom-package-carousel-container::-webkit-scrollbar {
-    display: none;
+.custom-package-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
-.custom-package-carousel-container .package {
+.custom-package-carousel .package {
     flex: 0 0 auto;
     width: calc(33.333% - 0px); /* 3 элемента в ряд */
     height: calc(33.333vw - 0px);
