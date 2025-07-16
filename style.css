@@ -76,9 +76,9 @@ body {
     position: fixed; /* Фиксированный заголовок */
     top: 4px; /* Под глобальным прогресс-баром */
     left: 0;
-    width: 100vw; /* Полная ширина видимой области браузера */
+    width: 120vw; /* Изменено по запросу пользователя */
     z-index: 999; /* Выше основного контента, но ниже глобального прогресс-бара */
-    height: 100px; /* Фиксированная высота для фона */
+    height: 60px; /* Изменено по запросу пользователя */
     background-image: url('images/header.png'); /* Новая картинка */
     background-size: cover; /* Покрытие всей области */
     background-position: center; /* Центрирование картинки */
@@ -102,6 +102,7 @@ body {
     align-items: center; /* Центрируем по вертикали */
     padding-left: calc(134 / 2358 * 100vw + 16px); /* 134px из 2358px + padding контейнера */
     padding-right: calc(777 / 2358 * 100vw + 16px); /* 777px из 2358px + padding контейнера */
+    box-sizing: border-box;
 }
 
 .header-text h1 {
@@ -259,15 +260,6 @@ body {
     gap: 8px;
 }
 
-/* .date-display-text-small { /* Этот класс удален из HTML */
-/* font-size: 7px; */
-/* font-style: italic; */
-/* text-transform: none; */
-/* font-weight: normal; */
-/* color: #000000; */
-/* } */
-
-
 .date-display .arrow-down {
     display: inline-block;
     width: 0;
@@ -424,8 +416,8 @@ h2 {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: #000000; /* Черный крестик на белом фоне */
-    color: #ffffff; /* Белый крестик */
+    background-color: transparent; /* Изменено: нет подложки */
+    color: #000000; /* Изменено: черный цвет */
     width: 24px;
     height: 24px;
     display: flex;
@@ -438,6 +430,7 @@ h2 {
 }
 .grid-item.selected .remove-selection {
     display: flex;
+    color: #ffffff; /* Изменено: белый цвет при активном симуляторе */
 }
 
 /* Выбор пакета времени */
