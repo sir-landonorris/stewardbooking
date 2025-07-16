@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const { data, error } = await supabase
                     .from('bookings')
                     .select('time_range, duration_hours, simulator_ids') // select relevant fields
-                    .eq('date', selectedDate); // filter by selected date
+                    .eq('date', selectedDate);
                 
                 if (error) {
                     console.error("error fetching occupied slots from supabase:", error);

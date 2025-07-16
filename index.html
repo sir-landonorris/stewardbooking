@@ -867,46 +867,73 @@
             height: calc(33.333vw - 0px);
             max-width: 120px;
             max-height: 120px;
+            position: relative; /* ensure children can be absolutely positioned */
+            display: flex; /* keep flex for general centering if needed, but absolute will override */
+            flex-direction: column;
+            justify-content: space-between; /* push content to top/bottom */
+            align-items: flex-start; /* align content to left */
+            padding: 8px; /* similar to date-item */
         }
 
-        .custom-package-carousel-container .package .package-number,
-        .custom-package-carousel-container .package .package-unit,
-        .custom-package-carousel-container .package .package-original-price,
-        .custom-package-carousel-container .package .package-price {
-            position: static; /* сбрасываем абсолютное позиционирование */
-            font-size: inherit; /* используем размер родителя */
-            margin: 0;
-            padding: 0;
-            text-align: center; /* центрируем текст */
-        }
         .custom-package-carousel-container .package .package-number {
-             font-size: 25.6px; /* 32px * 0.8 = 25.6px */
+            font-family: 'monaco', monospace;
+            font-size: 20px; /* similar to date-item day number */
+            font-weight: bold;
+            line-height: 1;
+            position: absolute; /* re-introduce absolute positioning */
+            top: 8px; /* adjusted for padding */
+            left: 8px; /* adjusted for padding */
+            text-transform: none;
         }
+
         .custom-package-carousel-container .package .package-unit {
-            font-size: 8px; /* 10px * 0.8 = 8px */
+            font-size: 10px; /* similar to date-item small text */
+            display: block;
+            position: absolute;
+            top: 24px; /* adjusted based on number size and position */
+            left: calc(8px + 20px + 2px); /* left of number + width of number + small gap */
+            text-transform: lowercase;
+            font-weight: normal;
         }
+
         .custom-package-carousel-container .package .package-original-price {
-            font-size: 8px; /* 10px * 0.8 = 8px */
+            font-family: 'monaco', monospace;
+            font-size: 10px; /* similar to date-item small text */
+            position: absolute;
+            bottom: 8px; /* adjusted for padding */
+            left: 8px; /* adjusted for padding */
             text-decoration: line-through;
             color: #a0a0a0;
         }
+
         .custom-package-carousel-container .package .package-price {
-            font-size: 11.2px; /* 14px * 0.8 = 11.2px */
+            font-family: 'monaco', monospace;
+            font-size: 14px; /* slightly larger for price */
             font-weight: bold;
+            position: absolute;
+            bottom: 8px; /* adjusted for padding */
+            right: 8px; /* adjusted for padding */
         }
-        .custom-package-carousel-container .package .package-night-text,
-        .custom-package-carousel-container .package .package-night-time {
-            position: static;
-            font-size: inherit;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
+
+        /* For night package in custom carousel */
         .custom-package-carousel-container .package .package-night-text {
-            font-size: 12.8px; /* 16px * 0.8 = 12.8px */
+            font-family: 'helvetica neue condensed black', sans-serif;
+            font-size: 16px; /* scaled down from 24px */
+            font-weight: bold;
+            line-height: 1;
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            text-transform: lowercase;
         }
+
         .custom-package-carousel-container .package .package-night-time {
-            font-size: 6.4px; /* 8px * 0.8 = 6.4px */
+            font-family: 'monaco', monospace;
+            font-size: 8px; /* scaled down from 9px */
+            position: absolute;
+            top: 24px; /* adjusted */
+            left: 8px; /* adjusted */
+            text-transform: none;
         }
 
         /* скрытый класс */
