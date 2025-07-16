@@ -210,11 +210,7 @@ body {
     box-shadow: none;
     color: #ffffff;
 }
-#web-app-fallback video {
-    width: 100%;
-    border-radius: 0;
-    margin-bottom: 16px;
-}
+/* Удалено: #web-app-fallback video */
 #web-app-fallback h1 {
     font-family: 'helvetica neue condensed black', sans-serif;
     font-weight: bold;

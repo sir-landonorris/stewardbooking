@@ -1,17 +1,22 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // supabase variables (provided by the canvas environment)
+    // --- ВАЖНО: КОНФИГУРАЦИЯ SUPABASE ---
+    // Переменные __app_id и __supabase_config должны быть предоставлены вашей средой Canvas.
+    // Если они не определены или содержат заглушки, приложение будет работать с ограниченной функциональностью
+    // и выводить критические ошибки в консоль.
+    // Убедитесь, что в вашей среде Canvas (или в файле .env при локальной разработке)
+    // установлены реальные URL и Anon Key из консоли вашего проекта Supabase.
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
     let supabaseConfig = typeof __supabase_config !== 'undefined' ? JSON.parse(__supabase_config) : {};
     
     // --- start: safeguard for missing supabase config properties ---
     if (!supabaseConfig.url || supabaseConfig.url === "https://dummy.supabase.co") {
-        console.error("critical error: supabase 'url' is missing or is a dummy value from __supabase_config. please ensure your canvas environment provides a complete and valid supabase config from your supabase console.");
+        console.error("КРИТИЧЕСКАЯ ОШИБКА: URL Supabase отсутствует или является заглушкой из __supabase_config. Пожалуйста, убедитесь, что ваша среда Canvas предоставляет полную и действительную конфигурацию Supabase из вашей консоли Supabase.");
         supabaseConfig.url = "https://dummy.supabase.co"; // fallback for initialization, but app won't work
     }
     if (!supabaseConfig.anonKey || supabaseConfig.anonKey === "dummy-anon-key") {
-        console.error("critical error: supabase 'anonkey' is missing or is a dummy value from __supabase_config. please ensure your canvas environment provides a complete and valid supabase config from your supabase console.");
+        console.error("КРИТИЧЕСКАЯ ОШИБКА: Anon Key Supabase отсутствует или является заглушкой из __supabase_config. Пожалуйста, убедитесь, что ваша среда Canvas предоставляет полную и действительную конфигурацию Supabase из вашей консоли Supabase.");
         supabaseConfig.anonKey = "dummy-anon-key"; // fallback for initialization, but app won't work
     }
     // --- end: safeguard ---
@@ -51,20 +56,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function init() {
         try {
             supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
-            console.log("supabase client initialized.");
+            console.log("Клиент Supabase инициализирован.");
 
             // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) {
-                console.error("error getting supabase session:", sessionError);
+                console.error("Ошибка получения сессии Supabase:", sessionError);
             }
 
             if (session && session.user) {
                 userId = session.user.id;
-                console.log("supabase authenticated. user id:", userId);
+                console.log("Supabase аутентифицирован. ID пользователя:", userId);
             } else {
                 userId = crypto.randomUUID(); // fallback if no user or anonymous sign-in fails
-                console.warn("no supabase user session found. using a random uuid as user id:", userId);
+                console.warn("Сессия пользователя Supabase не найдена. Используется случайный UUID в качестве ID пользователя:", userId);
             }
             isAuthReady = true; // mark as ready after auth check (even if anonymous/uuid)
 
@@ -72,18 +77,18 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (window.Telegram && window.Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
-                console.log("telegram web app ready.");
+                console.log("Telegram Web App готов.");
 
                 const userTg = Telegram.WebApp.initDataUnsafe.user;
                 if (userTg) {
                     bookingData.telegramId = userTg.id.toString(); // store telegram id
                     bookingData.telegram = userTg.username || ''; // store telegram username
-                    console.log("telegram user data:", userTg);
+                    console.log("Данные пользователя Telegram:", userTg);
                     await loadUserData(bookingData.telegramId);
                 }
             } else {
-                console.warn("telegram web app sdk not found or not ready.");
-                // fallback for non-telegram environment
+                console.warn("SDK Telegram Web App не найден или не готов.");
+                // fallback for non-telegram environment (no video here)
                 document.getElementById('web-app-fallback').classList.remove('hidden');
                 document.getElementById('main-booking-content').style.display = 'none';
             }
@@ -102,9 +107,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('cancel-modal').style.display = 'none';
 
         } catch (error) {
-            console.error("error initializing application:", error);
+            console.error("Ошибка инициализации приложения:", error);
         }
     }
+
+    // --- Потенциальная проблема с MutationObserver ---
+    // Если вы видите ошибку "TypeError: Argument 1 ('target') to MutationObserver.observe must be an instance of Node"
+    // и она не связана с этим скриптом, проверьте другие ваши скрипты, которые могут использовать MutationObserver.
+    // Убедитесь, что в метод .observe() передается действительный DOM-элемент.
+    // Пример:
+    // const targetNode = document.getElementById('myElement');
+    // if (targetNode instanceof Node) {
+    //     const observer = new MutationObserver(callback);
+    //     observer.observe(targetNode, { childList: true, subtree: true });
+    // }
+    // --- Конец примечания о MutationObserver ---
+
 
     // показываем нужный шаг и скрываем остальные
     function showStep(stepNumber) {
@@ -471,15 +489,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     .eq('date', selectedDate);
                 
                 if (error) {
-                    console.error("error fetching occupied slots from supabase:", error);
+                    console.error("Ошибка получения занятых слотов из Supabase:", error);
                 } else {
                     occupiedSlots = data.filter(booking => 
                         booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim))
                     );
-                    console.log("occupied slots for selected date and simulators:", occupiedSlots);
+                    console.log("Занятые слоты для выбранной даты и симуляторов:", occupiedSlots);
                 }
             } catch (error) {
-                console.error("critical error during supabase fetch:", error);
+                console.error("Критическая ошибка во время запроса к Supabase:", error);
             }
         }
 
@@ -575,12 +593,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 .single();
 
             if (error && error.code !== 'pgrst116') { // pgrst116 means no rows found (not an actual error for single())
-                console.error("error loading user data from supabase:", error);
+                console.error("Ошибка загрузки пользовательских данных из Supabase:", error);
                 return;
             }
 
             if (userData) {
-                console.log("loaded user data:", userData);
+                console.log("Загруженные пользовательские данные:", userData);
                 
                 // pre-fill form fields
                 const nameInput = document.querySelector('#form-step input[type="text"]');
@@ -598,17 +616,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 // check if all required user data is present to potentially skip the form step
                 if (userData.name && userData.phone && userData.telegram_username) {
-                    console.log("user data complete, form pre-filled.");
+                    console.log("Пользовательские данные полные, форма предварительно заполнена.");
                 }
             } else {
-                console.log("no existing user data found for telegram id:", telegramId);
+                console.log("Существующие пользовательские данные для Telegram ID не найдены:", telegramId);
                 // if no data, ensure form fields are empty or default
                 document.querySelector('#form-step input[type="text"]').value = '';
                 document.getElementById('phone').value = '+7 ';
                 document.getElementById('telegram').value = bookingData.telegram; // pre-fill with telegram username from webapp
             }
         } catch (error) {
-            console.error("error loading user data:", error);
+            console.error("Ошибка загрузки пользовательских данных:", error);
         }
     }
 
@@ -630,12 +648,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 .upsert(userDataToSave, { onConflict: 'telegram_id' }); // conflict on telegram_id to update existing
 
             if (error) {
-                console.error("error saving user data to supabase:", error);
+                console.error("Ошибка сохранения пользовательских данных в Supabase:", error);
             } else {
-                console.log("user data saved/updated in supabase:", data);
+                console.log("Пользовательские данные сохранены/обновлены в Supabase:", data);
             }
         } catch (error) {
-            console.error("error saving user data:", error);
+            console.error("Ошибка сохранения пользовательских данных:", error);
         }
     }
 
@@ -706,7 +724,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const breadcrumbDiv = document.getElementById('booking-breadcrumb');
         // check if breadcrumbdiv exists before updating
         if (!breadcrumbDiv) {
-            console.warn("breadcrumb element not found. skipping breadcrumb update.");
+            console.warn("Элемент хлебных крошек не найден. Обновление хлебных крошек пропущено.");
             return;
         }
 
@@ -769,15 +787,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                     .select(); // select the inserted row to get its id
 
                 if (error) {
-                    console.error("error saving booking to supabase:", error);
+                    console.error("Ошибка сохранения бронирования в Supabase:", error);
                 } else if (newBooking && newBooking.length > 0) {
-                    console.log("booking saved to supabase with id:", newBooking[0].id);
+                    console.log("Бронирование сохранено в Supabase с ID:", newBooking[0].id);
 
                     // no longer calling edge function directly from client.
                     // the python bot will monitor supabase realtime for new 'pending' bookings.
                 }
             } catch (error) {
-                console.error("critical error during supabase booking save:", error);
+                console.error("Критическая ошибка во время сохранения бронирования в Supabase:", error);
             }
         }
 
