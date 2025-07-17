@@ -840,10 +840,11 @@ textarea {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     gap: 0;
-    width: calc(100% + 32px); /* Extend beyond parent padding */
-    margin-left: -16px; /* Pull it out to the left */
-    margin-right: -16px; /* Pull it out to the right */
-    /* Removed padding-left and padding-right to make it edge-to-edge */
+    width: 100vw; /* Занимаем 100% ширины видимой области */
+    position: relative; /* Для позиционирования относительно себя */
+    left: 50%; /* Перемещаем центр элемента в центр родителя */
+    transform: translateX(-50%); /* Смещаем элемент обратно на половину его ширины */
+    /* Убраны padding-left и padding-right для того, чтобы контент начинался от края */
     margin-bottom: 16px; /* Отступ от нижних элементов */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
