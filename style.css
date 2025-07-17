@@ -796,7 +796,7 @@ textarea {
     .package .package-unit {
         font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
         top: 30px;
-        left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
+        left: calc(20px + 32px + 10px);
     }
     .package .package-night-text {
         font-size: 12.8px; /* адаптивный размер для "ночь" */
@@ -829,6 +829,11 @@ textarea {
 
 /* стили для карусели "свой пакет" */
 .custom-package-carousel-container {
+    /* New styles to make it full width */
+    width: calc(100% + 32px); /* 100% of parent + 16px left + 16px right padding of .container */
+    margin-left: -16px; /* Pull it out of the parent's padding */
+    margin-right: -16px; /* Pull it out of the parent's padding */
+    overflow: hidden; /* Hide potential scrollbars if content overflows */
     /* Контейнер теперь просто обертка, без flex или overflow */
     /* Убрана flex-direction: column и gap: 4px для кнопок, так как кнопки перенесены ниже */
 }
@@ -839,11 +844,10 @@ textarea {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     gap: 0;
-    width: 100%; /* Explicitly set width to 100% */
-    margin-left: -16px; /* Вытягиваем на всю ширину, компенсируя padding контейнера */
-    margin-right: -16px;
-    padding-left: 16px; /* Добавляем padding для первого элемента */
-    padding-right: 16px; /* Добавляем padding для последнего элемента */
+    width: 100%; /* Now 100% of the full-width container */
+    /* Remove negative margins and padding here, they are on the parent */
+    padding-left: 16px; /* Keep padding for content alignment */
+    padding-right: 16px; /* Keep padding for content alignment */
     margin-bottom: 16px; /* Отступ от нижних элементов */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
