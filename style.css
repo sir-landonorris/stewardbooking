@@ -483,7 +483,7 @@ h2 {
     display: block;
     position: absolute;
     top: 36px;
-    left: calc(20px + 32px + 5px); /* отступ от левого края + ширина цифры + 5px */
+    left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px (было 5px) */
     text-transform: lowercase; /* все строчные */
     font-weight: normal;
 }
@@ -536,6 +536,7 @@ h2 {
 }
 .custom-package-trigger .custom-package-text { /* новый класс для внутреннего текста */
     position: absolute;
+    font-size: 24px; /* Установлен размер шрифта как у "ночной" */
     top: 26px; /* соответствует top для .package .package-night-text */
     left: 20px; /* соответствует left для .package .package-night-text */
     line-height: 1.2;
@@ -731,7 +732,7 @@ textarea {
     .package .package-unit {
         font-size: 10.24px;
         top: 36px;
-        left: calc(20px + 32px + 5px);
+        left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
     }
     .package .package-night-text {
         font-size: 24px; /* адаптивный размер для "ночь" */
@@ -795,7 +796,7 @@ textarea {
     .package .package-unit {
         font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
         top: 30px;
-        left: calc(20px + 32px);
+        left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
     }
     .package .package-night-text {
         font-size: 12.8px; /* адаптивный размер для "ночь" */
@@ -897,7 +898,7 @@ textarea {
     display: block;
     position: absolute;
     top: 36px; /* Соответствует стандартным пакетам */
-    left: calc(20px + 32px + 5px); /* Соответствует стандартным пакетам */
+    left: calc(20px + 32px + 10px); /* Соответствует стандартным пакетам + 5px смещение */
     text-transform: lowercase;
     font-weight: normal;
 }
@@ -979,7 +980,7 @@ textarea {
     .custom-package-carousel .package .package-unit {
         font-size: 10.24px; /* Адаптивный размер */
         top: 36px;
-        left: calc(20px + 32px + 5px);
+        left: calc(20px + 32px + 10px);
     }
     .custom-package-carousel .package .package-original-price {
         font-size: 10.24px; /* Адаптивный размер */
@@ -1016,7 +1017,7 @@ textarea {
     .custom-package-carousel .package .package-unit {
         font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
         top: 30px;
-        left: calc(20px + 32px);
+        left: calc(20px + 32px + 10px);
     }
     .custom-package-carousel .package .package-night-text {
         font-size: 12.8px; /* адаптивный размер для "ночь" */
