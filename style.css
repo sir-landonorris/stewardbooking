@@ -829,13 +829,9 @@ textarea {
 
 /* стили для карусели "свой пакет" */
 .custom-package-carousel-container {
-    /* New styles to make it full width */
-    width: calc(100% + 32px); /* 100% of parent + 16px left + 16px right padding of .container */
-    margin-left: -16px; /* Pull it out of the parent's padding */
-    margin-right: -16px; /* Pull it out of the parent's padding */
-    overflow: hidden; /* Hide potential scrollbars if content overflows */
     /* Контейнер теперь просто обертка, без flex или overflow */
     /* Убрана flex-direction: column и gap: 4px для кнопок, так как кнопки перенесены ниже */
+    /* Removed width, margin-left, margin-right, and overflow from here */
 }
 
 .custom-package-carousel {
@@ -844,8 +840,11 @@ textarea {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     gap: 0;
-    width: 100%; /* Now 100% of the full-width container */
-    /* Removed padding-left and padding-right from here */
+    width: calc(100% + 32px); /* Extend beyond parent padding */
+    margin-left: -16px; /* Pull it out to the left */
+    margin-right: -16px; /* Pull it out to the right */
+    padding-left: 16px; /* Add padding for the first item */
+    padding-right: 16px; /* Add padding for the last item */
     margin-bottom: 16px; /* Отступ от нижних элементов */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
