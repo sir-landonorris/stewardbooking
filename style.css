@@ -845,9 +845,7 @@ textarea {
     scroll-snap-type: x mandatory;
     gap: 0;
     width: 100%; /* Now 100% of the full-width container */
-    /* Remove negative margins and padding here, they are on the parent */
-    padding-left: 16px; /* Keep padding for content alignment */
-    padding-right: 16px; /* Keep padding for content alignment */
+    /* Removed padding-left and padding-right from here */
     margin-bottom: 16px; /* Отступ от нижних элементов */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
