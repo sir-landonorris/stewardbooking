@@ -122,8 +122,8 @@ body {
     background-color: #d9d9d9; /* светло-серый */
     color: #000000; /* черный */
     cursor: pointer;
-    border-radius: 0; /* нет скруглений */
-    box-shadow: none; /* нет теней */
+    border-radius: 0;
+    box-shadow: none;
     margin: 0; /* удалено: margin-bottom, все плотно */
     font-size: 16px; /* основной текст */
     border: none; /* удалено: обводка */
@@ -440,7 +440,7 @@ h2 {
     display: grid; /* применяем grid, так как он может быть переопределен */
     gap: 0;
     margin-bottom: 16px;
-    margin-left: -16px; /* вытягиваем на всю ширину */
+    margin-left: -16px; /* вытягиваем на всю ширину, компенсируя padding контейнера */
     margin-right: -16px;
 }
 .package {
@@ -484,7 +484,7 @@ h2 {
     position: absolute;
     top: 36px;
     left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px (было 5px) */
-    text-transform: lowercase; /* все строчные */
+    text-transform: lowercase;
     font-weight: normal;
 }
 .package .package-night-text { /* стиль для текста "ночь" */
@@ -495,7 +495,7 @@ h2 {
     position: absolute;
     top: 26px; /* 26px */
     left: 20px; /* 20px */
-    text-transform: lowercase; /* все строчные */
+    text-transform: lowercase;
 }
 .package .package-night-time { /* стиль для текста "(00:00 – 08:00)" */
     font-family: 'monaco', monospace;
@@ -843,8 +843,7 @@ textarea {
     width: calc(100% + 32px); /* Extend beyond parent padding */
     margin-left: -16px; /* Pull it out to the left */
     margin-right: -16px; /* Pull it out to the right */
-    padding-left: 16px; /* Add padding for the first item */
-    padding-right: 16px; /* Add padding for the last item */
+    /* Removed padding-left and padding-right to make it edge-to-edge */
     margin-bottom: 16px; /* Отступ от нижних элементов */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
