@@ -565,33 +565,34 @@ h2 {
 }
 
 /* выбор времени */
-#time-grid { /* отдельный стиль для сетки времени */
-    grid-template-columns: repeat(3, 1fr); /* Изменено на 3 столбца */
-    display: grid; /* применяем grid, так как он может быть переопределен */
-    gap: 4px; /* Добавлен небольшой зазор между элементами */
-    margin-left: 0; /* Убраны отрицательные отступы */
-    margin-right: 0; /* Убраны отрицательные отступы */
+#time-grid {
+    grid-template-columns: repeat(4, 1fr); /* 4 колонки */
+    gap: 0; /* убираем промежутки */
+    margin-left: -16px; /* компенсируем padding контейнера */
+    margin-right: -16px; /* компенсируем padding контейнера */
     margin-bottom: 16px;
-    padding: 0; /* Убраны padding-left и padding-right */
+    padding: 0; /* убираем внутренние отступы */
 }
+
 .time-slot {
-    font-family: 'monaco', monospace; /* моноширинный шрифт для слотов */
-    font-size: 16px; /* уменьшил для 4х колонок */
-    padding: 12px;
+    font-family: 'monaco', monospace;
+    padding: 12px 4px; /* минимальные вертикальные отступы */
+    font-size: 12px; /* уменьшаем размер шрифта */
+    min-height: 60px; /* минимальная высота */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-break: break-word; /* перенос длинных текстов */
     border: none; /* удалено: обводка */
     margin: 0; /* плотное прилегание */
     aspect-ratio: 1 / 1; /* делаем квадратным */
-    min-width: unset; /* сброс min-width */
-    min-height: unset; /* сброс min-height */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
     text-transform: none; /* убран капслок */
 }
 .time-slot.selected {
-    background-color: #000000; /* черный фон */
-    color: #ffffff; /* белый текст */
+    background-color: #000000;
+    color: #ffffff;
 }
 
 /* форма данных */
@@ -771,12 +772,11 @@ textarea {
     }
 
     #time-grid {
-        grid-template-columns: repeat(3, 1fr); /* Изменено на 3 столбца */
-        gap: 4px; /* Добавлен небольшой зазор между элементами */
-        padding: 0; /* Убраны padding-left и padding-right */
+        grid-template-columns: repeat(4, 1fr); /* сохраняем 4 колонки */
     }
     .time-slot {
-        font-size: 14px;
+        font-size: 11px; /* еще меньше шрифт */
+        padding: 8px 2px; /* меньше отступы */
     }
     .button {
         font-size: 16px;
@@ -836,9 +836,11 @@ textarea {
         right: 20px;
     }
     #time-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */
-        gap: 4px; /* Добавлен небольшой зазор между элементами */
-        padding: 0; /* Убраны padding-left и padding-right */
+        grid-template-columns: repeat(3, 1fr); /* 3 колонки на очень маленьких экранах */
+    }
+    .time-slot {
+        font-size: 10px; /* минимальный размер шрифта */
+        min-height: 50px; /* меньшая высота */
     }
     .date-carousel .date-item {
         width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
@@ -975,14 +977,16 @@ textarea {
 
 /* предупреждение для длительных броней */
 #long-booking-warning {
-    background-color: #ffeb3b; /* желтый фон */
-    color: #333;
-    padding: 12px;
-    border-radius: 8px;
+    background-color: #a0a0a0; /* серый для информационных сообщений */
+    color: #ffffff;
+    padding: 12px 16px; /* отступы внутри */
+    border-radius: 0; /* убираем скругления */
     margin-bottom: 16px;
     font-size: 14px;
     text-align: left;
     display: none; /* скрыто по умолчанию */
+    margin-left: -16px;
+    margin-right: -16px;
 }
 #long-booking-warning strong {
     color: #000;
