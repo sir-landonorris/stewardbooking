@@ -221,20 +221,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         // очищаем предыдущие выборы в bookingdata для повторной инициализации на основе текущего dom
         bookingData.simulator = [];
 
+        let defaultSimulatorElement = null; // Для хранения элемента симулятора 01
+
         document.querySelectorAll('.simulator-grid-container .grid-item').forEach(sim => { // Исправлен селектор
             const removeBtn = sim.querySelector('.remove-selection');
             const simulatorId = sim.dataset.id;
 
-            // устанавливаем симулятор 01 выбранным по умолчанию
+            // Изначально убеждаемся, что ни один симулятор не выбран и кнопки удаления скрыты
+            sim.classList.remove('selected');
+            if (removeBtn) removeBtn.style.display = 'none';
+
+            // Идентифицируем симулятор 01 как симулятор по умолчанию
             if (simulatorId === '1') {
-                sim.classList.add('selected');
-                if (!bookingData.simulator.includes(simulatorId)) {
-                    bookingData.simulator.push(simulatorId);
-                }
-                if (removeBtn) removeBtn.style.display = 'flex';
-            } else {
-                sim.classList.remove('selected');
-                if (removeBtn) removeBtn.style.display = 'none';
+                defaultSimulatorElement = sim;
             }
 
             sim.addEventListener('click', function(e) {
@@ -278,9 +277,15 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             }
         });
-        // убедимся, что состояние кнопки "далее" корректно после начальной настройки
-        document.getElementById('next-0').disabled = bookingData.simulator.length === 0;
-        updateBreadcrumbs();
+
+        // После установки всех слушателей событий, программно кликаем на симулятор по умолчанию
+        if (defaultSimulatorElement) {
+            defaultSimulatorElement.click();
+        } else {
+            // Если симулятор '1' по какой-то причине не найден, убеждаемся, что кнопка отключена
+            document.getElementById('next-0').disabled = true;
+        }
+        updateBreadcrumbs(); // Убеждаемся, что хлебные крошки обновлены после выбора по умолчанию
     }
 
     // настройка выбора пакета времени (новый шаг)
