@@ -568,7 +568,7 @@ h2 {
 #time-grid { /* отдельный стиль для сетки времени */
     grid-template-columns: repeat(3, 1fr); /* Изменено на 3 столбца */
     display: grid; /* применяем grid, так как он может быть переопределен */
-    gap: 4px; /* Добавлен небольшой зазор между элементами */
+    gap: 0; /* Убраны пробелы между элементами */
     margin-left: 0; /* Убраны отрицательные отступы */
     margin-right: 0; /* Убраны отрицательные отступы */
     margin-bottom: 16px;
@@ -772,7 +772,7 @@ textarea {
 
     #time-grid {
         grid-template-columns: repeat(3, 1fr); /* Изменено на 3 столбца */
-        gap: 4px; /* Добавлен небольшой зазор между элементами */
+        gap: 0; /* Убраны пробелы между элементами */
         padding: 0; /* Убраны padding-left и padding-right */
     }
     .time-slot {
@@ -837,230 +837,11 @@ textarea {
     }
     #time-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */
-        gap: 4px; /* Добавлен небольшой зазор между элементами */
+        gap: 0; /* Убраны пробелы между элементами */
         padding: 0; /* Убраны padding-left и padding-right */
     }
     .date-carousel .date-item {
         width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
         height: calc(33.333vw - 0px);
-    }
-}
-
-/* стили для карусели "свой пакет" */
-.custom-package-carousel-container {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-right: -16px;
-    overflow-x: scroll;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    margin-bottom: 16px;
-}
-
-.custom-package-carousel-container::-webkit-scrollbar {
-    display: none;
-}
-
-.custom-package-carousel {
-    width: max-content;
-    display: flex;
-    padding: 0; /* Изменено с 0 16px на 0 */
-}
-
-.custom-package-carousel .package {
-    min-width: 140px;
-    min-height: 140px;
-    flex-shrink: 0;
-    /* Размеры как у стандартных пакетов */
-    padding: 16px; /* Соответствует стандартным пакетам */
-
-    background-color: #d9d9d9;
-    color: #000000;
-    cursor: pointer;
-    border-radius: 0;
-    box-shadow: none;
-    font-size: 16px;
-    font-family: 'helvetica neue', system-ui, sans-serif;
-    border: none;
-    margin: 0;
-    position: relative; /* ensure children can be absolutely positioned */
-    display: flex; /* keep flex for general centering if needed, but absolute will override */
-    flex-direction: column;
-    justify-content: flex-start; /* Изменено: выравниваем содержимое по верху */
-    align-items: flex-start; /* Выравнивание по левому краю */
-    aspect-ratio: 1 / 1; /* делаем квадратным */
-    min-width: 140px; /* минимальный размер для адаптивности */
-    min-height: 140px;
-}
-.custom-package-carousel .package.selected {
-    background-color: #000000; /* черный фон */
-    color: #ffffff; /* белый текст */
-}
-
-
-.custom-package-carousel .package .package-number {
-    font-family: 'monaco', monospace;
-    font-size: 32px; /* Соответствует стандартным пакетам */
-    font-weight: bold;
-    line-height: 1;
-    position: absolute; /* Изменено на absolute */
-    top: 16px; /* Изменено на 16px */
-    left: 16px; /* Изменено на 16px */
-    text-transform: none;
-    align-self: flex-end; /* Выравнивание по правому краю */
-    text-align: right; /* Выравнивание текста по правому краю */
-    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
-}
-
-.custom-package-carousel .package .package-unit {
-    font-size: 10.24px; /* Соответствует стандартным пакетам */
-    display: block;
-    position: absolute; /* Изменено на absolute */
-    top: calc(16px + 32px); /* Под цифрой */
-    left: 16px; /* Изменено на 16px */
-    text-transform: lowercase;
-    font-weight: normal;
-    margin-top: 0; /* Убираем верхний отступ */
-    align-self: flex-end; /* Выравнивание по правому краю */
-    text-align: right; /* Выравнивание текста по правому краю */
-    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
-}
-
-.custom-package-carousel .package .package-original-price {
-    font-family: 'monaco', monospace;
-    font-size: 10.24px; /* Соответствует стандартным пакетам */
-    position: absolute;
-    bottom: 11px; /* Соответствует стандартным пакетам */
-    left: 24px; /* Соответствует стандартным пакетам */
-    text-decoration: line-through;
-    color: #a0a0a0;
-}
-
-.custom-package-carousel .package .package-price {
-    font-family: 'monaco', monospace;
-    font-size: 14px; /* Соответствует стандартным пакетам */
-    font-weight: bold;
-    position: absolute;
-    bottom: 10px; /* Соответствует стандартным пакетам */
-    right: 13px; /* Соответствует стандартным пакетам */
-}
-
-/* For night package in custom carousel */
-.custom-package-carousel .package .package-night-text {
-    font-family: 'helvetica neue condensed black', sans-serif;
-    font-size: 24px; /* Соответствует стандартным пакетам */
-    font-weight: bold;
-    line-height: 1;
-    position: absolute;
-    top: 26px; /* Соответствует стандартным пакетам */
-    left: 20px; /* Соответствует стандартным пакетам */
-    text-transform: lowercase;
-}
-
-.custom-package-carousel .package .package-night-time {
-    font-family: 'monaco', monospace;
-    font-size: 9px; /* Соответствует стандартным пакетам */
-    position: absolute;
-    top: 51px; /* Соответствует стандартным пакетам */
-    left: 27px; /* Соответствует стандартным пакетам */
-    text-transform: none;
-}
-
-/* скрытый класс */
-.hidden {
-    display: none !important;
-}
-
-/* предупреждение для длительных броней */
-#long-booking-warning {
-    background-color: #ffeb3b; /* желтый фон */
-    color: #333;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 14px;
-    text-align: left;
-    display: none; /* скрыто по умолчанию */
-}
-#long-booking-warning strong {
-    color: #000;
-}
-
-/* Адаптация для мобильных устройств для карусели "свой пакет" */
-@media (max-width: 480px) {
-    .custom-package-carousel .package {
-        min-width: unset; /* Сброс min-width */
-        min-height: unset; /* Сброс min-height */
-        height: calc(33.333vw - 0px);
-        padding: 12px; /* Уменьшенный padding для мобильных */
-    }
-    .custom-package-carousel .package .package-number {
-        font-size: 32px; /* Адаптивный размер */
-        top: 16px; /* Адаптивный отступ */
-        left: 16px; /* Адаптивный отступ */
-    }
-    .custom-package-carousel .package .package-unit {
-        font-size: 10.24px; /* Адаптивный размер */
-        top: calc(16px + 32px); /* Под цифрой */
-        left: 16px; /* Адаптивный отступ */
-    }
-    .custom-package-carousel .package .package-original-price {
-        font-size: 10.24px; /* Адаптивный размер */
-        bottom: 11px;
-        left: 24px;
-    }
-    .custom-package-carousel .package .package-price {
-        font-size: 14px; /* Адаптивный размер */
-        bottom: 10px;
-        right: 13px;
-    }
-    .custom-package-carousel .package .package-night-text {
-        font-size: 24px; /* Адаптивный размер */
-        top: 26px;
-        left: 20px;
-    }
-    .custom-package-carousel .package .package-night-time {
-        font-size: 9px; /* Адаптивный размер */
-        top: 51px;
-        left: 27px;
-    }
-}
-
-@media (max-width: 380px) {
-    .custom-package-carousel .package {
-        width: calc(50% - 0px); /* 2 элемента в ряд на очень маленьких экранах */
-        height: calc(50vw - 0px);
-    }
-    .custom-package-carousel .package .package-number {
-        font-size: 32px; /* еще меньше на очень маленьких экранах */
-        top: 16px; /* Адаптивный отступ */
-        left: 16px; /* Адаптивный отступ */
-    }
-    .custom-package-carousel .package .package-unit {
-        font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
-        top: calc(16px + 32px); /* Под цифрой */
-        left: 16px; /* Адаптивный отступ */
-    }
-    .custom-package-carousel .package .package-night-text {
-        font-size: 12.8px; /* адаптивный размер для "ночь" */
-        top: 20px;
-        left: 20px;
-    }
-    .custom-package-carousel .package .package-night-time {
-        font-size: 6.14px; /* адаптивный размер для времени ночи */
-        top: 34px;
-        left: 20px;
-    }
-    .custom-package-carousel .package .package-original-price {
-        font-size: 8.19px;
-        bottom: 6px;
-        left: 20px;
-    }
-    .custom-package-carousel .package .package-price {
-        font-size: 12.28px;
-        bottom: 6px;
-        right: 20px;
     }
 }
