@@ -710,8 +710,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // со времени на форму (руль удален)
         
         // кнопки "назад"
-        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // со времени на пакет
+        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
+        document.getElementById('backToTimeStep').addEventListener('click', () => showStep(1)); // со времени на пакет
         document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // с формы на время (руль удален)
         
         // отправка формы
