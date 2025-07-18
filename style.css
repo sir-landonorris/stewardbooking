@@ -281,9 +281,7 @@ body {
     -webkit-overflow-scrolling: touch; /* для плавного скролла на ios */
     scroll-snap-type: x mandatory;
     gap: 0; /* плотное прилегание */
-    margin-left: -16px; /* вытягиваем на всю ширину, компенсируя padding контейнера */
     margin-right: -16px;
-    padding-left: 16px; /* добавляем padding для первого элемента */
     padding-right: 16px; /* добавляем padding для последнего элемента */
     margin-bottom: 16px; /* отступ от симуляторов */
     scrollbar-width: none; /* firefox */
@@ -842,7 +840,6 @@ textarea {
     position: relative;
     left: 50%;
     transform: translateX(-50%);
-    margin-left: -16px;
     margin-right: -16px;
     overflow-x: scroll;
     scrollbar-width: none;
