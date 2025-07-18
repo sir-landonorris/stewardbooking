@@ -303,8 +303,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const hourUnit = getHourUnit(pkg.hours);
                 return `
                     <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                        <div class="package-number">${displayHours}</div>
-                        <small class="package-unit">${hourUnit}</small>
+                        <div class="package-header-content">
+                            <div class="package-number">${displayHours}</div>
+                            <div class="package-unit">${hourUnit}</div>
+                        </div>
                         ${originalPriceDisplay}
                         <div class="package-price">${pkg.price}</div>
                     </div>
@@ -395,8 +397,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             customPackagesHtml += `
                 <div class="package block" data-duration="${displayHours} ${hourUnit}" data-price="${currentPrice}" data-hours="${hours}">
-                    <div class="package-number">${displayHours}</div>
-                    <small class="package-unit">${hourUnit}</small>
+                    <div class="package-header-content">
+                        <div class="package-number">${displayHours}</div>
+                        <div class="package-unit">${hourUnit}</div>
+                    </div>
                     ${originalPriceDisplay}
                     <div class="package-price">${currentPrice} ₽</div>
                 </div>
@@ -416,7 +420,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 let customPackageTextContent = '';
                 const selectedHours = parseFloat(this.dataset.hours);
                 const selectedPrice = this.dataset.price;
-                const selectedOriginalPrice = parseFloat(this.dataset.originalPrice);
+                // const selectedOriginalPrice = parseFloat(this.dataset.originalPrice); // This variable is not used
 
                 if (this.dataset.duration === 'ночь') {
                     customPackageTextContent = `ночной<br>(${selectedPrice})`;
