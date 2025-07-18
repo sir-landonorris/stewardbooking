@@ -857,7 +857,7 @@ textarea {
 .custom-package-carousel {
     width: max-content;
     display: flex;
-    padding: 0 16px;
+    padding: 0; /* Изменено с 0 16px на 0 */
     gap: 8px;
 }
 
