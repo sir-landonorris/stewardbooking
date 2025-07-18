@@ -569,7 +569,7 @@ h2 {
     grid-template-columns: repeat(4, 1fr); /* 4 столбца на шаге времени */
     display: grid; /* применяем grid, так как он может быть переопределен */
     gap: 4px; /* Добавлен небольшой зазор между элементами */
-    padding: 0 16px; /* Добавлены внутренние отступы, соответствующие контейнеру */
+    /* Удалены padding-left и padding-right */
     margin-left: 0; /* Убраны отрицательные отступы */
     margin-right: 0; /* Убраны отрицательные отступы */
     margin-bottom: 16px;
@@ -773,7 +773,7 @@ textarea {
     #time-grid {
         grid-template-columns: repeat(4, 1fr); /* 4 столбца */
         gap: 4px; /* Добавлен небольшой зазор между элементами */
-        padding: 0 16px; /* Добавлены внутренние отступы, соответствующие контейнеру */
+        /* Удалены padding-left и padding-right */
     }
     .time-slot {
         font-size: 14px;
@@ -838,7 +838,7 @@ textarea {
     #time-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */
         gap: 4px; /* Добавлен небольшой зазор между элементами */
-        padding: 0 16px; /* Добавлены внутренние отступы, соответствующие контейнеру */
+        /* Удалены padding-left и padding-right */
     }
     .date-carousel .date-item {
         width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
@@ -890,6 +890,9 @@ textarea {
     flex-direction: column;
     justify-content: flex-start; /* Изменено: выравниваем содержимое по верху */
     align-items: flex-start; /* Выравнивание по левому краю */
+    aspect-ratio: 1 / 1; /* делаем квадратным */
+    min-width: 140px; /* минимальный размер для адаптивности */
+    min-height: 140px;
 }
 .custom-package-carousel .package.selected {
     background-color: #000000; /* черный фон */
