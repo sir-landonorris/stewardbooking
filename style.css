@@ -744,12 +744,12 @@ textarea {
         left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
     }
     .package .package-night-text {
-        font-size: 24px; /* адаптивный размер для "ночь" */
+        font-size: 24px; /* Адаптивный размер */
         top: 26px;
         left: 20px;
     }
     .package .package-night-time {
-        font-size: 9px; /* адаптивный размер для времени ночи */
+        font-size: 9px; /* Адаптивный размер */
         top: 51px;
         left: 27px;
     }
@@ -838,36 +838,34 @@ textarea {
 
 /* стили для карусели "свой пакет" */
 .custom-package-carousel-container {
-    /* Контейнер теперь просто обертка, без flex или overflow */
-    /* Убрана flex-direction: column и gap: 4px для кнопок, так как кнопки перенесены ниже */
-    /* Removed width, margin-left, margin-right, and overflow from here */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-left: -16px;
+    margin-right: -16px;
+    overflow-x: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-bottom: 16px;
+}
+
+.custom-package-carousel-container::-webkit-scrollbar {
+    display: none;
 }
 
 .custom-package-carousel {
+    width: max-content;
     display: flex;
-    overflow-x: scroll;
-    -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x mandatory;
-    gap: 0;
-    width: auto; /* Позволяем элементу занимать естественную ширину */
-    margin-left: -16px; /* Вытягиваем влево, компенсируя padding родителя */
-    margin-right: -16px; /* Вытягиваем вправо, компенсируя padding родителя */
-    /* Убраны padding-left и padding-right для того, чтобы контент начинался от края */
-    margin-bottom: 16px; /* Отступ от нижних элементов */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* IE and Edge */
-}
-
-.custom-package-carousel::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    padding: 0 16px;
+    gap: 8px;
 }
 
 .custom-package-carousel .package {
-    flex: 0 0 auto;
-    /* Размеры как у стандартных пакетов */
     min-width: 140px;
     min-height: 140px;
-    aspect-ratio: 1 / 1;
+    flex-shrink: 0;
+    /* Размеры как у стандартных пакетов */
     padding: 16px; /* Соответствует стандартным пакетам */
 
     background-color: #d9d9d9;
