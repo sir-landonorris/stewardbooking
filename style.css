@@ -458,7 +458,7 @@ h2 {
     position: relative; /* для позиционирования внутренних элементов */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* Изменено: выравниваем содержимое по верху */
     align-items: flex-start; /* выравниваем по левому краю */
     aspect-ratio: 1 / 1; /* делаем квадратным */
     min-width: 140px; /* минимальный размер для адаптивности */
@@ -472,11 +472,12 @@ h2 {
 /* Новый стиль для контейнера номера и единицы измерения */
 .package-header-row {
     display: flex;
-    align-items: baseline; /* Выравнивание по базовой линии текста */
-    gap: 5px; /* Небольшой отступ между цифрой и словом */
+    flex-direction: column; /* Изменено: элементы в колонку */
+    align-items: flex-start; /* Выравнивание по левому краю */
+    gap: 0; /* Убираем отступ */
     position: absolute; /* Позиционируем контейнер внутри пакета */
-    top: 20px;
-    left: 20px;
+    top: 20px; /* Отступ сверху */
+    left: 20px; /* Отступ слева */
 }
 
 .package .package-number { /* стиль для цифр пакетов */
@@ -484,17 +485,16 @@ h2 {
     font-size: 32px; /* 32px */
     font-weight: bold;
     line-height: 1;
-    /* Удалены top и left, так как теперь они в package-header-row */
     position: static; /* Сбрасываем абсолютное позиционирование */
     text-transform: none;
 }
 .package .package-unit { /* стиль для "час/часа" */
     font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
     display: block;
-    /* Удалены top и left, так как теперь они в package-header-row */
     position: static; /* Сбрасываем абсолютное позиционирование */
     text-transform: lowercase;
     font-weight: normal;
+    margin-top: 0; /* Убираем верхний отступ */
 }
 .package .package-night-text { /* стиль для текста "ночь" */
     font-family: 'helvetica neue condensed black', sans-serif;
@@ -535,19 +535,19 @@ h2 {
 .custom-package-trigger {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start; /* Изменено: выравниваем содержимое по верху */
     align-items: flex-start; /* выравнивание по левому краю */
     font-size: 24px; /* увеличен до 24px */
     font-weight: bold;
     text-transform: lowercase; /* все строчные */
     position: relative; /* для абсолютного позиционирования внутреннего текста */
-    padding: 0; /* убираем padding */
+    padding: 16px; /* Возвращаем padding, чтобы текст не прилипал к краю */
 }
 .custom-package-trigger .custom-package-text { /* новый класс для внутреннего текста */
-    position: absolute;
+    position: static; /* Изменено: сбрасываем абсолютное позиционирование */
     font-size: 24px; /* Установлен размер шрифта как у "ночной" */
-    top: 26px; /* соответствует top для .package .package-night-text */
-    left: 20px; /* соответствует left для .package .package-night-text */
+    top: auto; /* Сброс top */
+    left: auto; /* Сброс left */
     line-height: 1.2;
 }
 
@@ -734,7 +734,7 @@ textarea {
         min-height: unset;
     }
     .package .package-number {
-        font-size: 32px; /* адаптивный размер для цифр пакета */
+        font-size: 40px; /* адаптивный размер для цифр пакета */
         top: 20px;
         left: 20px;
     }
@@ -878,7 +878,7 @@ textarea {
     position: relative; /* ensure children can be absolutely positioned */
     display: flex; /* keep flex for general centering if needed, but absolute will override */
     flex-direction: column;
-    justify-content: center; /* Центрирование содержимого */
+    justify-content: flex-start; /* Изменено: выравниваем содержимое по верху */
     align-items: flex-start; /* Выравнивание по левому краю */
 }
 .custom-package-carousel .package.selected {
@@ -892,20 +892,21 @@ textarea {
     font-size: 32px; /* Соответствует стандартным пакетам */
     font-weight: bold;
     line-height: 1;
-    position: absolute;
-    top: 20px; /* Соответствует стандартным пакетам */
-    left: 20px; /* Соответствует стандартным пакетам */
+    position: static; /* Изменено: сбрасываем абсолютное позиционирование */
+    top: auto; /* Сброс top */
+    left: auto; /* Сброс left */
     text-transform: none;
 }
 
 .custom-package-carousel .package .package-unit {
     font-size: 10.24px; /* Соответствует стандартным пакетам */
     display: block;
-    position: absolute;
-    top: 36px; /* Соответствует стандартным пакетам */
-    left: calc(20px + 32px + 10px); /* Соответствует стандартным пакетам + 5px смещение */
+    position: static; /* Изменено: сбрасываем абсолютное позиционирование */
+    top: auto; /* Сброс top */
+    left: auto; /* Сброс left */
     text-transform: lowercase;
     font-weight: normal;
+    margin-top: 0; /* Убираем верхний отступ */
 }
 
 .custom-package-carousel .package .package-original-price {
