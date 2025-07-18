@@ -477,6 +477,7 @@ h2 {
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* Выравнивание по левому краю для группы */
+    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
 }
 
 .package .package-number { /* стиль для цифр пакетов */
@@ -484,17 +485,15 @@ h2 {
     font-size: 32px; /* 32px */
     font-weight: bold;
     line-height: 1;
-    text-transform: none;
     position: static; /* Сбрасываем абсолютное позиционирование */
     display: inline-block; /* Для корректного определения ширины контента */
     white-space: nowrap; /* Предотвращаем перенос строки */
-    text-align: left; /* Выравнивание текста по левому краю внутри своего блока */
+    text-align: left; /* Цифра выравнивается по левому краю внутри своего блока */
 }
 .package .package-unit-wrapper { /* Обертка для единицы измерения */
-    /* width: 100%; */ /* Удалено, чтобы ширина подстраивалась под контент */
+    width: 100%; /* Занимает всю ширину родительского flex-контейнера */
     text-align: right; /* Выравнивание текста по правому краю внутри обертки */
-    /* Добавлено для выравнивания по правому краю цифры */
-    align-self: flex-end;
+    align-self: flex-end; /* Выравнивание по правому краю цифры */
 }
 .package .package-unit { /* стиль для "час/часа" */
     font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
@@ -503,8 +502,6 @@ h2 {
     font-weight: normal;
     margin-top: 0;
     position: static; /* Сбрасываем абсолютное позиционирование */
-    /* text-align: right; */ /* Перенесено на package-unit-wrapper */
-    /* width: 100%; */ /* Перенесено на package-unit-wrapper */
 }
 .package .package-night-text { /* стиль для текста "ночь" */
     font-family: 'helvetica neue condensed black', sans-serif;
@@ -576,12 +573,12 @@ h2 {
     gap: 0;
     margin-bottom: 16px;
 
-    /* Ensure it spans the full viewport width and is centered */
-    width: 100vw; /* Take full viewport width */
-    position: relative; /* Needed for left/transform */
-    left: 50%; /* Move half viewport width to the right */
-    transform: translateX(-50%); /* Move back half of its own width to center */
-    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    /* Растягиваем на всю ширину родительского контейнера, компенсируя padding */
+    width: calc(100% + 32px); /* 100% ширины контента контейнера + 2*16px padding */
+    margin-left: -16px; /* Сдвигаем влево на размер padding */
+    margin-right: -16px; /* Сдвигаем вправо на размер padding */
+
+    /* Удалены position: relative, left, transform, overflow-x, так как они не нужны при таком подходе */
 }
 .time-slot {
     font-family: 'monaco', monospace; /* моноширинный шрифт для слотов */
@@ -589,10 +586,10 @@ h2 {
     padding: 12px;
     border: none;
     margin: 0;
-    /* Calculate width based on viewport and make it square */
-    width: calc(100vw / 4); /* Each slot is 1/4 of viewport width */
-    height: calc(100vw / 4); /* Make it square */
-    /* Override min-width/height if they are conflicting */
+    /* Вычисляем ширину на основе родительского контейнера и делаем квадратным */
+    width: calc(100% / 4); /* Каждая ячейка - 1/4 ширины родителя */
+    height: calc(100% / 4); /* Делаем квадратной */
+    /* Сбрасываем min-width/height, если они конфликтуют */
     min-width: unset;
     min-height: unset;
     display: flex;
@@ -753,8 +750,6 @@ textarea {
     }
     .package .package-number {
         font-size: 32px; /* адаптивный размер для цифр пакета */
-        top: 12px; /* Адаптивный отступ */
-        left: 12px; /* Адаптивный отступ */
     }
     .package .package-unit-wrapper {
         width: 100%;
@@ -819,8 +814,6 @@ textarea {
     }
     .package .package-number {
         font-size: 32px; /* еще меньше на очень маленьких экранах */
-        top: 12px; /* Адаптивный отступ */
-        left: 12px; /* Адаптивный отступ */
     }
     .package .package-unit-wrapper {
         width: 100%;
