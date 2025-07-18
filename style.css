@@ -842,7 +842,6 @@ textarea {
     position: relative;
     left: 50%;
     transform: translateX(-50%);
-    margin-left: -16px;
     margin-right: -16px;
     overflow-x: scroll;
     scrollbar-width: none;
