@@ -566,13 +566,13 @@ h2 {
 
 /* выбор времени */
 #time-grid { /* отдельный стиль для сетки времени */
-    grid-template-columns: repeat(4, 1fr); /* 4 столбца на шаге времени */
+    grid-template-columns: repeat(3, 1fr); /* Изменено на 3 столбца */
     display: grid; /* применяем grid, так как он может быть переопределен */
     gap: 4px; /* Добавлен небольшой зазор между элементами */
-    /* Удалены padding-left и padding-right */
     margin-left: 0; /* Убраны отрицательные отступы */
     margin-right: 0; /* Убраны отрицательные отступы */
     margin-bottom: 16px;
+    padding: 0; /* Убраны padding-left и padding-right */
 }
 .time-slot {
     font-family: 'monaco', monospace; /* моноширинный шрифт для слотов */
@@ -771,9 +771,9 @@ textarea {
     }
 
     #time-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 столбца */
+        grid-template-columns: repeat(3, 1fr); /* Изменено на 3 столбца */
         gap: 4px; /* Добавлен небольшой зазор между элементами */
-        /* Удалены padding-left и padding-right */
+        padding: 0; /* Убраны padding-left и padding-right */
     }
     .time-slot {
         font-size: 14px;
@@ -838,7 +838,7 @@ textarea {
     #time-grid {
         grid-template-columns: repeat(3, 1fr); /* 3 столбца на очень маленьких экранах */
         gap: 4px; /* Добавлен небольшой зазор между элементами */
-        /* Удалены padding-left и padding-right */
+        padding: 0; /* Убраны padding-left и padding-right */
     }
     .date-carousel .date-item {
         width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
