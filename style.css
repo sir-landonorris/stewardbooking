@@ -473,11 +473,12 @@ h2 {
 .package-header-row {
     display: flex;
     flex-direction: column; /* Изменено: элементы в колонку */
-    align-items: flex-start; /* Выравнивание по левому краю */
+    align-items: flex-end; /* Выравнивание по правому краю */
     gap: 0; /* Убираем отступ */
     position: absolute; /* Позиционируем контейнер внутри пакета */
-    top: 20px; /* Отступ сверху */
-    left: 20px; /* Отступ слева */
+    top: 16px; /* Отступ сверху */
+    left: 16px; /* Отступ слева */
+    width: calc(100% - 32px); /* Ширина с учетом padding */
 }
 
 .package .package-number { /* стиль для цифр пакетов */
@@ -487,6 +488,8 @@ h2 {
     line-height: 1;
     position: static; /* Сбрасываем абсолютное позиционирование */
     text-transform: none;
+    text-align: right; /* Выравнивание текста по правому краю */
+    width: 100%; /* Занимает всю доступную ширину */
 }
 .package .package-unit { /* стиль для "час/часа" */
     font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
@@ -495,6 +498,8 @@ h2 {
     text-transform: lowercase;
     font-weight: normal;
     margin-top: 0; /* Убираем верхний отступ */
+    text-align: right; /* Выравнивание текста по правому краю */
+    width: 100%; /* Занимает всю доступную ширину */
 }
 .package .package-night-text { /* стиль для текста "ночь" */
     font-family: 'helvetica neue condensed black', sans-serif;
@@ -735,13 +740,13 @@ textarea {
     }
     .package .package-number {
         font-size: 40px; /* адаптивный размер для цифр пакета */
-        top: 20px;
-        left: 20px;
+        top: 16px; /* Адаптивный отступ */
+        left: 16px; /* Адаптивный отступ */
     }
     .package .package-unit {
         font-size: 10.24px;
         top: 36px;
-        left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
+        left: calc(16px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
     }
     .package .package-night-text {
         font-size: 24px; /* Адаптивный размер */
@@ -799,13 +804,13 @@ textarea {
     }
     .package .package-number {
         font-size: 32px; /* еще меньше на очень маленьких экранах */
-        top: 20px;
-        left: 20px;
+        top: 16px; /* Адаптивный отступ */
+        left: 16px; /* Адаптивный отступ */
     }
     .package .package-unit {
         font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
         top: 30px;
-        left: calc(20px + 32px + 10px);
+        left: calc(16px + 32px + 10px);
     }
     .package .package-night-text {
         font-size: 12.8px; /* адаптивный размер для "ночь" */
@@ -892,21 +897,27 @@ textarea {
     font-size: 32px; /* Соответствует стандартным пакетам */
     font-weight: bold;
     line-height: 1;
-    position: static; /* Изменено: сбрасываем абсолютное позиционирование */
-    top: auto; /* Сброс top */
-    left: auto; /* Сброс left */
+    position: absolute; /* Изменено на absolute */
+    top: 16px; /* Изменено на 16px */
+    left: 16px; /* Изменено на 16px */
     text-transform: none;
+    align-self: flex-end; /* Выравнивание по правому краю */
+    text-align: right; /* Выравнивание текста по правому краю */
+    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
 }
 
 .custom-package-carousel .package .package-unit {
     font-size: 10.24px; /* Соответствует стандартным пакетам */
     display: block;
-    position: static; /* Изменено: сбрасываем абсолютное позиционирование */
-    top: auto; /* Сброс top */
-    left: auto; /* Сброс left */
+    position: absolute; /* Изменено на absolute */
+    top: calc(16px + 32px); /* Под цифрой */
+    left: 16px; /* Изменено на 16px */
     text-transform: lowercase;
     font-weight: normal;
     margin-top: 0; /* Убираем верхний отступ */
+    align-self: flex-end; /* Выравнивание по правому краю */
+    text-align: right; /* Выравнивание текста по правому краю */
+    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
 }
 
 .custom-package-carousel .package .package-original-price {
@@ -979,13 +990,13 @@ textarea {
     }
     .custom-package-carousel .package .package-number {
         font-size: 32px; /* Адаптивный размер */
-        top: 20px;
-        left: 20px;
+        top: 16px; /* Адаптивный отступ */
+        left: 16px; /* Адаптивный отступ */
     }
     .custom-package-carousel .package .package-unit {
         font-size: 10.24px; /* Адаптивный размер */
-        top: 36px;
-        left: calc(20px + 32px + 10px);
+        top: calc(16px + 32px); /* Под цифрой */
+        left: 16px; /* Адаптивный отступ */
     }
     .custom-package-carousel .package .package-original-price {
         font-size: 10.24px; /* Адаптивный размер */
@@ -1016,13 +1027,13 @@ textarea {
     }
     .custom-package-carousel .package .package-number {
         font-size: 32px; /* еще меньше на очень маленьких экранах */
-        top: 20px;
-        left: 20px;
+        top: 16px; /* Адаптивный отступ */
+        left: 16px; /* Адаптивный отступ */
     }
     .custom-package-carousel .package .package-unit {
         font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
-        top: 30px;
-        left: calc(20px + 32px + 10px);
+        top: calc(16px + 32px); /* Под цифрой */
+        left: 16px; /* Адаптивный отступ */
     }
     .custom-package-carousel .package .package-night-text {
         font-size: 12.8px; /* адаптивный размер для "ночь" */
