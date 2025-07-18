@@ -857,7 +857,6 @@ textarea {
     width: max-content;
     display: flex;
     padding: 0; /* Изменено с 0 16px на 0 */
-    gap: 8px;
 }
 
 .custom-package-carousel .package {
@@ -974,7 +973,6 @@ textarea {
     .custom-package-carousel .package {
         min-width: unset; /* Сброс min-width */
         min-height: unset; /* Сброс min-height */
-        width: calc(33.333% - 0px); /* 3 элемента в ряд */
         height: calc(33.333vw - 0px);
         padding: 12px; /* Уменьшенный padding для мобильных */
     }
