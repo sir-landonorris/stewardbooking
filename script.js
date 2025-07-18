@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     let supabase, userId;
     let isAuthReady = false;
@@ -136,13 +136,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     function updateProgress(step) {
         const totalSteps = document.querySelectorAll('.step-page').length; // correctly count active steps
         const progress = (step / (totalSteps - 1)) * 100;
-        document.getElementById('booking-progress-global').style.width = `${progress}%`;
+        document.getElementById('global-progress-bar').style.width = `${progress}%`; // Исправлено ID
     }
 
     // настройка выбора даты
     function setupCalendar() {
-        const dateToggle = document.getElementById('date-toggle');
-        const dateCarouselContainer = document.getElementById('date-carousel-container');
+        const dateToggle = document.getElementById('date-display'); // Исправлено ID
+        const dateCarouselContainer = document.getElementById('date-carousel'); // Исправлено ID
         const dateCarousel = document.getElementById('date-carousel');
         const today = new Date();
         
@@ -206,11 +206,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             const fullDate = selectedDateItem.dataset.fullDate;
             bookingData.date = fullDate;
             // currentDateDisplay.textContent = fullDate; // removed as per user request
-            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; // check simulator selection
+            document.getElementById('next-0').disabled = bookingData.simulator.length === 0; // check simulator selection
             updateBreadcrumbs(); // обновляем хлебные крошки
         } else {
             bookingData.date = null;
-            document.getElementById('toPackagePage').disabled = true;
+            document.getElementById('next-0').disabled = true;
             updateBreadcrumbs(); // обновляем хлебные крошки
         }
     }
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // очищаем предыдущие выборы в bookingdata для повторной инициализации на основе текущего dom
         bookingData.simulator = [];
 
-        document.querySelectorAll('.simulator-box').forEach(sim => {
+        document.querySelectorAll('.simulator-grid-container .grid-item').forEach(sim => { // Исправлен селектор
             const removeBtn = sim.querySelector('.remove-selection');
             const simulatorId = sim.dataset.id;
 
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 
                 // проверяем, должна ли кнопка "далее" быть активной
-                document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+                document.getElementById('next-0').disabled = bookingData.simulator.length === 0;
                 updateBreadcrumbs(); // обновляем хлебные крошки
             });
 
@@ -266,20 +266,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (removeBtn) {
                 removeBtn.addEventListener('click', function(e) {
                     e.stopPropagation(); // предотвращаем срабатывание клика на родительском элементе
-                    const parentSim = this.closest('.simulator-box');
+                    const parentSim = this.closest('.grid-item'); // Исправлен селектор
                     if (parentSim) {
                         const simulatorId = parentSim.dataset.id;
                         parentSim.classList.remove('selected');
                         this.style.display = 'none';
                         bookingData.simulator = bookingData.simulator.filter(id => id !== simulatorId);
-                        document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+                        document.getElementById('next-0').disabled = bookingData.simulator.length === 0;
                         updateBreadcrumbs(); // обновляем хлебные крошки
                     }
                 });
             }
         });
         // убедимся, что состояние кнопки "далее" корректно после начальной настройки
-        document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+        document.getElementById('next-0').disabled = bookingData.simulator.length === 0;
         updateBreadcrumbs();
     }
 
@@ -303,8 +303,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const hourUnit = getHourUnit(pkg.hours);
                 return `
                     <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                        <div class="package-number">${displayHours}</div>
-                        <small class="package-unit">${hourUnit}</small>
+                        <div class="package-header-row">
+                            <div class="package-number">${displayHours}</div>
+                            <small class="package-unit">${hourUnit}</small>
+                        </div>
                         ${originalPriceDisplay}
                         <div class="package-price">${pkg.price}</div>
                     </div>
@@ -330,7 +332,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.hours = parseInt(this.dataset.hours); // сохраняем количество часов
                 document.getElementById('package-summary').textContent = 
                     `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
-                document.getElementById('toTimePageNew').disabled = false;
+                document.getElementById('next-1').disabled = false; // Исправлено ID
                 setupTimeSlotsGenerator(); // генерируем слоты после выбора пакета
                 updateBreadcrumbs(); // обновляем хлебные крошки
 
@@ -348,12 +350,20 @@ document.addEventListener('DOMContentLoaded', async function() {
             previousSelectedPackageDuration = bookingData.duration; // Сохраняем текущий выбранный пакет
             document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // снимаем выбор с обычных пакетов
             document.getElementById('package-grid').classList.add('hidden'); // скрываем основной список
-            document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // показываем карусель
+            // document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // Исправлено ID
+            document.getElementById('package-grid').insertAdjacentHTML('afterend', `
+                <div id="custom-package-carousel-container" class="custom-package-carousel-container">
+                    <div id="custom-package-carousel" class="custom-package-carousel"></div>
+                    <div class="flex flex-col gap-4 mt-6">
+                        <button id="backToMainPackageSelection" class="button back-btn active">назад к пакетам</button>
+                    </div>
+                </div>
+            `);
             document.getElementById('package-step-title').textContent = 'выберите свой пакет'; // Меняем заголовок
 
             // Manage button visibility
-            document.getElementById('toTimePageNew').classList.add('hidden'); // Прячем кнопку "далее"
-            document.getElementById('backToPackagePage').classList.add('hidden'); // Прячем кнопку "назад" (которая на предыдущий шаг)
+            document.getElementById('next-1').classList.add('hidden'); // Прячем кнопку "далее"
+            document.getElementById('back-1').classList.add('hidden'); // Прячем кнопку "назад" (которая на предыдущий шаг)
             document.getElementById('backToMainPackageSelection').classList.remove('hidden'); // Показываем кнопку "назад к пакетам"
             
             setupCustomPackageSelection(); // генерируем и настраиваем карусель
@@ -398,8 +408,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             customPackagesHtml += `
                 <div class="package block" data-duration="${displayHours} ${hourUnit}" data-price="${currentPrice}" data-hours="${hours}">
-                    <div class="package-number">${displayHours}</div>
-                    <small class="package-unit">${hourUnit}</small>
+                    <div class="package-header-row">
+                        <div class="package-number">${displayHours}</div>
+                        <small class="package-unit">${hourUnit}</small>
+                    </div>
                     ${originalPriceDisplay}
                     <div class="package-price">${currentPrice} ₽</div>
                 </div>
@@ -431,7 +443,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 document.getElementById('package-summary').textContent = 
                     `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
-                document.getElementById('toTimePageNew').disabled = false;
+                document.getElementById('next-1').disabled = false; // Исправлено ID
                 setupTimeSlotsGenerator(); // генерируем слоты после выбора пакета
                 
                 // обновляем текст на кнопке "свой пакет"
@@ -440,14 +452,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('custom-package-trigger').classList.add('selected'); // визуально выделяем
 
                 // возвращаемся к основному виду шага пакетов
-                document.getElementById('custom-package-carousel-container').classList.add('hidden');
+                document.getElementById('custom-package-carousel-container').remove(); // Удаляем контейнер карусели
                 document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
                 document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
 
                 // Manage button visibility
-                document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
-                document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
-                document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
+                document.getElementById('next-1').classList.remove('hidden'); // Показываем кнопку "далее"
+                document.getElementById('back-1').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
+                // document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Эта кнопка удаляется вместе с контейнером
 
                 updateBreadcrumbs(); // обновляем хлебные крошки
             });
@@ -455,14 +467,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // обработчик для кнопки "назад к пакетам"
         document.getElementById('backToMainPackageSelection').addEventListener('click', function() {
-            document.getElementById('custom-package-carousel-container').classList.add('hidden');
+            document.getElementById('custom-package-carousel-container').remove(); // Удаляем контейнер карусели
             document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
             document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
 
             // Manage button visibility
-            document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
-            document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
-            document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
+            document.getElementById('next-1').classList.remove('hidden'); // Показываем кнопку "далее"
+            document.getElementById('back-1').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
+            // document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Эта кнопка удаляется вместе с контейнером
             
             // сбрасываем выбранный пакет, если пользователь вернулся
             document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
@@ -470,7 +482,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookingData.price = null;
             bookingData.hours = null;
             document.getElementById('package-summary').textContent = '';
-            document.getElementById('toTimePageNew').disabled = true;
+            document.getElementById('next-1').disabled = true; // Исправлено ID
 
             // сбрасываем текст на кнопке "свой пакет"
             const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
@@ -594,11 +606,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
                 bookingData.time = this.dataset.timeRange;
-                document.getElementById('toFormPage').disabled = false; // changed from towheelpage to toformpage
+                document.getElementById('next-2').disabled = false; // changed from toformpage to next-2
                 updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
-        document.getElementById('toFormPage').disabled = true; // disable until a slot is selected
+        document.getElementById('next-2').disabled = true; // disable until a slot is selected
     }
 
     // настройка выбора руля (больше не отдельный шаг)
@@ -627,29 +639,30 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log("Загруженные пользовательские данные:", userData);
                 
                 // pre-fill form fields
-                const nameInput = document.querySelector('#form-step input[type="text"]');
+                const nameInput = document.getElementById('name'); // Исправлено ID
                 const phoneInput = document.getElementById('phone');
-                const telegramInput = document.getElementById('telegram');
+                const commentInput = document.getElementById('comment'); // Добавлено для комментария
 
                 if (userData.name) nameInput.value = userData.name;
                 if (userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
-                if (userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
+                // if (userData.telegram_username) telegramInput.value = userData.telegram_username; // telegram input removed from form
 
                 // update bookingdata
                 bookingData.name = userData.name || null;
                 bookingData.phone = userData.phone || null;
-                bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
+                bookingData.telegram = bookingData.telegram; // Keep telegram username from webapp init
+                bookingData.comment = commentInput.value; // Get initial comment value if any
 
                 // check if all required user data is present to potentially skip the form step
-                if (userData.name && userData.phone && userData.telegram_username) {
+                if (userData.name && userData.phone) { // Removed telegram_username check
                     console.log("Пользовательские данные полные, форма предварительно заполнена.");
                 }
             } else {
                 console.log("Существующие пользовательские данные для Telegram ID не найдены:", telegramId);
                 // if no data, ensure form fields are empty or default
-                document.querySelector('#form-step input[type="text"]').value = '';
+                document.getElementById('name').value = '';
                 document.getElementById('phone').value = '+7 ';
-                document.getElementById('telegram').value = bookingData.telegram; // pre-fill with telegram username from webapp
+                // document.getElementById('telegram').value = bookingData.telegram; // telegram input removed from form
             }
         } catch (error) {
             console.error("Ошибка загрузки пользовательских данных:", error);
@@ -703,24 +716,24 @@ document.addEventListener('DOMContentLoaded', async function() {
             bookingData.phone = formatted; // update bookingdata with formatted phone
         });
         
-        // валидация telegram
-        document.getElementById('telegram').addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
-        });
+        // валидация telegram (удалено, так как поле telegram удалено из формы)
+        // document.getElementById('telegram').addEventListener('input', function(e) {
+        //     this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+        // });
     }
 
     // настройка навигации
     function setupNavigation() {
         // кнопки "далее"
-        document.getElementById('toPackagePage').addEventListener('click', () => showStep(1)); // с даты/симулятора на пакет
-        document.getElementById('toTimePageNew').addEventListener('click', () => showStep(2)); // с пакета на время
-        document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // со времени на форму (руль удален)
+        document.getElementById('next-0').addEventListener('click', () => showStep(1)); // с даты/симулятора на пакет
+        document.getElementById('next-1').addEventListener('click', () => showStep(2)); // с пакета на время
+        document.getElementById('next-2').addEventListener('click', () => showStep(3)); // со времени на форму (руль удален)
         
         // кнопки "назад"
         // document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // Removed as this button is not in HTML
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
-        document.getElementById('backToTimeStep').addEventListener('click', () => showStep(1)); // со времени на пакет (Updated ID)
-        document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // с формы на время (руль удален)
+        document.getElementById('back-1').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
+        document.getElementById('back-2').addEventListener('click', () => showStep(1)); // со времени на пакет (Updated ID)
+        document.getElementById('back-3').addEventListener('click', () => showStep(2)); // с формы на время (руль удален)
         
         // отправка формы
         document.getElementById('booking-form').addEventListener('submit', async function(e) {
@@ -733,10 +746,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             
             // сохраняем данные
-            bookingData.name = this.querySelector('input[type="text"]').value;
+            bookingData.name = document.getElementById('name').value; // Исправлено ID
             // bookingdata.phone уже обновляется в setupform при вводе
-            bookingData.telegram = this.querySelector('#telegram').value;
-            bookingData.comment = this.querySelector('textarea').value;
+            // bookingData.telegram = this.querySelector('#telegram').value; // Удалено поле telegram
+            bookingData.comment = document.getElementById('comment').value; // Исправлено ID
             
             // сохраняем данные пользователя в базу
             await saveUserData();
@@ -748,8 +761,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // обновление хлебных крошек
     function updateBreadcrumbs() {
-        const breadcrumbDiv = document.getElementById('booking-breadcrumb');
-        // check if breadcrumbdiv exists before updating
+        const breadcrumbDiv = document.getElementById('breadcrumb'); // Исправлено ID
+        // check if breadcrumbDiv exists before updating
         if (!breadcrumbDiv) {
             console.warn("Элемент хлебных крошек не найден. Обновление хлебных крошек пропущено.");
             return;
@@ -902,12 +915,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // сбрасываем кнопки
         document.querySelectorAll('.button').forEach(btn => btn.disabled = false); // re-enable all buttons
-        document.getElementById('toPackagePage').disabled = true; // disable next on step 0 until selection
-        document.getElementById('toTimePageNew').disabled = true; // disable next on step 1 until selection
-        document.getElementById('toFormPage').disabled = true; // disable next on step 2 until selection
+        document.getElementById('next-0').disabled = true; // disable next on step 0 until selection
+        document.getElementById('next-1').disabled = true; // disable next on step 1 until selection
+        document.getElementById('next-2').disabled = true; // disable next on step 2 until selection
 
         // скрываем карусель "свой пакет" и показываем основную сетку
-        document.getElementById('custom-package-carousel-container').classList.add('hidden');
+        const customCarouselContainer = document.getElementById('custom-package-carousel-container');
+        if (customCarouselContainer) {
+            customCarouselContainer.remove();
+        }
         document.getElementById('package-grid').classList.remove('hidden');
 
         // сбрасываем отображение выбранного пакета
@@ -925,9 +941,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Возвращаем заголовок и видимость кнопок
         document.getElementById('package-step-title').textContent = 'выберите пакет времени';
-        document.getElementById('toTimePageNew').classList.remove('hidden');
-        document.getElementById('backToPackagePage').classList.remove('hidden');
-        document.getElementById('backToMainPackageSelection').classList.add('hidden');
+        document.getElementById('next-1').classList.remove('hidden');
+        document.getElementById('back-1').classList.remove('hidden');
+        // document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Эта кнопка удаляется вместе с контейнером
 
 
         // переинициализируем выбор симуляторов, чтобы 01 снова был выбран по умолчанию

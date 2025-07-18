@@ -459,7 +459,7 @@ h2 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* выравниваем по левому краю */
     aspect-ratio: 1 / 1; /* делаем квадратным */
     min-width: 140px; /* минимальный размер для адаптивности */
     min-height: 140px;
@@ -468,22 +468,31 @@ h2 {
     background-color: #000000; /* черный фон */
     color: #ffffff; /* белый текст */
 }
+
+/* Новый стиль для контейнера номера и единицы измерения */
+.package-header-row {
+    display: flex;
+    align-items: baseline; /* Выравнивание по базовой линии текста */
+    gap: 5px; /* Небольшой отступ между цифрой и словом */
+    position: absolute; /* Позиционируем контейнер внутри пакета */
+    top: 20px;
+    left: 20px;
+}
+
 .package .package-number { /* стиль для цифр пакетов */
     font-family: 'monaco', monospace;
     font-size: 32px; /* 32px */
     font-weight: bold;
     line-height: 1;
-    position: absolute;
-    top: 20px; /* 20px */
-    left: 20px; /* 20px */
+    /* Удалены top и left, так как теперь они в package-header-row */
+    position: static; /* Сбрасываем абсолютное позиционирование */
     text-transform: none;
 }
 .package .package-unit { /* стиль для "час/часа" */
     font-size: 10.24px; /* 12.8px * 0.8 = 10.24px */
     display: block;
-    position: absolute;
-    top: 36px;
-    left: calc(20px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px (было 5px) */
+    /* Удалены top и left, так как теперь они в package-header-row */
+    position: static; /* Сбрасываем абсолютное позиционирование */
     text-transform: lowercase;
     font-weight: normal;
 }
@@ -840,10 +849,9 @@ textarea {
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x mandatory;
     gap: 0;
-    width: 100vw; /* Занимаем 100% ширины видимой области */
-    position: relative; /* Для позиционирования относительно себя */
-    left: 50%; /* Перемещаем центр элемента в центр родителя */
-    transform: translateX(-50%); /* Смещаем элемент обратно на половину его ширины */
+    width: auto; /* Позволяем элементу занимать естественную ширину */
+    margin-left: -16px; /* Вытягиваем влево, компенсируя padding родителя */
+    margin-right: -16px; /* Вытягиваем вправо, компенсируя padding родителя */
     /* Убраны padding-left и padding-right для того, чтобы контент начинался от края */
     margin-bottom: 16px; /* Отступ от нижних элементов */
     scrollbar-width: none; /* Firefox */
