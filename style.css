@@ -566,6 +566,7 @@ h2 {
 
 /* выбор времени */
 #time-grid {
+    display: grid; /* Добавлено: Убедитесь, что display: grid применяется */
     grid-template-columns: repeat(4, 1fr); /* 4 колонки */
     gap: 0; /* убираем промежутки */
     margin-left: -16px; /* компенсируем padding контейнера */
@@ -589,10 +590,6 @@ h2 {
     margin: 0; /* плотное прилегание */
     aspect-ratio: 1 / 1; /* делаем квадратным */
     text-transform: none; /* убран капслок */
-}
-.time-slot.selected {
-    background-color: #000000;
-    color: #ffffff;
 }
 
 /* форма данных */
