@@ -28,21 +28,21 @@
     <!-- fallback для открытия вне telegram web app -->
     <div id="web-app-fallback" class="hidden">
         <div class="content">
-            <h1>Рад тебя видеть — стюард на связи 🏁</h1>
+            <h1>рад тебя видеть — стюард на связи 🏁</h1>
             <p>
-                Готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
+                готов помочь с бронью, напомнить цены, обновления и рассказать, что нового в клубе.
             </p>
             <p>
-                Если что-то упустил — загляни в наше сообщество 
+                если что-то упустил — загляни в наше сообщество 
                 <a href="https://t.me/c/2381161383/2" target="_blank">sim racing клуб</a>,<br>
                 там всегда свежие новости, обсуждения и планы на заезды.
             </p>
             <p class="address">
-                📍 Ростов-на-дону, б. садовая, 70 (киберклуб бункер)
+                📍 ростов-на-дону, б. садовая, 70 (киберклуб бункер)
             </p>
             <!-- Видео удалено по запросу пользователя -->
             <p class="text-sm">
-                Пожалуйста, откройте это приложение через telegram для полноценного бронирования.
+                пожалуйста, откройте это приложение через telegram для полноценного бронирования.
             </p>
         </div>
     </div>
@@ -51,9 +51,10 @@
     <div id="main-booking-content" class="container">
         <!-- шаг 0: выбор даты и симулятора (объединенный шаг) -->
         <div id="date-simulator-step" class="step-page active">
+            <h2 class="step-title">дата</h2>
             <div class="date-selection-area">
                 <div class="date-display" id="date-toggle">
-                    дата
+                    сегодня
                     <span class="arrow-down"></span>
                 </div>
                 <div id="date-carousel-container" class="date-carousel-container">
@@ -63,7 +64,7 @@
                 </div>
             </div>
 
-            <h2 class="step-title">выбери один или несколько симуляторов</h2>
+            <h2 class="step-title">выберите симулятор(ы)</h2>
             <div class="simulator-grid-container">
                 <div class="grid-item simulator-box" data-id="1">
                     <div class="simulator-number">01</div>
@@ -81,7 +82,7 @@
 
         <!-- шаг 1: выбор пакета времени -->
         <div id="package-step" class="step-page">
-            <h2 class="step-title" id="package-step-title">выбери пакет времени</h2>
+            <h2 class="step-title" id="package-step-title">выберите пакет времени</h2>
             <div id="package-grid">
                 <!-- пакеты будут сгенерированы js -->
             </div>
@@ -102,7 +103,7 @@
 
         <!-- шаг 2: выбор времени -->
         <div id="time-select-step" class="step-page">
-            <h2 class="step-title">выбери слот времени</h2>
+            <h2 class="step-title">выберите время</h2>
             <div id="long-booking-warning" class="message-box info">
                 <strong>⚠️ важно:</strong> для длительных броней (12 часов и более) мы предварительно свяжемся с гостем. это помогает нам избежать неявок и сохранить симуляторы доступными для всех. в редких случаях может потребоваться предоплата. спасибо за понимание!
             </div>
@@ -120,21 +121,16 @@
             <h2 class="step-title">ваши данные</h2>
             <form id="booking-form">
                 <div class="form-group">
-                    <label for="name">имя</label>
-                    <input type="text" id="name" name="name" required placeholder="Иван">
+                    <label for="name">ваше имя</label>
+                    <input type="text" id="name" name="name" required placeholder="иван иванов">
                 </div>
                 <div class="form-group">
-                    <div class="input-group">
-                        <label for="phone_last_4_digits">телефон (последние 4)</label>
-                        <div class="phone-input-wrapper">
-                            <span class="phone-prefix-display">+7 (XXX) XXX-</span>
-                            <input type="tel" id="phone_last_4_digits" name="phone_last_4_digits" placeholder="1234" required>
-                        </div>
-                    </div>
-                <div class="input-group">
-                    <label for="telegram">телеграм</label>
-                    <input type="text" id="telegram" name="telegram" placeholder="ваш_никнейм" readonly required>
+                    <label for="phone">телефон</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+7 (xxx) xxx-1234">
                 </div>
+                <div class="form-group">
+                    <label for="telegram">telegram (ник без @)</label>
+                    <input type="text" id="telegram" name="telegram" placeholder="ваш_ник" required>
                 </div>
                 <div class="form-group">
                     <label for="comment">комментарий (необязательно)</label>
@@ -142,7 +138,7 @@
                 </div>
                 
                 <p class="text-sm text-center mt-4 mb-4">
-                    нажимая кнопку [далее] вы соглашаетесь на обработку ваших данных
+                    нажимая кнопку далее вы соглашаетесь на обработку ваших данных
                 </p>
 
                 <div class="flex flex-col gap-4 mt-6">
@@ -155,7 +151,7 @@
         <!-- шаг 4: подтверждение -->
         <div id="confirmation-step" class="step-page">
             <h2 class="step-title">ваша заявка принята!</h2>
-            <p class="text-center mb-6">мы свяжемся с вами в ближайшее время для подтверждения</p>
+            <p class="text-center mb-6">мы свяжемся с вами в ближайшее время для подтверждения.</p>
             <div id="confirmation-details" class="confirmation-details">
                 <!-- детали бронирования будут сгенерированы js -->
             </div>
