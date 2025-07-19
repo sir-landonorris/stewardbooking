@@ -49,9 +49,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Инициализация Supabase
             console.log("Попытка инициализации клиента Supabase...");
             console.log("Используемый Supabase URL:", supabaseUrl);
-            // Добавляем логирование первых и последних символов ключа для проверки
-            console.log("Используемый Supabase Anon Key (первые 5 и последние 5 символов):", 
+            // Добавляем логирование для проверки ключа
+            console.log("Supabase Anon Key (первые 5 и последние 5 символов):", 
                         supabaseAnonKey.substring(0, 5) + '...' + supabaseAnonKey.substring(supabaseAnonKey.length - 5));
+            console.log("Длина Supabase Anon Key:", supabaseAnonKey.length);
+            console.log("Тип Supabase Anon Key:", typeof supabaseAnonKey);
+            // Проверим, нет ли невидимых символов (например, BOM или других управляющих символов)
+            console.log("Supabase Anon Key (в виде массива кодов символов):", Array.from(supabaseAnonKey).map(char => char.charCodeAt(0)));
             
             supabase = createClient(supabaseUrl, supabaseAnonKey);
             console.log("Клиент Supabase инициализирован.");
