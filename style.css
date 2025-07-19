@@ -566,7 +566,7 @@ h2 {
 
 /* выбор времени */
 #time-grid {
-    display: grid; /* Добавлено: Убедитесь, что display: grid применяется */
+    display: grid; /* Убедитесь, что display: grid применяется */
     grid-template-columns: repeat(4, 1fr); /* 4 колонки */
     gap: 0; /* убираем промежутки */
     margin-left: -16px; /* компенсируем padding контейнера */
@@ -581,7 +581,7 @@ h2 {
     font-size: 12px; /* уменьшаем размер шрифта */
     min-height: 60px; /* минимальная высота */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Отображаем элементы в столбик */
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -590,7 +590,26 @@ h2 {
     margin: 0; /* плотное прилегание */
     aspect-ratio: 1 / 1; /* делаем квадратным */
     text-transform: none; /* убран капслок */
+    background-color: #d9d9d9; /* светло-серый */
+    color: #000000; /* черный */
+    cursor: pointer;
 }
+.time-slot.selected {
+    background-color: #000000;
+    color: #ffffff;
+}
+.time-slot.disabled {
+    background-color: #d9d9d9;
+    color: #a0a0a0; /* серый для зачёркнутого */
+    text-decoration: line-through;
+    pointer-events: none;
+    border: none; /* удалено: обводка */
+}
+.time-slot small {
+    font-size: 9px; /* Уменьшаем размер шрифта для второй строки (время окончания) */
+    margin-top: 2px; /* Небольшой отступ сверху для второй строки */
+}
+
 
 /* форма данных */
 form label {

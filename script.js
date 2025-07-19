@@ -524,28 +524,35 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
 
-        // generate time slots
-        for (let hour = 10; hour <= 23; hour++) {
-            let startHour = hour;
-            let endHour = startHour + durationHours;
+        // generate time slots from 8:00 to 03:00 (next day) with 30-minute steps
+        // 8 AM is hour 8. 3 AM next day is hour 27 (24 + 3)
+        for (let currentHour = 8; currentHour <= 26.5; currentHour += 0.5) { // Loop up to 2:30 AM (26.5)
+            let startHour = Math.floor(currentHour);
+            let startMinutes = (currentHour % 1) * 60;
             
-            // handle fractional hours for start and end times
-            let startMinutes = (startHour % 1) * 60;
-            let endMinutes = (endHour % 1) * 60;
+            let endHourFloat = currentHour + durationHours;
+            let endHour = Math.floor(endHourFloat);
+            let endMinutes = (endHourFloat % 1) * 60;
 
-            let startHourFormatted = Math.floor(startHour).toString().padStart(2, '0');
+            // Format start time
+            let startHourFormatted = startHour.toString().padStart(2, '0');
             let startMinutesFormatted = startMinutes.toString().padStart(2, '0');
+            let startTimeDisplay = `${startHourFormatted}:${startMinutesFormatted}`;
             
-            let endHourFormatted = Math.floor(endHour).toString().padStart(2, '0');
-            let endMinutesFormatted = endMinutes.toString().padStart(2, '0');
-
+            // Format end time
+            let endHourDisplay = endHour.toString().padStart(2, '0');
+            let endMinutesDisplay = endMinutes.toString().padStart(2, '0');
             let endTimeSuffix = '';
-            if (Math.floor(endHour) >= 24) {
-                endHourFormatted = (Math.floor(endHour) - 24).toString().padStart(2, '0');
+
+            // Check if end time crosses midnight (24 hours)
+            if (endHourFloat >= 24) {
+                endHourDisplay = (endHour - 24).toString().padStart(2, '0');
                 endTimeSuffix = ' (следующий день)'; // lowercase
             }
+            let endTimeDisplay = `${endHourDisplay}:${endMinutesDisplay}${endTimeSuffix}`;
 
-            const currentTimeSlot = `${startHourFormatted}:${startMinutesFormatted} – ${endHourFormatted}:${endMinutesFormatted}${endTimeSuffix}`;
+            // Store the full time range for bookingData and data-attribute
+            const fullTimeRange = `${startTimeDisplay} – ${endHourDisplay}:${endMinutesDisplay}${endTimeSuffix}`;
             
             // check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
@@ -554,7 +561,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const occupiedDurationMinutes = occupied.duration_hours * 60;
                 const occupiedEndTotalMinutes = occupiedStartTotalMinutes + occupiedDurationMinutes;
 
-                const currentStartTotalMinutes = hour * 60 + startMinutes;
+                const currentStartTotalMinutes = currentHour * 60;
                 const currentDurationMinutes = durationHours * 60;
                 const currentEndTotalMinutes = currentStartTotalMinutes + currentDurationMinutes;
 
@@ -564,23 +571,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             const disabledClass = isOccupied ? 'disabled' : '';
 
-            times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
-        }
-
-        // if "ночь", add special slot (assuming 00:00 - 08:00 is fixed for night)
-        // this slot should only be added if the selected package is exactly 'ночь'
-        if (bookingData.duration === 'ночь') { // changed to lowercase
-            const nightSlot = '00:00 – 08:00';
-            const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
-                const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
-                
-                // check if the night slot (00:00 - 08:00) overlaps with any existing booking
-                // simplified check: if any booking starts at 00:00 or overlaps significantly
-                return (occupiedStartTotalMinutes < (8 * 60) && (occupiedStartTotalMinutes + (occupied.duration_hours * 60)) > 0);
-            });
-            const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
-            times.push(`<div class="time-slot block ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
+            times.push(`
+                <div class="time-slot block ${disabledClass}" data-time-range="${fullTimeRange}">
+                    ${startTimeDisplay}
+                    <small>${endHourDisplay}:${endMinutesDisplay}${endTimeSuffix}</small>
+                </div>
+            `);
         }
         
         timeGrid.innerHTML = times.join('');
