@@ -88,6 +88,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                     console.log("Данные пользователя Telegram:", userTg);
                     await loadUserData(bookingData.telegramId); // Загружаем данные пользователя из таблицы 'users'
                 }
+                // Если Telegram Web App обнаружен, скрываем заглушку и показываем основной контент
+                document.getElementById('web-app-fallback').classList.add('hidden');
+                document.getElementById('main-booking-content').style.display = 'block';
+
             } else {
                 console.warn("SDK Telegram Web App не найден или не готов.");
                 // fallback for non-telegram environment (no video here)
