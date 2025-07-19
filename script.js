@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
     // ПРОВЕРЬТЕ: Убедитесь, что этот ключ является вашим реальным Supabase anon public key!
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     let supabase, userId;
     let isAuthReady = false;
@@ -47,18 +47,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function init() {
         try {
             // Инициализация Supabase
-            console.log("Попытка инициализации клиента Supabase...");
-            console.log("Используемый Supabase URL:", supabaseUrl);
-            // Добавляем логирование для проверки ключа
-            console.log("Supabase Anon Key (первые 5 и последние 5 символов):", 
-                        supabaseAnonKey.substring(0, 5) + '...' + supabaseAnonKey.substring(supabaseAnonKey.length - 5));
-            console.log("Длина Supabase Anon Key:", supabaseAnonKey.length);
-            console.log("Тип Supabase Anon Key:", typeof supabaseAnonKey);
-            // Проверим, нет ли невидимых символов (например, BOM или других управляющих символов)
-            console.log("Supabase Anon Key (в виде массива кодов символов):", Array.from(supabaseAnonKey).map(char => char.charCodeAt(0)));
-            
             supabase = createClient(supabaseUrl, supabaseAnonKey);
             console.log("Клиент Supabase инициализирован.");
+            console.log("Supabase URL:", supabaseUrl);
+            console.log("Supabase Anon Key (first 5 chars)::", supabaseAnonKey.substring(0, 5) + '...');
 
             // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -114,9 +106,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('cancel-modal').style.display = 'none';
 
         } catch (error) {
-            console.error("Критическая ошибка инициализации приложения:", error);
-            // Возможно, здесь можно отобразить сообщение пользователю, если приложение не может инициализироваться
-            // document.getElementById('error-message-box').textContent = 'Не удалось подключиться к базе данных. Пожалуйста, проверьте настройки.';
+            console.error("Ошибка инициализации приложения:", error);
         }
     }
 
@@ -527,7 +517,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 if (error) {
                     console.error("Ошибка получения занятых слотов из Supabase:", error);
-                    console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'bookings'.");
                 } else {
                     occupiedSlots = data.filter(booking => 
                         booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim))
@@ -616,10 +605,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // загрузка данных пользователя из supabase (теперь из таблицы 'users')
     async function loadUserData(telegramId) {
-        if (!supabase || !telegramId) {
-            console.warn("Supabase клиент не инициализирован или отсутствует telegramId. Пропуск загрузки пользовательских данных.");
-            return;
-        }
+        if (!supabase || !telegramId) return;
 
         try {
             // assuming a 'users' table with 'telegram_id' as a unique identifier
@@ -631,7 +617,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error for single())
                 console.error("Ошибка загрузки пользовательских данных из Supabase:", error);
-                console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'users'.");
                 return;
             }
 
@@ -643,9 +628,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
 
-                if (nameInput && userData.name) nameInput.value = userData.name;
-                if (phoneInput && userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
-                if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
+                if (userData.name) nameInput.value = userData.name;
+                if (userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
+                if (userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
 
                 // update bookingData
                 bookingData.name = userData.name || null;
@@ -659,13 +644,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 console.log("Существующие пользовательские данные для Telegram ID не найдены:", telegramId);
                 // if no data, ensure form fields are empty or default
-                const nameInput = document.querySelector('#form-step input[type="text"]');
-                const phoneInput = document.getElementById('phone');
-                const telegramInput = document.getElementById('telegram');
-
-                if (nameInput) nameInput.value = '';
-                if (phoneInput) phoneInput.value = '+7 ';
-                if (telegramInput) telegramInput.value = bookingData.telegram; // pre-fill with telegram username from webapp
+                document.querySelector('#form-step input[type="text"]').value = '';
+                document.getElementById('phone').value = '+7 ';
+                document.getElementById('telegram').value = bookingData.telegram; // pre-fill with telegram username from webapp
             }
         } catch (error) {
             console.error("Ошибка загрузки пользовательских данных:", error);
@@ -691,7 +672,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (error) {
                 console.error("Ошибка сохранения пользовательских данных в Supabase:", error);
-                console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'users'.");
             } else {
                 console.log("Пользовательские данные сохранены/обновлены в Supabase:", data);
             }
@@ -705,24 +685,20 @@ document.addEventListener('DOMContentLoaded', async function() {
         const phoneInput = document.getElementById('phone');
         
         // форматирование номера телефона
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let numbers = e.target.value.replace(/\D/g, '');
-                if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
-                numbers = numbers.substring(0, 11);
-                
-                let formatted = '+7';
-                if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
-                if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
-                if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
-                if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
-                
-                e.target.value = formatted;
-                bookingData.phone = formatted; // update bookingData with formatted phone
-            });
-        } else {
-            console.warn("Элемент с id 'phone' не найден. Слушатель событий не добавлен.");
-        }
+        phoneInput.addEventListener('input', function(e) {
+            let numbers = e.target.value.replace(/\D/g, '');
+            if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
+            numbers = numbers.substring(0, 11);
+            
+            let formatted = '+7';
+            if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
+            if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
+            if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
+            if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
+            
+            e.target.value = formatted;
+            bookingData.phone = formatted; // update bookingData with formatted phone
+        });
         
         // валидация telegram
         // Проверяем, что элемент существует, прежде чем добавлять слушатель
@@ -761,8 +737,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             // сохраняем данные
             bookingData.name = this.querySelector('input[type="text"]').value;
             // bookingData.phone уже обновляется в setupForm при вводе
-            bookingData.telegram = document.querySelector('#telegram') ? document.querySelector('#telegram').value : ''; // Добавлена проверка
-            bookingData.comment = document.querySelector('textarea') ? document.querySelector('textarea').value : ''; // Добавлена проверка
+            bookingData.telegram = this.querySelector('#telegram').value;
+            bookingData.comment = this.querySelector('textarea').value;
             
             // сохраняем данные пользователя в базу
             await saveUserData();
@@ -841,7 +817,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 if (error) {
                     console.error("Ошибка сохранения бронирования в Supabase:", error);
-                    console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'bookings'.");
                 } else if (newBooking && newBooking.length > 0) {
                     console.log("Бронирование сохранено в Supabase с ID:", newBooking[0].id);
 
