@@ -200,9 +200,13 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1000;
+    background-image: url('images/intro.jpg'); /* Добавлено фоновое изображение */
+    background-size: cover; /* Растянуть изображение на всю область */
+    background-position: center; /* Центрировать изображение */
+    background-repeat: no-repeat; /* Не повторять изображение */
 }
 #web-app-fallback .content {
-    background-color: #000000; /* черный фон */
+    background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон для контента */
     border-radius: 0;
     padding: 16px;
     max-width: 400px;
