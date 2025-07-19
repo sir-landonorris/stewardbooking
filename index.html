@@ -124,11 +124,17 @@
                     <input type="text" id="name" name="name" required placeholder="Иван">
                 </div>
                 <div class="form-group">
-                    <div class="input-group">
-                        <label for="phone_last_4_digits">телефон (укажи последние 4 цифры)</label>
-                        <div class="phone-display-prefix">+7 (XXX) XXX-</div>
+                <div class="input-group phone-input-group">
+                    <label for="phone_last_4_digits">телефон</label>
+                    <div class="phone-input-container">
+                        <span class="phone-prefix">+7 (XXX) XXX-</span>
                         <input type="tel" id="phone_last_4_digits" name="phone_last_4_digits" placeholder="1234" required>
                     </div>
+                </div>
+                <div class="input-group">
+                    <label for="telegram">телеграм</label>
+                    <input type="text" id="telegram" name="telegram" placeholder="ваш_никнейм" readonly required>
+                </div>
                 </div>
                 <div class="form-group">
                     <label for="comment">комментарий (необязательно)</label>

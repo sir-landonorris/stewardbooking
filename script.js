@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
     // ПРОВЕРЬТЕ: Убедитесь, что этот ключ является вашим реальным Supabase anon public key!
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImexCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     // Префикс для полного номера телефона (отображается, но не редактируется пользователем)
     const fullPhonePrefix = '+7 (XXX) XXX-';
@@ -647,22 +647,30 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // pre-fill form fields
                 const nameInput = document.querySelector('#form-step input[type="text"]');
                 const phoneInput = document.getElementById('phone_last_4_digits'); // Изменено ID
-                const telegramInput = document.getElementById('telegram');
+                const telegramInput = document.getElementById('telegram'); // Получаем элемент Telegram
 
                 if (nameInput && userData.name) nameInput.value = userData.name;
                 // Заполняем поле телефона только последними 4 цифрами
                 if (phoneInput && userData.phone_last_4_digits) {
                     phoneInput.value = userData.phone_last_4_digits;
                 }
-                if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
+                // Заполняем поле Telegram
+                if (telegramInput && userData.telegram_username) {
+                    telegramInput.value = userData.telegram_username;
+                } else if (telegramInput) {
+                    // Если данных нет в базе, но есть в Telegram Web App, используем их
+                    telegramInput.value = bookingData.telegram;
+                }
+
 
                 // update bookingData
                 bookingData.name = userData.name || null;
                 bookingData.phone_last_4_digits = userData.phone_last_4_digits || null; // Используем новое название колонки
-                bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
+                bookingData.telegram = userData.telegram_username || bookingData.telegram || null; // Обновляем bookingData.telegram из базы или из WebApp
+
 
                 // check if all required user data is present to potentially skip the form step
-                if (userData.name && userData.phone_last_4_digits && userData.telegram_username) {
+                if (userData.name && userData.phone_last_4_digits && bookingData.telegram) { // Проверяем bookingData.telegram, т.к. оно уже обновлено
                     console.log("Пользовательские данные полные, форма предварительно заполнена.");
                 }
             } else {
@@ -670,7 +678,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // if no data, ensure form fields are empty or default
                 const nameInput = document.querySelector('#form-step input[type="text"]');
                 const phoneInput = document.getElementById('phone_last_4_digits'); // Изменено ID
-                const telegramInput = document.getElementById('telegram');
+                const telegramInput = document.getElementById('telegram'); // Получаем элемент Telegram
 
                 if (nameInput) nameInput.value = '';
                 if (phoneInput) phoneInput.value = ''; // Сбрасываем до пустой строки, так как пользователь вводит только 4 цифры
@@ -735,15 +743,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.warn("Элемент с id 'phone_last_4_digits' не найден. Слушатель событий не добавлен.");
         }
         
-        // валидация telegram
-        // Проверяем, что элемент существует, прежде чем добавлять слушатель
+        // Поле Telegram теперь только для чтения, поэтому удаляем обработчик input
         const telegramInput = document.getElementById('telegram');
         if (telegramInput) {
-            telegramInput.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
-            });
+            // Удаляем существующий обработчик, если он был
+            // telegramInput.removeEventListener('input', ...); // Если был добавлен анонимно, это не сработает.
+                                                              // Поэтому просто не добавляем новый.
+            telegramInput.readOnly = true; // Делаем поле только для чтения
+            console.log("Поле 'telegram' найдено и установлено только для чтения.");
         } else {
-            console.warn("Элемент с id 'telegram' не найден. Слушатель событий не добавлен.");
+            console.warn("Элемент с id 'telegram' не найден. Слушатель событий не добавлен и readOnly не установлено.");
         }
     }
 
