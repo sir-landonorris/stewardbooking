@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         duration: null, // длительность пакета, например "1 час"
         price: null,
         name: null,
-        phone: null,
+        phone: null, // Теперь будет хранить полный отформатированный номер
         telegram: null,
         telegramId: null, // добавляем telegram id
         comment: null
@@ -640,16 +640,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // pre-fill form fields
                 const nameInput = document.querySelector('#form-step input[type="text"]');
-                const phoneInput = document.getElementById('phone');
+                const phoneInput = document.getElementById('phone-input'); // Changed ID
                 const telegramInput = document.getElementById('telegram');
 
                 if (nameInput && userData.name) nameInput.value = userData.name;
-                if (phoneInput && userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
+                // For phone, we only pre-fill the last 4 digits
+                if (phoneInput && userData.phone) {
+                    const last4Digits = userData.phone.slice(-4); // Assuming full phone is stored and we need last 4
+                    phoneInput.value = last4Digits;
+                    bookingData.phone = `+7 (XXX) XXX-${last4Digits}`; // Update bookingData with the full formatted string
+                }
                 if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
 
                 // update bookingData
                 bookingData.name = userData.name || null;
-                bookingData.phone = userData.phone || null;
+                // bookingData.phone is handled above for pre-fill, otherwise it's set in setupForm
                 bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
 
                 // check if all required user data is present to potentially skip the form step
@@ -660,11 +665,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log("Существующие пользовательские данные для Telegram ID не найдены:", telegramId);
                 // if no data, ensure form fields are empty or default
                 const nameInput = document.querySelector('#form-step input[type="text"]');
-                const phoneInput = document.getElementById('phone');
+                const phoneInput = document.getElementById('phone-input'); // Changed ID
                 const telegramInput = document.getElementById('telegram');
 
                 if (nameInput) nameInput.value = '';
-                if (phoneInput) phoneInput.value = '+7 ';
+                if (phoneInput) phoneInput.value = ''; // Reset phone input to empty
                 if (telegramInput) telegramInput.value = bookingData.telegram; // pre-fill with telegram username from webapp
             }
         } catch (error) {
@@ -702,26 +707,48 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // настройка формы
     function setupForm() {
-        const phoneInput = document.getElementById('phone');
-        
-        // форматирование номера телефона
+        const phoneInput = document.getElementById('phone-input'); // Changed ID to 'phone-input'
+
         if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let numbers = e.target.value.replace(/\D/g, '');
-                if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
-                numbers = numbers.substring(0, 11);
-                
-                let formatted = '+7';
-                if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
-                if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
-                if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
-                if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
-                
-                e.target.value = formatted;
-                bookingData.phone = formatted; // update bookingData with formatted phone
+            // Ограничиваем ввод только 4 цифрами и предотвращаем удаление префикса
+            phoneInput.addEventListener('keydown', (event) => {
+                const allowedKeys = [
+                    'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'
+                ];
+
+                // Если пользователь пытается удалить что-то, находясь в начале поля,
+                // или если длина уже 4 и это не Backspace/Delete, предотвращаем действие
+                if ((event.key === 'Backspace' || event.key === 'Delete') && phoneInput.selectionStart === 0 && phoneInput.selectionEnd === 0) {
+                    event.preventDefault();
+                }
+
+                // Предотвращаем ввод, если уже 4 символа и это не Backspace/Delete
+                if (phoneInput.value.length >= 4 && !allowedKeys.includes(event.key) && !event.metaKey && !event.ctrlKey) {
+                    event.preventDefault();
+                }
             });
+
+            phoneInput.addEventListener('input', () => {
+                // Удаляем все символы, кроме цифр
+                phoneInput.value = phoneInput.value.replace(/\D/g, '');
+                // Ограничиваем до 4 символов
+                if (phoneInput.value.length > 4) {
+                    phoneInput.value = phoneInput.value.substring(0, 4);
+                }
+                // Обновляем bookingData.phone с полным номером, включая префикс
+                // Предполагаем, что префикс "+7 (XXX) XXX-" является фиксированным
+                bookingData.phone = `+7 (XXX) XXX-${phoneInput.value}`;
+            });
+
+            // Initial value for bookingData.phone if the field is pre-filled
+            if (phoneInput.value) {
+                bookingData.phone = `+7 (XXX) XXX-${phoneInput.value}`;
+            } else {
+                bookingData.phone = `+7 (XXX) XXX-`; // Set initial phone to prefix if empty
+            }
+
         } else {
-            console.warn("Элемент с id 'phone' не найден. Слушатель событий не добавлен.");
+            console.warn("Элемент с id 'phone-input' не найден. Слушатель событий не добавлен.");
         }
         
         // валидация telegram
@@ -921,7 +948,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // сбрасываем форму
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = '+7 '; // reset phone to default prefix
+        document.getElementById('phone-input').value = ''; // reset phone input to empty
+        bookingData.phone = `+7 (XXX) XXX-`; // reset bookingData.phone to just prefix
         
         // снимаем выделения и скрываем крестики
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
