@@ -154,23 +154,36 @@
 
         <!-- шаг 4: подтверждение -->
         <div id="confirmation-step" class="step-page">
-            <h2 class="step-title">ваша заявка принята!</h2>
-            <p class="text-center mb-6">мы свяжемся с вами в ближайшее время для подтверждения</p>
-            <div id="confirmation-details" class="confirmation-details">
-                <!-- детали бронирования будут сгенерированы js -->
+            <h2 class="step-title-large">ваша заявка принята!</h2>
+            <p class="text-center-small">мы свяжемся с вами в ближайшее время для подтверждения</p>
+            
+            <div class="confirmation-main-content">
+                <div id="confirmation-details-left" class="confirmation-details-left">
+                    <!-- детали бронирования будут сгенерированы js -->
+                </div>
+                <div id="confirmation-time-right" class="confirmation-time-right">
+                    <!-- временной интервал будет сгенерирован js -->
+                </div>
             </div>
-            <div class="flex flex-col gap-4 mt-6">
-                <button id="book-again" class="button active">забронировать еще раз</button>
-                <button id="reschedule" class="button back-btn active">перенести бронирование</button>
-                <button id="cancel-booking" class="button back-btn active">отменить бронирование</button>
-                <button id="route-btn" class="button back-btn active">проложить маршрут</button>
-                <button id="taxi-btn" class="button back-btn active">вызвать такси</button>
-            </div>
-            <div id="reschedule-message" class="message-box info">
-                для переноса свяжитесь со стюардом.
-            </div>
-            <div id="cancel-message" class="message-box info">
-                заявка на отмену отправлена стюарду.
+
+            <p class="rules-message">
+                ознакомься с правилами бронирования и предупреди,
+                если опаздываешь, ждём тебя в клубе!
+            </p>
+
+            <div class="confirmation-actions-grid">
+                <div id="book-again" class="action-button active">
+                    <img src="images/again.svg" alt="Новая бронь">
+                    <span>новая бронь</span>
+                </div>
+                <div id="reschedule" class="action-button">
+                    <img src="images/icon-2.svg" alt="Правила">
+                    <span>правила</span>
+                </div>
+                <div id="cancel-booking" class="action-button">
+                    <img src="images/cancel.svg" alt="Отмена">
+                    <span>отмена</span>
+                </div>
             </div>
         </div>
     </div>

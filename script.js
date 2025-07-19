@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
     // ПРОВЕРЬТЕ: Убедитесь, что этот ключ является вашим реальным Supabase anon public key!
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImexbCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     let supabase, userId;
     let isAuthReady = false;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             setupForm();
             setupNavigation();
             setupConfirmationActions();
-            setupMapButtons();
+            // setupMapButtons(); // Removed as per new design
             showStep(0); // start at the first step
 
             // ensure modal is hidden on load
@@ -707,7 +707,63 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // настройка формы
     function setupForm() {
-        const phoneInput = document.getElementById('phone-input'); // Changed ID to 'phone-input'
+        const nameInput = document.getElementById('name');
+        const phoneInput = document.getElementById('phone-input');
+        const telegramInput = document.getElementById('telegram');
+
+        // Function to update input styles based on content
+        function updateInputStyle(inputElement) {
+            // Check if the input has content
+            if (inputElement.value.length > 0) {
+                inputElement.classList.add('has-content');
+            } else {
+                inputElement.classList.remove('has-content');
+            }
+
+            // For phone input, also update the parent container
+            if (inputElement.id === 'phone-input') {
+                const phoneContainer = inputElement.closest('.phone-input-container');
+                if (phoneContainer) {
+                    if (inputElement.value.length > 0) {
+                        phoneContainer.classList.add('has-content');
+                    } else {
+                        phoneContainer.classList.remove('has-content');
+                    }
+                }
+            }
+        }
+
+        // Apply initial styles
+        updateInputStyle(nameInput);
+        updateInputStyle(phoneInput);
+        updateInputStyle(telegramInput);
+
+        // Add event listeners for input and focus/blur
+        nameInput.addEventListener('input', () => updateInputStyle(nameInput));
+        nameInput.addEventListener('focus', () => nameInput.classList.add('is-focused'));
+        nameInput.addEventListener('blur', () => {
+            nameInput.classList.remove('is-focused');
+            updateInputStyle(nameInput); // Update style on blur to reflect content
+        });
+
+        phoneInput.addEventListener('input', () => updateInputStyle(phoneInput));
+        phoneInput.addEventListener('focus', () => {
+            phoneInput.closest('.phone-input-container').classList.add('is-focused');
+        });
+        phoneInput.addEventListener('blur', () => {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                phoneContainer.classList.remove('is-focused');
+                updateInputStyle(phoneInput); // Update style on blur to reflect content
+            }
+        });
+
+        telegramInput.addEventListener('input', () => updateInputStyle(telegramInput));
+        telegramInput.addEventListener('focus', () => telegramInput.classList.add('is-focused'));
+        telegramInput.addEventListener('blur', () => {
+            telegramInput.classList.remove('is-focused');
+            updateInputStyle(telegramInput); // Update style on blur to reflect content
+        });
 
         if (phoneInput) {
             // Ограничиваем ввод только 4 цифрами и предотвращаем удаление префикса
@@ -738,6 +794,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 // Обновляем bookingData.phone с полным номером, включая префикс
                 // Предполагаем, что префикс "+7 (XXX) XXX-" является фиксированным
                 bookingData.phone = `+7 (XXX) XXX-${phoneInput.value}`;
+                updateInputStyle(phoneInput); // Update style on input
             });
 
             // Initial value for bookingData.phone if the field is pre-filled
@@ -753,10 +810,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // валидация telegram
         // Проверяем, что элемент существует, прежде чем добавлять слушатель
-        const telegramInput = document.getElementById('telegram');
-        if (telegramInput) {
-            telegramInput.addEventListener('input', function(e) {
+        const telegramInputElem = document.getElementById('telegram'); // Renamed to avoid conflict
+        if (telegramInputElem) {
+            telegramInputElem.addEventListener('input', function(e) {
                 this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+                updateInputStyle(this); // Update style on input
             });
         } else {
             console.warn("Элемент с id 'telegram' не найден. Слушатель событий не добавлен.");
@@ -829,17 +887,40 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // показываем страницу подтверждения (изменено отображение симуляторов и сохранение бронирования)
     async function showConfirmation() {
-        const details = document.getElementById('confirmation-details');
+        const detailsLeft = document.getElementById('confirmation-details-left');
+        const timeRight = document.getElementById('confirmation-time-right');
+
+        // Extract start and end times from bookingData.time
+        let startTimeDisplay = '';
+        let endTimeDisplay = '';
+        if (bookingData.time) {
+            const timeParts = bookingData.time.split(' – ');
+            if (timeParts.length === 2) {
+                startTimeDisplay = timeParts[0];
+                endTimeDisplay = timeParts[1];
+            }
+        }
         
-        details.innerHTML = `
+        detailsLeft.innerHTML = `
             <p><strong>дата:</strong> ${bookingData.date}</p>
-            <p><strong>тариф:</strong> ${bookingData.duration}</p>
+            <p><strong>пакет:</strong> ${bookingData.duration}</p>
             <p><strong>время:</strong> ${bookingData.time}</p>
             <p><strong>симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
             <p><strong>имя:</strong> ${bookingData.name}</p>
             <p><strong>телефон:</strong> ${bookingData.phone}</p>
             <p><strong>telegram:</strong> @${bookingData.telegram}</p>
             ${bookingData.comment ? `<p><strong>комментарий:</strong> ${bookingData.comment}</p>` : ''}
+        `;
+
+        // Format time for the right block, removing seconds if present
+        const formatTimeForDisplay = (timeStr) => {
+            const parts = timeStr.split(':');
+            return `${parts[0]}:${parts[1]}`; // Keep only HH:MM
+        };
+
+        timeRight.innerHTML = `
+            ${formatTimeForDisplay(startTimeDisplay)}
+            <small>${formatTimeForDisplay(endTimeDisplay)}</small>
         `;
         
         // save booking to supabase
@@ -888,12 +969,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         // записаться снова
         document.getElementById('book-again').addEventListener('click', resetBooking);
         
-        // перенести запись
+        // перенести запись (теперь это "правила")
         document.getElementById('reschedule').addEventListener('click', function() {
-            document.getElementById('reschedule-message').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('reschedule-message').style.display = 'none';
-            }, 3000);
+            // Logic for "правила" button - maybe open a modal or navigate to a rules page
+            alert('Здесь будут правила бронирования.'); // Placeholder for rules
         });
         
         // отменить запись
@@ -903,11 +982,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         document.getElementById('confirm-cancel').addEventListener('click', function() {
             document.getElementById('cancel-modal').style.display = 'none';
-            document.getElementById('cancel-message').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('cancel-message').style.display = 'none';
-                resetBooking();
-            }, 1500);
+            // document.getElementById('cancel-message').style.display = 'block'; // Removed
+            // setTimeout(() => {
+            //     document.getElementById('cancel-message').style.display = 'none'; // Removed
+            //     resetBooking();
+            // }, 1500);
+            resetBooking(); // Reset immediately after confirmation
+            alert('Заявка на отмену отправлена стюарду.'); // Placeholder for cancellation
         });
         
         document.getElementById('cancel-cancel').addEventListener('click', function() {
@@ -915,22 +996,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
-    // настройка кнопок карты и такси (без изменений)
-    function setupMapButtons() {
-        const address = 'ростов-на-дону, ул. б. садовая, 70'; // lowercase
+    // настройка кнопок карты и такси (удалено)
+    // function setupMapButtons() {
+    //     const address = 'ростов-на-дону, ул. б. садовая, 70'; // lowercase
         
-        // кнопка "проложить маршрут"
-        document.getElementById('route-btn').addEventListener('click', function() {
-            const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(address)}`;
-            window.open(url, '_blank');
-        });
+    //     // кнопка "проложить маршрут"
+    //     document.getElementById('route-btn').addEventListener('click', function() {
+    //         const url = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(address)}`;
+    //         window.open(url, '_blank');
+    //     });
         
-        // кнопка "вызвать такси"
-        document.getElementById('taxi-btn').addEventListener('click', function() {
-            const url = `https://3.redirect.appmetrica.yandex.com/route?end-lat=47.222078&end-lon=39.720349&end-name=${encodeURIComponent(address)}`;
-            window.open(url, '_blank');
-        });
-    }
+    //     // кнопка "вызвать такси"
+    //     document.getElementById('taxi-btn').addEventListener('click', function() {
+    //         const url = `https://3.redirect.appmetrica.yandex.com/route?end-lat=47.222078&end-lon=39.720349&end-name=${encodeURIComponent(address)}`;
+    //         window.open(url, '_blank');
+    //     });
+    // }
 
     // сброс бронирования (изменено)
     function resetBooking() {

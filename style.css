@@ -661,20 +661,138 @@ textarea {
 }
 
 /* подтверждение */
-.confirmation-details {
-    background-color: #d9d9d9;
+/* Стили для заголовка и подзаголовка подтверждения */
+.step-title-large {
+    font-family: 'helvetica neue condensed black', sans-serif;
+    font-weight: bold;
+    font-size: 28px; /* Крупный размер */
+    text-align: center;
+    margin-bottom: 8px; /* Уменьшенный отступ */
+    color: #000000;
+    text-transform: lowercase;
+}
+
+.text-center-small {
+    font-size: 14px; /* Мелкий размер */
+    text-align: center;
+    margin-bottom: 16px; /* Отступ */
+    color: #000000;
+    text-transform: lowercase;
+}
+
+/* Стили для основного контента подтверждения (2/3 и 1/3) */
+.confirmation-main-content {
+    display: flex;
+    gap: 0; /* Убираем промежутки */
+    margin-bottom: 16px;
+    margin-left: -16px; /* Вытягиваем на всю ширину */
+    margin-right: -16px;
+}
+
+.confirmation-details-left {
+    flex: 2; /* Занимает 2/3 ширины */
+    background-color: #d9d9d9; /* Серый фон */
     color: #000000;
     padding: 16px;
     border-radius: 0;
-    margin-bottom: 16px;
+    font-family: 'monaco', monospace; /* Шрифт Monaco */
     font-size: 16px;
-    font-family: 'helvetica neue', system-ui, sans-serif;
-    border: none; /* удалено: обводка */
-    text-transform: lowercase; /* все строчные */
+    line-height: 1.2; /* Уменьшенный интервал между строк */
+    text-transform: lowercase;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
-.confirmation-details strong {
+
+.confirmation-details-left p {
+    margin-bottom: 4px; /* Уменьшенный отступ между параграфами */
+    margin-top: 0;
+}
+.confirmation-details-left p:last-child {
+    margin-bottom: 0;
+}
+
+.confirmation-details-left strong {
     color: #000000;
 }
+
+.confirmation-time-right {
+    flex: 1; /* Занимает 1/3 ширины */
+    background-color: #000000; /* Черный фон */
+    color: #ffffff;
+    padding: 16px;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'monaco', monospace;
+    font-size: 36px; /* Крупный шрифт */
+    font-weight: bold;
+    text-align: center;
+    text-transform: none; /* Без изменения регистра */
+    aspect-ratio: 1 / 1; /* Делаем квадратным */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.confirmation-time-right small {
+    font-size: 24px; /* Меньший шрифт для второй части времени */
+    display: block;
+    margin-top: 4px;
+}
+
+.rules-message {
+    font-size: 14px;
+    text-align: center;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    color: #000000;
+    text-transform: lowercase;
+}
+
+/* Стили для сетки кнопок внизу */
+.confirmation-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 колонки */
+    gap: 0; /* Убираем промежутки */
+    margin-left: -16px; /* Вытягиваем на всю ширину */
+    margin-right: -16px;
+    margin-bottom: 16px;
+}
+
+.action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background-color: #d9d9d9; /* Серый фон по умолчанию */
+    color: #000000; /* Черный текст по умолчанию */
+    border-radius: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: lowercase;
+    aspect-ratio: 1 / 1; /* Делаем квадратным */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.action-button img {
+    width: 48px; /* Размер иконки */
+    height: 48px;
+    margin-bottom: 8px;
+    filter: invert(0); /* Черная иконка на светлом фоне */
+    transition: filter 0.2s ease;
+}
+
+.action-button.active {
+    background-color: #000000; /* Черный фон для активной кнопки */
+    color: #ffffff; /* Белый текст для активной кнопки */
+}
+
+.action-button.active img {
+    filter: invert(1); /* Белая иконка на черном фоне */
+}
+
+
 .message-box {
     background-color: #d9d9d9;
     color: #000000;
@@ -819,383 +937,9 @@ textarea {
     .date-carousel .date-item small {
         font-size: 10px; /* адаптивный размер для месяцев */
     }
-}
-@media (max-width: 380px) {
-    .simulator-grid-container {
-        grid-template-columns: repeat(2, 1fr); /* 2 столбца */
-    }
-    .grid-item {
-        min-width: unset;
-        min-height: unset;
-    }
-    #package-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 столбца на очень маленьких экранах */
-    }
-    .package .package-number {
-        font-size: 32px; /* еще меньше на очень маленьких экранах */
-        top: 16px; /* Адаптивный отступ */
-        left: 16px; /* Адаптивный отступ */
-    }
-    .package .package-unit {
-        font-size: 8.19px; /* 10.24px * 0.8 = 8.192px */
-        top: 30px;
-        left: calc(16px + 32px + 10px);
-    }
-    .package .package-night-text {
-        font-size: 12.8px; /* адаптивный размер для "ночь" */
-        top: 20px;
-        left: 20px;
-    }
-    .package .package-night-time {
-        font-size: 6.14px; /* адаптивный размер для времени ночи */
-        top: 34px;
-        left: 20px;
-    }
-    .package .package-original-price {
-        font-size: 8.19px;
-        bottom: 6px;
-        left: 20px;
-    }
-    .package .package-price {
-        font-size: 12.28px;
-        bottom: 6px;
-        right: 20px;
-    }
-    #time-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 колонки на очень маленьких экранах */
-    }
-    .time-slot {
-        font-size: 12px; /* минимальный размер шрифта */
-        min-height: 50px; /* меньшая высота */
-    }
-    .time-slot small {
-        font-size: 12px; /* минимальный размер шрифта */
-    }
-    .date-carousel .date-item {
-        width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
-        height: calc(33.333vw - 0px);
-    }
-}
-/* стили для карусели "свой пакет" */
-.custom-package-carousel-container {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-right: -16px;
-    overflow-x: scroll;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    margin-bottom: 16px;
-}
-
-.custom-package-carousel-container::-webkit-scrollbar {
-    display: none;
-}
-
-.custom-package-carousel {
-    width: max-content;
-    display: flex;
-    padding: 0; /* Изменено с 0 16px на 0 */
-}
-
-.custom-package-carousel .package {
-    min-width: 140px;
-    min-height: 140px;
-    flex-shrink: 0;
-    /* Размеры как у стандартных пакетов */
-    padding: 16px; /* Соответствует стандартным пакетам */
-
-    background-color: #d9d9d9;
-    color: #000000;
-    cursor: pointer;
-    border-radius: 0;
-    box-shadow: none;
-    font-size: 16px;
-    font-family: 'helvetica neue', system-ui, sans-serif;
-    border: none;
-    margin: 0;
-    position: relative; /* ensure children can be absolutely positioned */
-    display: flex; /* keep flex for general centering if needed, but absolute will override */
-    flex-direction: column;
-    justify-content: flex-start; /* Изменено: выравниваем содержимое по верху */
-    align-items: flex-start; /* Выравнивание по левому краю */
-    aspect-ratio: 1 / 1; /* делаем квадратным */
-    min-width: 140px; /* минимальный размер для адаптивности */
-    min-height: 140px;
-}
-.custom-package-carousel .package.selected {
-    background-color: #000000; /* черный фон */
-    color: #ffffff; /* белый текст */
-}
-
-
-.custom-package-carousel .package .package-number {
-    font-family: 'monaco', monospace;
-    font-size: 32px; /* Соответствует стандартным пакетам */
-    font-weight: bold;
-    line-height: 1;
-    position: absolute; /* Изменено на absolute */
-    top: 16px; /* Изменено на 16px */
-    left: 16px; /* Изменено на 16px */
-    text-transform: none;
-    align-self: flex-end; /* Выравнивание по правому краю */
-    text-align: right; /* Выравнивание текста по правому краю */
-    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
-}
-
-.custom-package-carousel .package .package-unit {
-    font-size: 10.24px; /* Соответствует стандартным пакетам */
-    display: block;
-    position: absolute; /* Изменено на absolute */
-    top: calc(16px + 32px); /* Под цифрой */
-    left: 16px; /* Изменено на 16px */
-    text-transform: lowercase;
-    font-weight: normal;
-    margin-top: 0; /* Убираем верхний отступ */
-    align-self: flex-end; /* Выравнивание по правому краю */
-    text-align: right; /* Выравнивание текста по правому краю */
-    width: calc(100% - 32px); /* Занимает всю доступную ширину с учетом padding */
-}
-
-.custom-package-carousel .package .package-original-price {
-    font-family: 'monaco', monospace;
-    font-size: 10.24px; /* Соответствует стандартным пакетам */
-    position: absolute;
-    bottom: 11px; /* Соответствует стандартным пакетам */
-    left: 24px; /* Соответствует стандартным пакетам */
-    text-decoration: line-through;
-    color: #a0a0a0;
-}
-
-.custom-package-carousel .package .package-price {
-    font-family: 'monaco', monospace;
-    font-size: 14px; /* Соответствует стандартным пакетам */
-    font-weight: bold;
-    position: absolute;
-    bottom: 10px; /* Соответствует стандартным пакетам */
-    right: 13px; /* Соответствует стандартным пакетам */
-}
-
-/* For night package in custom carousel */
-.custom-package-carousel .package .package-night-text {
-    font-family: 'helvetica neue condensed black', sans-serif;
-    font-size: 24px; /* Соответствует стандартным пакетам */
-    font-weight: bold;
-    line-height: 1;
-    position: absolute;
-    top: 26px; /* Соответствует стандартным пакетам */
-    left: 20px; /* Соответствует стандартным пакетам */
-    text-transform: lowercase;
-}
-
-.custom-package-carousel .package .package-night-time {
-    font-family: 'monaco', monospace;
-    font-size: 9px; /* Соответствует стандартным пакетам */
-    position: absolute;
-    top: 51px; /* Соответствует стандартным пакетам */
-    left: 27px; /* Соответствует стандартным пакетам */
-    text-transform: none;
-}
-
-/* скрытый класс */
-.hidden {
-    display: none !important;
-}
-
-/* предупреждение для длительных броней */
-#long-booking-warning {
-    background-color: #a0a0a0; /* серый для информационных сообщений */
-    color: #ffffff;
-    padding: 12px 16px; /* отступы внутри */
-    border-radius: 0; /* убираем скругления */
-    margin-bottom: 16px;
-    font-size: 14px;
-    text-align: left;
-    display: none; /* скрыто по умолчанию */
-    margin-left: -16px;
-    margin-right: -16px;
-}
-#long-booking-warning strong {
-    color: #000;
-}
-
-/* Стили для общего контейнера поля ввода */
-.input-group {
-    margin-bottom: 16px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #333;
-}
-
-/* Стили для нового поля ввода телефона */
-.phone-input-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 12px;
-    border-radius: 0; /* Убраны скругления */
-    border: none; /* Убраны границы */
-    background-color: #d9d9d9; /* Светло-серый фон */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-    font-size: 16px;
-    box-sizing: border-box;
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; /* Плавный переход */
-}
-
-.phone-prefix {
-    color: #000000; /* Черный для неактивного состояния */
-    font-size: 16px; /* Соответствует размеру шрифта контейнера */
-    margin-right: 4px; /* Небольшой отступ от префикса */
-    white-space: nowrap; /* Предотвращает перенос строки */
-    user-select: none; /* Запрещает выделение текста */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    flex-shrink: 0; /* Предотвращает сжатие */
-    transition: color 0.2s ease-in-out; /* Плавный переход для цвета */
-}
-
-.phone-input {
-    flex-grow: 1; /* Поле ввода занимает доступное пространство */
-    border: none; /* Убираем стандартную границу */
-    outline: none; /* Убираем обводку при фокусе */
-    background: transparent; /* Прозрачный фон */
-    padding: 0;
-    font-size: 16px; /* Соответствует размеру шрифта контейнера */
-    color: #000000; /* Черный цвет текста для неактивного состояния */
-    width: 100%; /* Гарантирует, что занимает всю доступную ширину */
-    min-width: 50px; /* Минимальная ширина для части ввода */
-    transition: color 0.2s ease-in-out; /* Плавный переход для цвета */
-}
-
-.phone-input::placeholder {
-    color: #a0a0a0; /* Цвет плейсхолдера */
-    opacity: 1; /* Убеждаемся, что плейсхолдер виден */
-}
-
-/* Состояние фокуса для всего контейнера */
-.phone-input-container:focus-within {
-    outline: none; /* Убираем стандартную обводку фокуса */
-    background-color: #000000; /* черный фон при фокусе */
-}
-
-/* Цвет текста для префикса и поля ввода внутри контейнера телефона при активном состоянии */
-.phone-input-container:focus-within .phone-prefix,
-.phone-input-container:focus-within .phone-input {
-    color: #ffffff; /* Белый текст при фокусе */
-}
-
-/* Общие стили для других полей ввода (имя, телеграм) */
-/* input[type="text"] и textarea уже стилизованы выше */
-
-/* Стили для полей только для чтения */
-input[readonly] {
-    background-color: #d9d9d9; /* Светло-серый фон для неактивных полей */
-    color: #000000; /* Черный текст для неактивных полей */
-    cursor: default; /* Курсор по умолчанию */
-    opacity: 1; /* Убеждаемся, что полная непрозрачность для текста */
-    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; /* Плавный переход */
-}
-
-input[readonly]:focus {
-    box-shadow: none; /* Убираем эффект фокуса для полей только для чтения */
-    border-color: transparent; /* Убираем границу при фокусе */
-    background-color: #000000; /* Черный фон при фокусе */
-    color: #ffffff; /* Белый текст при фокусе */
-}
-
-/* Адаптация для мобильных устройств */
-@media (max-width: 480px) {
-    .header-text h1 {
-        font-size: 20px;
-    }
-    .simulator-grid-container {
-        grid-template-columns: repeat(2, 1fr); /* 2 столбца */
-    }
-    .grid-item {
-        font-size: 14px;
-        padding: 12px;
-        min-width: unset;
-        min-height: unset;
-    }
-    .grid-item .simulator-number {
-        font-size: 48px; /* адаптивный размер для цифр симулятора */
-        top: 24px; /* адаптивный отступ */
-        left: 24px; /* адаптивный отступ */
-    }
-    .grid-item small {
-        font-size: 14px;
-        left: 24px; /* адаптивное выравнивание по левому краю */
-    }
-    #package-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 столбца */
-    }
-    .package { /* адаптация для пакета */
-        font-size: 14px;
-        padding: 12px;
-        min-width: unset;
-        min-height: unset;
-    }
-    .package .package-number {
-        font-size: 40px; /* адаптивный размер для цифр пакета */
-        top: 16px; /* Адаптивный отступ */
-        left: 16px; /* Адаптивный отступ */
-    }
-    .package .package-unit {
-        font-size: 10.24px;
-        top: 36px;
-        left: calc(16px + 32px + 10px); /* отступ от левого края + ширина цифры + 10px */
-    }
-    .package .package-night-text {
-        font-size: 24px; /* Адаптивный размер */
-        top: 26px;
-        left: 20px;
-    }
-    .package .package-night-time {
-        font-size: 9px; /* Адаптивный размер */
-        top: 51px;
-        left: 27px;
-    }
-    .package .package-original-price {
-        font-size: 10.24px;
-        bottom: 11px;
-        left: 24px;
-    }
-    .package .package-price {
-        font-size: 14px;
-        bottom: 10px;
-        right: 13px;
-    }
-
-    #time-grid {
-        grid-template-columns: repeat(4, 1fr); /* сохраняем 4 колонки */
-    }
-    .time-slot {
-        font-size: 14px; /* еще меньше шрифт */
-        padding: 8px 2px; /* меньше отступы */
-    }
-    .time-slot small {
-        font-size: 14px; /* еще меньше шрифт */
-    }
-    .button {
-        font-size: 16px;
-        padding: 14px;
-    }
-    form input, form textarea {
-        font-size: 14px;
-        padding: 10px;
-    }
-    .date-carousel .date-item {
-        width: calc(25% - 0px); /* 4 элемента в ряд */
-        height: calc(25vw - 0px);
-    }
-    .date-carousel .date-item small {
-        font-size: 10px; /* адаптивный размер для месяцев */
+    .action-button img {
+        width: 36px; /* Меньше иконки на мобильных */
+        height: 36px;
     }
 }
 @media (max-width: 380px) {
