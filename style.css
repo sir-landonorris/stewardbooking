@@ -848,6 +848,7 @@ textarea {
 @media (max-width: 480px) {
     .header-text h1 {
         font-size: 20px;
+        letter-spacing: -1px;
     }
     .simulator-grid-container {
         grid-template-columns: repeat(2, 1fr); /* 2 столбца */
