@@ -646,7 +646,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // pre-fill form fields
                 const nameInput = document.querySelector('#form-step input[type="text"]');
-                const phoneInput = document.getElementById('phone');
+                const phoneInput = document.getElementById('phone_last_4_digits'); // Изменено ID
                 const telegramInput = document.getElementById('telegram');
 
                 if (nameInput && userData.name) nameInput.value = userData.name;
@@ -669,7 +669,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 console.log("Существующие пользовательские данные для Telegram ID не найдены:", telegramId);
                 // if no data, ensure form fields are empty or default
                 const nameInput = document.querySelector('#form-step input[type="text"]');
-                const phoneInput = document.getElementById('phone');
+                const phoneInput = document.getElementById('phone_last_4_digits'); // Изменено ID
                 const telegramInput = document.getElementById('telegram');
 
                 if (nameInput) nameInput.value = '';
@@ -711,7 +711,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // настройка формы
     function setupForm() {
-        const phoneInput = document.getElementById('phone');
+        // Изменено ID для поля ввода телефона
+        const phoneInput = document.getElementById('phone_last_4_digits'); 
         
         // форматирование номера телефона: пользователь вводит только последние 4 цифры
         if (phoneInput) {
@@ -731,7 +732,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.phone_last_4_digits = digits;
             });
         } else {
-            console.warn("Элемент с id 'phone' не найден. Слушатель событий не добавлен.");
+            console.warn("Элемент с id 'phone_last_4_digits' не найден. Слушатель событий не добавлен.");
         }
         
         // валидация telegram
@@ -935,7 +936,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // сбрасываем форму
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = ''; // Сбрасываем поле телефона до пустой строки
+        document.getElementById('phone_last_4_digits').value = ''; // Сбрасываем поле телефона до пустой строки
         
         // снимаем выделения и скрываем крестики
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
