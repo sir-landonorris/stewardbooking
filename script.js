@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImexcCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     let supabase, userId;
     let isAuthReady = false;
@@ -540,19 +540,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             let startTimeDisplay = `${startHourFormatted}:${startMinutesFormatted}`;
             
             // Format end time
-            let endHourDisplay = endHour.toString().padStart(2, '0');
-            let endMinutesDisplay = endMinutes.toString().padStart(2, '0');
+            let displayEndHour = endHour;
             let endTimeSuffix = '';
 
             // Check if end time crosses midnight (24 hours)
             if (endHourFloat >= 24) {
-                endHourDisplay = (endHour - 24).toString().padStart(2, '0');
+                displayEndHour = endHour % 24; // Use modulo to get hours in 0-23 range
                 endTimeSuffix = ' (следующий день)'; // lowercase
             }
-            let endTimeDisplay = `${endHourDisplay}:${endMinutesDisplay}${endTimeSuffix}`;
+            let endMinutesDisplay = endMinutes.toString().padStart(2, '0');
+            let endTimeDisplay = `${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}`;
 
             // Store the full time range for bookingData and data-attribute
-            const fullTimeRange = `${startTimeDisplay} – ${endHourDisplay}:${endMinutesDisplay}${endTimeSuffix}`;
+            const fullTimeRange = `${startTimeDisplay} – ${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}`;
             
             // check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             times.push(`
                 <div class="time-slot block ${disabledClass}" data-time-range="${fullTimeRange}">
                     ${startTimeDisplay}
-                    <small>${endHourDisplay}:${endMinutesDisplay}${endTimeSuffix}</small>
+                    <small>${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}</small>
                 </div>
             `);
         }
