@@ -666,15 +666,16 @@ textarea {
     font-family: 'helvetica neue condensed black', sans-serif;
     font-weight: bold;
     font-size: 28px; /* Крупный размер */
-    text-align: center;
+    text-align: left;
     margin-bottom: 8px; /* Уменьшенный отступ */
     color: #000000;
     text-transform: lowercase;
+    letter-spacing: -1px;
 }
 
 .text-center-small {
     font-size: 14px; /* Мелкий размер */
-    text-align: center;
+    text-align: left;
     margin-bottom: 16px; /* Отступ */
     color: #000000;
     text-transform: lowercase;
@@ -696,8 +697,8 @@ textarea {
     padding: 16px;
     border-radius: 0;
     font-family: 'monaco', monospace; /* Шрифт Monaco */
-    font-size: 16px;
-    line-height: 1.2; /* Уменьшенный интервал между строк */
+    font-size: 12px;
+    line-height: 1; /* Уменьшенный интервал между строк */
     text-transform: lowercase;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -734,9 +735,8 @@ textarea {
 }
 
 .confirmation-time-right small {
-    font-size: 24px; /* Меньший шрифт для второй части времени */
+    font-size: 36px; /* Меньший шрифт для второй части времени */
     display: block;
-    margin-top: 4px;
 }
 
 .rules-message {
@@ -787,11 +787,6 @@ textarea {
     background-color: #000000; /* Черный фон для активной кнопки */
     color: #ffffff; /* Белый текст для активной кнопки */
 }
-
-.action-button.active img {
-    filter: invert(1); /* Белая иконка на черном фоне */
-}
-
 
 .message-box {
     background-color: #d9d9d9;
@@ -940,6 +935,7 @@ textarea {
     .action-button img {
         width: 36px; /* Меньше иконки на мобильных */
         height: 36px;
+        filter: invert(1);
     }
 }
 @media (max-width: 380px) {
