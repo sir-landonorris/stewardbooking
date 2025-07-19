@@ -1038,7 +1038,6 @@ textarea {
     align-items: center;
     width: 100%;
     padding: 12px;
-    /* Убраны border-radius и border */
     border-radius: 0; /* Убраны скругления */
     border: none; /* Убраны границы */
     background-color: #d9d9d9; /* Светло-серый фон */
@@ -1049,7 +1048,7 @@ textarea {
 }
 
 .phone-prefix {
-    color: #555; /* Более видимый цвет для префикса */
+    color: #000000; /* Черный для неактивного состояния */
     font-size: 16px; /* Соответствует размеру шрифта контейнера */
     margin-right: 4px; /* Небольшой отступ от префикса */
     white-space: nowrap; /* Предотвращает перенос строки */
@@ -1058,6 +1057,7 @@ textarea {
     -moz-user-select: none;
     -ms-user-select: none;
     flex-shrink: 0; /* Предотвращает сжатие */
+    transition: color 0.2s ease-in-out; /* Плавный переход для цвета */
 }
 
 .phone-input {
@@ -1067,9 +1067,10 @@ textarea {
     background: transparent; /* Прозрачный фон */
     padding: 0;
     font-size: 16px; /* Соответствует размеру шрифта контейнера */
-    color: #000; /* Цвет текста */
+    color: #000000; /* Черный цвет текста для неактивного состояния */
     width: 100%; /* Гарантирует, что занимает всю доступную ширину */
     min-width: 50px; /* Минимальная ширина для части ввода */
+    transition: color 0.2s ease-in-out; /* Плавный переход для цвета */
 }
 
 .phone-input::placeholder {
@@ -1079,10 +1080,14 @@ textarea {
 
 /* Состояние фокуса для всего контейнера */
 .phone-input-container:focus-within {
-    /* Убраны border-color и box-shadow */
     outline: none; /* Убираем стандартную обводку фокуса */
     background-color: #000000; /* черный фон при фокусе */
-    color: #ffffff; /* белый текст при фокусе */
+}
+
+/* Цвет текста для префикса и поля ввода внутри контейнера телефона при активном состоянии */
+.phone-input-container:focus-within .phone-prefix,
+.phone-input-container:focus-within .phone-input {
+    color: #ffffff; /* Белый текст при фокусе */
 }
 
 /* Общие стили для других полей ввода (имя, телеграм) */
@@ -1090,16 +1095,18 @@ textarea {
 
 /* Стили для полей только для чтения */
 input[readonly] {
-    background-color: #e9e9e9; /* Более темный фон для полей только для чтения */
+    background-color: #d9d9d9; /* Светло-серый фон для неактивных полей */
+    color: #000000; /* Черный текст для неактивных полей */
     cursor: default; /* Курсор по умолчанию */
-    opacity: 0.8; /* Немного уменьшаем прозрачность */
+    opacity: 1; /* Убеждаемся, что полная непрозрачность для текста */
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; /* Плавный переход */
 }
 
 input[readonly]:focus {
     box-shadow: none; /* Убираем эффект фокуса для полей только для чтения */
-    border-color: #ccc; /* Возвращаем стандартный цвет границы */
-    background-color: #e9e9e9; /* Сохраняем фон при фокусе для readonly */
-    color: #000000; /* Сохраняем цвет текста при фокусе для readonly */
+    border-color: transparent; /* Убираем границу при фокусе */
+    background-color: #000000; /* Черный фон при фокусе */
+    color: #ffffff; /* Белый текст при фокусе */
 }
 
 /* Адаптация для мобильных устройств */
