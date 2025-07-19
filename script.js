@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             supabase = createClient(supabaseUrl, supabaseAnonKey);
             console.log("Клиент Supabase инициализирован.");
             console.log("Supabase URL:", supabaseUrl);
-            console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...');
+            console.log("Supabase Anon Key (first 5 chars)::", supabaseAnonKey.substring(0, 5) + '...');
 
             // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -194,18 +194,16 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
 
-        // инициализируем bookingdata.date и состояние кнопки "далее" при загрузке
-        updateBookingDate(); // call once on load to set initial date
+        // инициализируем bookingData.date при загрузке
+        updateBookingDate(); 
     }
 
     function updateBookingDate() {
         const selectedDateItem = document.querySelector('.date-carousel .date-item.selected');
-        // const currentDateDisplay = document.getElementById('current-date-display'); // removed as per user request
 
         if (selectedDateItem) {
             const fullDate = selectedDateItem.dataset.fullDate;
             bookingData.date = fullDate;
-            // currentDateDisplay.textContent = fullDate; // removed as per user request
             // Кнопка "далее" теперь зависит только от выбора симулятора на этом шаге
             // Если симулятор уже выбран (по умолчанию или вручную), кнопка должна быть активна
             document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; 
@@ -220,9 +218,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // настройка выбора симулятора (изменена логика)
     function setupSimulatorSelection() {
-        // очищаем предыдущие выборы в bookingdata для повторной инициализации на основе текущего dom
+        // очищаем предыдущие выборы в bookingData для повторной инициализации на основе текущего DOM
         bookingData.simulator = [];
-        let anySimulatorSelected = false; // Флаг для отслеживания, выбран ли какой-либо симулятор
 
         document.querySelectorAll('.simulator-box').forEach(sim => {
             const removeBtn = sim.querySelector('.remove-selection');
@@ -235,7 +232,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                     bookingData.simulator.push(simulatorId);
                 }
                 if (removeBtn) removeBtn.style.display = 'flex';
-                anySimulatorSelected = true; // Устанавливаем флаг, так как симулятор 01 выбран
             } else {
                 sim.classList.remove('selected');
                 if (removeBtn) removeBtn.style.display = 'none';
@@ -283,9 +279,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
         // Убедимся, что состояние кнопки "далее" корректно после начальной настройки
-        // Если симулятор 01 был выбран по умолчанию, кнопка должна быть активна
-        document.getElementById('toPackagePage').disabled = !anySimulatorSelected; 
-        updateBreadcrumbs();
+        // Вызываем updateBookingDate, чтобы она обновила состояние кнопки на основе bookingData.simulator
+        updateBookingDate();
     }
 
     // настройка выбора пакета времени (новый шаг)
@@ -633,7 +628,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
                 if (userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
 
-                // update bookingdata
+                // update bookingData
                 bookingData.name = userData.name || null;
                 bookingData.phone = userData.phone || null;
                 bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
@@ -698,7 +693,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
             
             e.target.value = formatted;
-            bookingData.phone = formatted; // update bookingdata with formatted phone
+            bookingData.phone = formatted; // update bookingData with formatted phone
         });
         
         // валидация telegram
@@ -731,7 +726,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // сохраняем данные
             bookingData.name = this.querySelector('input[type="text"]').value;
-            // bookingdata.phone уже обновляется в setupform при вводе
+            // bookingData.phone уже обновляется в setupForm при вводе
             bookingData.telegram = this.querySelector('#telegram').value;
             bookingData.comment = this.querySelector('textarea').value;
             
@@ -746,7 +741,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // обновление хлебных крошек
     function updateBreadcrumbs() {
         const breadcrumbDiv = document.getElementById('booking-breadcrumb');
-        // check if breadcrumbdiv exists before updating
+        // check if breadcrumbDiv exists before updating
         if (!breadcrumbDiv) {
             console.warn("Элемент хлебных крошек не найден. Обновление хлебных крошек пропущено.");
             return;
