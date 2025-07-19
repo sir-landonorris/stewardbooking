@@ -578,7 +578,7 @@ h2 {
 .time-slot {
     font-family: 'monaco', monospace;
     padding: 12px 4px; /* минимальные вертикальные отступы */
-    font-size: 12px; /* уменьшаем размер шрифта */
+    font-size: 18px; /* Увеличен шрифт в 1.5 раза (12px * 1.5 = 18px) */
     min-height: 60px; /* минимальная высота */
     display: flex;
     flex-direction: column; /* Отображаем элементы в столбик */
@@ -606,8 +606,8 @@ h2 {
     border: none; /* удалено: обводка */
 }
 .time-slot small {
-    font-size: 9px; /* Уменьшаем размер шрифта для второй строки (время окончания) */
-    margin-top: 2px; /* Небольшой отступ сверху для второй строки */
+    font-size: 18px; /* Сделан одинаковый размер шрифта с .time-slot */
+    margin-top: 0; /* Удален отступ сверху */
 }
 
 
@@ -791,8 +791,11 @@ textarea {
         grid-template-columns: repeat(4, 1fr); /* сохраняем 4 колонки */
     }
     .time-slot {
-        font-size: 11px; /* еще меньше шрифт */
+        font-size: 14px; /* еще меньше шрифт */
         padding: 8px 2px; /* меньше отступы */
+    }
+    .time-slot small {
+        font-size: 14px; /* еще меньше шрифт */
     }
     .button {
         font-size: 16px;
@@ -855,15 +858,17 @@ textarea {
         grid-template-columns: repeat(3, 1fr); /* 3 колонки на очень маленьких экранах */
     }
     .time-slot {
-        font-size: 10px; /* минимальный размер шрифта */
+        font-size: 12px; /* минимальный размер шрифта */
         min-height: 50px; /* меньшая высота */
+    }
+    .time-slot small {
+        font-size: 12px; /* минимальный размер шрифта */
     }
     .date-carousel .date-item {
         width: calc(33.333% - 0px); /* 3 элемента в ряд на очень маленьких экранах */
         height: calc(33.333vw - 0px);
     }
 }
-
 /* стили для карусели "свой пакет" */
 .custom-package-carousel-container {
     width: 100vw;
