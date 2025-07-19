@@ -8,10 +8,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGzKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
 
     let supabase, userId;
     let isAuthReady = false;
+    let previousSelectedPackageDuration = null; // Для хранения предыдущего выбранного пакета
 
     // все данные бронирования
     const bookingData = {
@@ -48,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             supabase = createClient(supabaseUrl, supabaseAnonKey);
             console.log("Клиент Supabase инициализирован.");
             console.log("Supabase URL:", supabaseUrl);
-            console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...');
+            console.log("Supabase Anon Key (first 5 chars)::", supabaseAnonKey.substring(0, 5) + '...');
 
             // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -86,9 +87,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             setupCalendar();
-            setupSimulatorSelection(); // this will now correctly initialize bookingData.simulator
+            setupSimulatorSelection(); 
+            // После того как setupSimulatorSelection() отработает и, возможно, выберет симулятор по умолчанию,
+            // мы явно устанавливаем состояние кнопки "далее".
+            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+            updateBreadcrumbs(); // Обновляем хлебные крошки после инициализации
+
             setupPackageSelection();
-            setupTimeSlotsGenerator(); // will be called again after package selection
+            setupTimeSlotsGenerator(); 
             setupForm();
             setupNavigation();
             setupConfirmationActions();
@@ -193,19 +199,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
 
-        // инициализируем bookingdata.date и состояние кнопки "далее" при загрузке
-        updateBookingDate(); // call once on load to set initial date
+        // инициализируем bookingData.date при загрузке
+        updateBookingDate(); 
     }
 
     function updateBookingDate() {
         const selectedDateItem = document.querySelector('.date-carousel .date-item.selected');
-        // const currentDateDisplay = document.getElementById('current-date-display'); // removed as per user request
 
         if (selectedDateItem) {
             const fullDate = selectedDateItem.dataset.fullDate;
             bookingData.date = fullDate;
-            // currentDateDisplay.textContent = fullDate; // removed as per user request
-            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; // check simulator selection
+            // Кнопка "далее" теперь зависит только от выбора симулятора на этом шаге
+            // Если симулятор уже выбран (по умолчанию или вручную), кнопка должна быть активна
+            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; 
             updateBreadcrumbs(); // обновляем хлебные крошки
         } else {
             bookingData.date = null;
@@ -217,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // настройка выбора симулятора (изменена логика)
     function setupSimulatorSelection() {
-        // очищаем предыдущие выборы в bookingdata для повторной инициализации на основе текущего dom
+        // очищаем предыдущие выборы в bookingData для повторной инициализации на основе текущего DOM
         bookingData.simulator = [];
 
         document.querySelectorAll('.simulator-box').forEach(sim => {
@@ -277,9 +283,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             }
         });
-        // убедимся, что состояние кнопки "далее" корректно после начальной настройки
-        document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
-        updateBreadcrumbs();
+        // Убрали вызов updateBookingDate() здесь, так как он будет вызван в init() после setupSimulatorSelection()
     }
 
     // настройка выбора пакета времени (новый шаг)
@@ -302,8 +306,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const hourUnit = getHourUnit(pkg.hours);
                 return `
                     <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                        <div class="package-number">${displayHours}</div>
-                        <small class="package-unit">${hourUnit}</small>
+                        <div class="package-header-content">
+                            <div class="package-number">${displayHours}</div>
+                            <div class="package-unit">${hourUnit}</div>
+                        </div>
                         ${originalPriceDisplay}
                         <div class="package-price">${pkg.price}</div>
                     </div>
@@ -344,9 +350,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // обработчик для кнопки "свой пакет"
         document.getElementById('custom-package-trigger').addEventListener('click', function() {
+            previousSelectedPackageDuration = bookingData.duration; // Сохраняем текущий выбранный пакет
             document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // снимаем выбор с обычных пакетов
             document.getElementById('package-grid').classList.add('hidden'); // скрываем основной список
             document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // показываем карусель
+            document.getElementById('package-step-title').textContent = 'выберите свой пакет'; // Меняем заголовок
+            document.getElementById('toTimePageNew').classList.add('hidden'); // Прячем кнопку "далее"
+            document.getElementById('backToPackagePage').classList.add('hidden'); // Прячем кнопку "назад" (которая на предыдущий шаг)
+            document.getElementById('backToMainPackageSelection').classList.remove('hidden'); // Показываем кнопку "назад к пакетам"
             setupCustomPackageSelection(); // генерируем и настраиваем карусель
         });
 
@@ -389,8 +400,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             customPackagesHtml += `
                 <div class="package block" data-duration="${displayHours} ${hourUnit}" data-price="${currentPrice}" data-hours="${hours}">
-                    <div class="package-number">${displayHours}</div>
-                    <small class="package-unit">${hourUnit}</small>
+                    <div class="package-header-content">
+                        <div class="package-number">${displayHours}</div>
+                        <div class="package-unit">${hourUnit}</div>
+                    </div>
                     ${originalPriceDisplay}
                     <div class="package-price">${currentPrice} ₽</div>
                 </div>
@@ -405,6 +418,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                 bookingData.duration = this.dataset.duration;
                 bookingData.price = this.dataset.price;
                 bookingData.hours = parseFloat(this.dataset.hours); // используем parsefloat для дробных часов
+                
+                // Форматирование для кнопки "свой пакет"
+                let customPackageTextContent = '';
+                const selectedHours = parseFloat(this.dataset.hours);
+                const selectedPrice = this.dataset.price;
+                // const selectedOriginalPrice = parseFloat(this.dataset.originalPrice); // This variable is not used
+
+                if (this.dataset.duration === 'ночь') {
+                    customPackageTextContent = `ночной<br>(${selectedPrice})`;
+                } else {
+                    const displayHours = selectedHours % 1 !== 0 ? selectedHours.toFixed(1).replace('.', ',') : selectedHours.toString().padStart(2, '0');
+                    const hourUnit = getHourUnit(selectedHours);
+                    customPackageTextContent = `${displayHours} ${hourUnit}<br>(${selectedPrice})`;
+                }
+
                 document.getElementById('package-summary').textContent = 
                     `вы выбрали: ${this.dataset.duration} (${this.querySelector('.package-price').textContent})`;
                 document.getElementById('toTimePageNew').disabled = false;
@@ -412,12 +440,17 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // обновляем текст на кнопке "свой пакет"
                 const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
-                customPackageTriggerText.innerHTML = `${bookingData.duration}<br>(${bookingData.price} ₽)`;
+                customPackageTriggerText.innerHTML = customPackageTextContent;
                 document.getElementById('custom-package-trigger').classList.add('selected'); // визуально выделяем
 
                 // возвращаемся к основному виду шага пакетов
                 document.getElementById('custom-package-carousel-container').classList.add('hidden');
                 document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+                document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
+                document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
+                document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
+                document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
+
                 updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
@@ -426,6 +459,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('backToMainPackageSelection').addEventListener('click', function() {
             document.getElementById('custom-package-carousel-container').classList.add('hidden');
             document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+            document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
+            document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
+            document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
+            document.getElementById('backToMainPackageSelection').classList.add('hidden'); // Прячем кнопку "назад к пакетам"
             
             // сбрасываем выбранный пакет, если пользователь вернулся
             document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
@@ -437,8 +474,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             // сбрасываем текст на кнопке "свой пакет"
             const customPackageTriggerText = document.querySelector('#custom-package-trigger .custom-package-text');
-            customPackageTriggerText.innerHTML = `свой<br>пакет`;
+            if (customPackageTriggerText) {
+                customPackageTriggerText.innerHTML = `свой<br>пакет`;
+            }
             document.getElementById('custom-package-trigger').classList.remove('selected'); // снимаем выделение
+
+            // Автоматически выделяем предыдущий выбранный пакет, если он был
+            if (previousSelectedPackageDuration) {
+                const prevPackage = document.querySelector(`.package[data-duration="${previousSelectedPackageDuration}"]`);
+                if (prevPackage) {
+                    prevPackage.click(); // Симулируем клик для выбора
+                }
+            }
 
             updateBreadcrumbs();
         });
@@ -480,28 +527,35 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
 
-        // generate time slots
-        for (let hour = 10; hour <= 23; hour++) {
-            let startHour = hour;
-            let endHour = startHour + durationHours;
+        // generate time slots from 8:00 to 03:00 (next day) with 30-minute steps
+        // 8 AM is hour 8. 3 AM next day is hour 27 (24 + 3)
+        for (let currentHour = 8; currentHour <= 26.5; currentHour += 0.5) { // Loop up to 2:30 AM (26.5)
+            let startHour = Math.floor(currentHour);
+            let startMinutes = (currentHour % 1) * 60;
             
-            // handle fractional hours for start and end times
-            let startMinutes = (startHour % 1) * 60;
-            let endMinutes = (endHour % 1) * 60;
+            let endHourFloat = currentHour + durationHours;
+            let endHour = Math.floor(endHourFloat);
+            let endMinutes = (endHourFloat % 1) * 60;
 
-            let startHourFormatted = Math.floor(startHour).toString().padStart(2, '0');
+            // Format start time
+            let startHourFormatted = startHour.toString().padStart(2, '0');
             let startMinutesFormatted = startMinutes.toString().padStart(2, '0');
+            let startTimeDisplay = `${startHourFormatted}:${startMinutesFormatted}`;
             
-            let endHourFormatted = Math.floor(endHour).toString().padStart(2, '0');
-            let endMinutesFormatted = endMinutes.toString().padStart(2, '0');
-
+            // Format end time
+            let displayEndHour = endHour;
             let endTimeSuffix = '';
-            if (Math.floor(endHour) >= 24) {
-                endHourFormatted = (Math.floor(endHour) - 24).toString().padStart(2, '0');
+
+            // Check if end time crosses midnight (24 hours)
+            if (endHourFloat >= 24) {
+                displayEndHour = endHour % 24; // Use modulo to get hours in 0-23 range
                 endTimeSuffix = ' (следующий день)'; // lowercase
             }
+            let endMinutesDisplay = endMinutes.toString().padStart(2, '0');
+            let endTimeDisplay = `${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}`;
 
-            const currentTimeSlot = `${startHourFormatted}:${startMinutesFormatted} – ${endHourFormatted}:${endMinutesFormatted}${endTimeSuffix}`;
+            // Store the full time range for bookingData and data-attribute
+            const fullTimeRange = `${startTimeDisplay} – ${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}`;
             
             // check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
@@ -510,7 +564,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const occupiedDurationMinutes = occupied.duration_hours * 60;
                 const occupiedEndTotalMinutes = occupiedStartTotalMinutes + occupiedDurationMinutes;
 
-                const currentStartTotalMinutes = hour * 60 + startMinutes;
+                const currentStartTotalMinutes = currentHour * 60;
                 const currentDurationMinutes = durationHours * 60;
                 const currentEndTotalMinutes = currentStartTotalMinutes + currentDurationMinutes;
 
@@ -520,23 +574,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             const disabledClass = isOccupied ? 'disabled' : '';
 
-            times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
-        }
-
-        // if "ночь", add special slot (assuming 00:00 - 08:00 is fixed for night)
-        // this slot should only be added if the selected package is exactly 'ночь'
-        if (bookingData.duration === 'ночь') { // changed to lowercase
-            const nightSlot = '00:00 – 08:00';
-            const isNightSlotOccupied = occupiedSlots.some(occupied => {
-                const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
-                const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
-                
-                // check if the night slot (00:00 - 08:00) overlaps with any existing booking
-                // simplified check: if any booking starts at 00:00 or overlaps significantly
-                return (occupiedStartTotalMinutes < (8 * 60) && (occupiedStartTotalMinutes + (occupied.duration_hours * 60)) > 0);
-            });
-            const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
-            times.push(`<div class="time-slot block ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
+            times.push(`
+                <div class="time-slot block ${disabledClass}" data-time-range="${fullTimeRange}">
+                    ${startTimeDisplay}
+                    <small>${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}</small>
+                </div>
+            `);
         }
         
         timeGrid.innerHTML = times.join('');
@@ -588,7 +631,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 if (userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
                 if (userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
 
-                // update bookingdata
+                // update bookingData
                 bookingData.name = userData.name || null;
                 bookingData.phone = userData.phone || null;
                 bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
@@ -653,7 +696,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
             
             e.target.value = formatted;
-            bookingData.phone = formatted; // update bookingdata with formatted phone
+            bookingData.phone = formatted; // update bookingData with formatted phone
         });
         
         // валидация telegram
@@ -670,8 +713,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('toFormPage').addEventListener('click', () => showStep(3)); // со времени на форму (руль удален)
         
         // кнопки "назад"
-        document.getElementById('backToDateSimulatorPage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
-        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(1)); // со времени на пакет
+        document.getElementById('backToPackagePage').addEventListener('click', () => showStep(0)); // с пакета на дату/симулятор
+        document.getElementById('backToTimeStep').addEventListener('click', () => showStep(1)); // со времени на пакет
         document.getElementById('backToTimePageNew').addEventListener('click', () => showStep(2)); // с формы на время (руль удален)
         
         // отправка формы
@@ -686,7 +729,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // сохраняем данные
             bookingData.name = this.querySelector('input[type="text"]').value;
-            // bookingdata.phone уже обновляется в setupform при вводе
+            // bookingData.phone уже обновляется в setupForm при вводе
             bookingData.telegram = this.querySelector('#telegram').value;
             bookingData.comment = this.querySelector('textarea').value;
             
@@ -701,7 +744,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // обновление хлебных крошек
     function updateBreadcrumbs() {
         const breadcrumbDiv = document.getElementById('booking-breadcrumb');
-        // check if breadcrumbdiv exists before updating
+        // check if breadcrumbDiv exists before updating
         if (!breadcrumbDiv) {
             console.warn("Элемент хлебных крошек не найден. Обновление хлебных крошек пропущено.");
             return;
@@ -875,6 +918,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             customPackageTrigger.classList.remove('selected');
         }
 
+        // Возвращаем заголовок и видимость кнопок
+        document.getElementById('package-step-title').textContent = 'выберите пакет времени';
+        document.getElementById('toTimePageNew').classList.remove('hidden');
+        document.getElementById('backToPackagePage').classList.remove('hidden');
+        document.getElementById('backToMainPackageSelection').classList.add('hidden');
+
+
         // переинициализируем выбор симуляторов, чтобы 01 снова был выбран по умолчанию
         setupSimulatorSelection();
         // переинициализируем выбор пакетов, чтобы "2 часа" снова был выбран по умолчанию
@@ -884,6 +934,17 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     // вспомогательные функции
+    function getWheelName(wheelId) {
+        // this function is no longer used in the main flow, but kept for reference if needed
+        const wheels = {
+            'ks': 'штурвал ks', // lowercase
+            'cs': 'круглый cs', // lowercase
+            'nobutton': 'круглый без кнопок', // lowercase
+            'any': 'выберу на месте' // lowercase
+        };
+        return wheels[wheelId] || wheelId;
+    }
+
     function getSimulatorNames(simulatorIds) {
         // теперь нет опции "любой", только конкретные симуляторы
         return simulatorIds.map(id => `симулятор #${id}`).join(', '); // lowercase
