@@ -368,10 +368,19 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // обработчик для кнопки "свой пакет"
         document.getElementById('custom-package-trigger').addEventListener('click', function() {
+            console.log("Custom package trigger clicked.");
             previousSelectedPackageDuration = bookingData.duration; // Сохраняем текущий выбранный пакет
             document.querySelectorAll('.package.selected').forEach(p => p.classList.remove('selected')); // снимаем выбор с обычных пакетов
-            document.getElementById('package-grid').classList.add('hidden'); // скрываем основной список
-            document.getElementById('custom-package-carousel-container').classList.remove('hidden'); // показываем карусель
+            
+            const packageGrid = document.getElementById('package-grid');
+            const customCarouselContainer = document.getElementById('custom-package-carousel-container');
+
+            // Скрываем основной список и показываем карусель "свой пакет"
+            packageGrid.classList.add('hidden');
+            packageGrid.style.display = 'none'; // Дополнительно устанавливаем display: none
+            customCarouselContainer.classList.remove('hidden');
+            customCarouselContainer.style.display = 'block'; // Дополнительно устанавливаем display: block
+
             document.getElementById('package-step-title').textContent = 'выберите свой пакет'; // Меняем заголовок
             document.getElementById('toTimePageNew').classList.add('hidden'); // Прячем кнопку "далее"
             document.getElementById('backToPackagePage').classList.add('hidden'); // Прячем кнопку "назад" (которая на предыдущий шаг)
@@ -462,8 +471,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                 document.getElementById('custom-package-trigger').classList.add('selected'); // визуально выделяем
 
                 // возвращаемся к основному виду шага пакетов
-                document.getElementById('custom-package-carousel-container').classList.add('hidden');
-                document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+                const customCarouselContainer = document.getElementById('custom-package-carousel-container');
+                const packageGrid = document.getElementById('package-grid');
+                customCarouselContainer.classList.add('hidden');
+                customCarouselContainer.style.display = 'none'; // Дополнительно скрываем
+                packageGrid.classList.remove('hidden');
+                packageGrid.style.display = 'grid'; // Дополнительно показываем как grid
+
                 document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
                 document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
                 document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
@@ -475,8 +489,16 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // обработчик для кнопки "назад к пакетам"
         document.getElementById('backToMainPackageSelection').addEventListener('click', function() {
-            document.getElementById('custom-package-carousel-container').classList.add('hidden');
-            document.getElementById('package-grid').classList.remove('hidden'); // показываем основной список
+            console.log("Back to main package selection clicked.");
+            const customCarouselContainer = document.getElementById('custom-package-carousel-container');
+            const packageGrid = document.getElementById('package-grid');
+
+            // Скрываем карусель "свой пакет" и показываем основной список
+            customCarouselContainer.classList.add('hidden');
+            customCarouselContainer.style.display = 'none'; // Дополнительно скрываем
+            packageGrid.classList.remove('hidden');
+            packageGrid.style.display = 'grid'; // Дополнительно показываем как grid
+            
             document.getElementById('package-step-title').textContent = 'выберите пакет времени'; // Возвращаем заголовок
             document.getElementById('toTimePageNew').classList.remove('hidden'); // Показываем кнопку "далее"
             document.getElementById('backToPackagePage').classList.remove('hidden'); // Показываем кнопку "назад" (которая на предыдущий шаг)
@@ -1050,8 +1072,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById('toFormPage').disabled = true; // disable next on step 2 until selection
 
         // скрываем карусель "свой пакет" и показываем основную сетку
-        document.getElementById('custom-package-carousel-container').classList.add('hidden');
-        document.getElementById('package-grid').classList.remove('hidden');
+        const customCarouselContainer = document.getElementById('custom-package-carousel-container');
+        const packageGrid = document.getElementById('package-grid');
+        customCarouselContainer.classList.add('hidden');
+        customCarouselContainer.style.display = 'none'; // Дополнительно скрываем
+        packageGrid.classList.remove('hidden');
+        packageGrid.style.display = 'grid'; // Дополнительно показываем как grid
 
         // сбрасываем отображение выбранного пакета
         document.getElementById('package-summary').textContent = '';
