@@ -75,8 +75,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             isAuthReady = true; // mark as ready after auth check (even if anonymous/uuid)
 
+            // Initially hide main content and show fallback
+            document.getElementById('main-booking-content').style.display = 'none';
+            document.getElementById('web-app-fallback').style.display = 'block';
+
             // initialize telegram web app
-            if (window.Telegram && window.Telegram.WebApp) {
+            if (window.Telegram && window.Telegram.WebApp && Telegram.WebApp.initDataUnsafe) { // Added initDataUnsafe check
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
                 console.log("Telegram Web App готов.");
@@ -88,15 +92,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                     console.log("Данные пользователя Telegram:", userTg);
                     await loadUserData(bookingData.telegramId); // Загружаем данные пользователя из таблицы 'users'
                 }
-                // Если Telegram Web App обнаружен, скрываем заглушку и показываем основной контент
-                document.getElementById('web-app-fallback').classList.add('hidden');
+                // If Telegram Web App detected and ready, show main content and hide fallback
+                document.getElementById('web-app-fallback').style.display = 'none';
                 document.getElementById('main-booking-content').style.display = 'block';
 
             } else {
-                console.warn("SDK Telegram Web App не найден или не готов.");
-                // fallback for non-telegram environment (no video here)
-                document.getElementById('web-app-fallback').classList.remove('hidden');
-                document.getElementById('main-booking-content').style.display = 'none';
+                console.warn("SDK Telegram Web App не найден или не готов, или initDataUnsafe отсутствует.");
+                // Fallback remains visible as it's the default state.
+                // No need to explicitly set display here as it's the default.
             }
 
             setupCalendar();
