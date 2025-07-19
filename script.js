@@ -8,11 +8,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // !!! ВАЖНО !!! ВСТАВЬТЕ ВАШИ РЕАЛЬНЫЕ Supabase URL и Anon Key ЗДЕСЬ.
     // Убедитесь, что это строки в кавычках.
     const supabaseUrl = 'https://jvzogsjammwaityyqfjq.supabase.co'; // Вставьте ваш Project URL здесь
-    // ПРОВЕРЬТЕ: Убедитесь, что этот ключ является вашим реальным Supabase anon public key!
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2em9nc2phbW13YWl0eXlxZmpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MDE1ODAsImV4cCI6MjA2ODA3NzU4MH0.JrdjGBmC1rTwraBGjKIHE87Qd2MVaS7odoW-ldJzyGw'; // Вставьте ваш anon public ключ здесь
-
-    // Префикс для полного номера телефона (отображается, но не редактируется пользователем)
-    const fullPhonePrefix = '+7 (XXX) XXX-';
 
     let supabase, userId;
     let isAuthReady = false;
@@ -21,13 +17,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     // все данные бронирования
     const bookingData = {
         date: null,
-        time: null, // Теперь будет хранить только время начала (например, "14:00")
+        time: null,
         simulator: [], // изменено на массив для множественного выбора
         wheel: null, // теперь не используется, но оставлено для совместимости
         duration: null, // длительность пакета, например "1 час"
         price: null,
         name: null,
-        phone_last_4_digits: null, // Изменено для хранения последних 4 цифр телефона
+        phone: null,
         telegram: null,
         telegramId: null, // добавляем telegram id
         comment: null
@@ -50,18 +46,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function init() {
         try {
             // Инициализация Supabase
-            console.log("Попытка инициализации клиента Supabase...");
-            console.log("Используемый Supabase URL:", supabaseUrl);
-            // Добавляем логирование для проверки ключа
-            console.log("Supabase Anon Key (первые 5 и последние 5 символов):", 
-                        supabaseAnonKey.substring(0, 5) + '...' + supabaseAnonKey.substring(supabaseAnonKey.length - 5));
-            console.log("Длина Supabase Anon Key:", supabaseAnonKey.length);
-            console.log("Тип Supabase Anon Key:", typeof supabaseAnonKey);
-            // Проверим, нет ли невидимых символов (например, BOM или других управляющих символов)
-            console.log("Supabase Anon Key (в виде массива кодов символов):", Array.from(supabaseAnonKey).map(char => char.charCodeAt(0)));
-            
             supabase = createClient(supabaseUrl, supabaseAnonKey);
             console.log("Клиент Supabase инициализирован.");
+            console.log("Supabase URL:", supabaseUrl);
+            console.log("Supabase Anon Key (first 5 chars):", supabaseAnonKey.substring(0, 5) + '...');
 
             // get user session or sign in anonymously if needed for supabase rls
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -99,14 +87,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
 
             setupCalendar();
-            setupSimulatorSelection(); 
-            // После того как setupSimulatorSelection() отработает и, возможно, выберет симулятор по умолчанию,
-            // мы явно устанавливаем состояние кнопки "далее".
-            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
-            updateBreadcrumbs(); // Обновляем хлебные крошки после инициализации
-
+            setupSimulatorSelection(); // this will now correctly initialize bookingData.simulator
             setupPackageSelection();
-            setupTimeSlotsGenerator(); 
+            setupTimeSlotsGenerator(); // will be called again after package selection
             setupForm();
             setupNavigation();
             setupConfirmationActions();
@@ -117,9 +100,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             document.getElementById('cancel-modal').style.display = 'none';
 
         } catch (error) {
-            console.error("Критическая ошибка инициализации приложения:", error);
-            // Возможно, здесь можно отобразить сообщение пользователю, если приложение не может инициализироваться
-            // document.getElementById('error-message-box').textContent = 'Не удалось подключиться к базе данных. Пожалуйста, проверьте настройки.';
+            console.error("Ошибка инициализации приложения:", error);
         }
     }
 
@@ -213,19 +194,19 @@ document.addEventListener('DOMContentLoaded', async function() {
             });
         });
 
-        // инициализируем bookingData.date при загрузке
-        updateBookingDate(); 
+        // инициализируем bookingdata.date и состояние кнопки "далее" при загрузке
+        updateBookingDate(); // call once on load to set initial date
     }
 
     function updateBookingDate() {
         const selectedDateItem = document.querySelector('.date-carousel .date-item.selected');
+        // const currentDateDisplay = document.getElementById('current-date-display'); // removed as per user request
 
         if (selectedDateItem) {
             const fullDate = selectedDateItem.dataset.fullDate;
             bookingData.date = fullDate;
-            // Кнопка "далее" теперь зависит только от выбора симулятора на этом шаге
-            // Если симулятор уже выбран (по умолчанию или вручную), кнопка должна быть активна
-            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; 
+            // currentDateDisplay.textContent = fullDate; // removed as per user request
+            document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0; // check simulator selection
             updateBreadcrumbs(); // обновляем хлебные крошки
         } else {
             bookingData.date = null;
@@ -237,7 +218,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // настройка выбора симулятора (изменена логика)
     function setupSimulatorSelection() {
-        // очищаем предыдущие выборы в bookingData для повторной инициализации на основе текущего DOM
+        // очищаем предыдущие выборы в bookingdata для повторной инициализации на основе текущего dom
         bookingData.simulator = [];
 
         document.querySelectorAll('.simulator-box').forEach(sim => {
@@ -297,7 +278,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 });
             }
         });
-        // Убрали вызов updateBookingDate() здесь, так как он будет вызван в init() после setupSimulatorSelection()
+        // убедимся, что состояние кнопки "далее" корректно после начальной настройки
+        document.getElementById('toPackagePage').disabled = bookingData.simulator.length === 0;
+        updateBreadcrumbs();
     }
 
     // настройка выбора пакета времени (новый шаг)
@@ -320,10 +303,8 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const hourUnit = getHourUnit(pkg.hours);
                 return `
                     <div class="package block" data-duration="${pkg.duration}" data-price="${pkg.value}" data-hours="${pkg.hours}">
-                        <div class="package-header-content">
-                            <div class="package-number">${displayHours}</div>
-                            <div class="package-unit">${hourUnit}</div>
-                        </div>
+                        <div class="package-number">${displayHours}</div>
+                        <small class="package-unit">${hourUnit}</small>
                         ${originalPriceDisplay}
                         <div class="package-price">${pkg.price}</div>
                     </div>
@@ -414,10 +395,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             customPackagesHtml += `
                 <div class="package block" data-duration="${displayHours} ${hourUnit}" data-price="${currentPrice}" data-hours="${hours}">
-                    <div class="package-header-content">
-                        <div class="package-number">${displayHours}</div>
-                        <div class="package-unit">${hourUnit}</div>
-                    </div>
+                    <div class="package-number">${displayHours}</div>
+                    <small class="package-unit">${hourUnit}</small>
                     ${originalPriceDisplay}
                     <div class="package-price">${currentPrice} ₽</div>
                 </div>
@@ -437,7 +416,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 let customPackageTextContent = '';
                 const selectedHours = parseFloat(this.dataset.hours);
                 const selectedPrice = this.dataset.price;
-                // const selectedOriginalPrice = parseFloat(this.dataset.originalPrice); // This variable is not used
+                const selectedOriginalPrice = parseFloat(this.dataset.originalPrice);
 
                 if (this.dataset.duration === 'ночь') {
                     customPackageTextContent = `ночной<br>(${selectedPrice})`;
@@ -530,7 +509,6 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 if (error) {
                     console.error("Ошибка получения занятых слотов из Supabase:", error);
-                    console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'bookings'.");
                 } else {
                     occupiedSlots = data.filter(booking => 
                         booking.simulator_ids.some(bookedSim => bookingData.simulator.includes(bookedSim))
@@ -542,46 +520,37 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }
 
-        // generate time slots from 8:00 to 03:00 (next day) with 30-minute steps
-        // 8 AM is hour 8. 3 AM next day is hour 27 (24 + 3)
-        for (let currentHour = 8; currentHour <= 26.5; currentHour += 0.5) { // Loop up to 2:30 AM (26.5)
-            let startHour = Math.floor(currentHour);
-            let startMinutes = (currentHour % 1) * 60;
+        // generate time slots
+        for (let hour = 10; hour <= 23; hour++) {
+            let startHour = hour;
+            let endHour = startHour + durationHours;
             
-            let endHourFloat = currentHour + durationHours;
-            let endHour = Math.floor(endHourFloat);
-            let endMinutes = (endHourFloat % 1) * 60;
+            // handle fractional hours for start and end times
+            let startMinutes = (startHour % 1) * 60;
+            let endMinutes = (endHour % 1) * 60;
 
-            // Format start time
-            let startHourFormatted = startHour.toString().padStart(2, '0');
+            let startHourFormatted = Math.floor(startHour).toString().padStart(2, '0');
             let startMinutesFormatted = startMinutes.toString().padStart(2, '0');
-            let startTimeDisplay = `${startHourFormatted}:${startMinutesFormatted}`;
             
-            // Format end time for display (not for storage in bookingData.time)
-            let displayEndHour = endHour;
-            let endTimeSuffix = '';
+            let endHourFormatted = Math.floor(endHour).toString().padStart(2, '0');
+            let endMinutesFormatted = endMinutes.toString().padStart(2, '0');
 
-            // Check if end time crosses midnight (24 hours)
-            if (endHourFloat >= 24) {
-                displayEndHour = endHour % 24; // Use modulo to get hours in 0-23 range
+            let endTimeSuffix = '';
+            if (Math.floor(endHour) >= 24) {
+                endHourFormatted = (Math.floor(endHour) - 24).toString().padStart(2, '0');
                 endTimeSuffix = ' (следующий день)'; // lowercase
             }
-            let endMinutesDisplay = endMinutes.toString().padStart(2, '0');
-            let endTimeDisplay = `${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}`;
 
-            // Store only the start time in bookingData.time
-            // The full time range is used only for data-attribute for display purposes
-            const fullTimeRangeForAttribute = `${startTimeDisplay} – ${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}`;
+            const currentTimeSlot = `${startHourFormatted}:${startMinutesFormatted} – ${endHourFormatted}:${endMinutesFormatted}${endTimeSuffix}`;
             
             // check if this slot is occupied
             const isOccupied = occupiedSlots.some(occupied => {
-                // Parse occupied start time. If time_range is now just "HH:MM", this still works.
                 const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
                 const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
                 const occupiedDurationMinutes = occupied.duration_hours * 60;
                 const occupiedEndTotalMinutes = occupiedStartTotalMinutes + occupiedDurationMinutes;
 
-                const currentStartTotalMinutes = currentHour * 60;
+                const currentStartTotalMinutes = hour * 60 + startMinutes;
                 const currentDurationMinutes = durationHours * 60;
                 const currentEndTotalMinutes = currentStartTotalMinutes + currentDurationMinutes;
 
@@ -591,12 +560,23 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             const disabledClass = isOccupied ? 'disabled' : '';
 
-            times.push(`
-                <div class="time-slot block ${disabledClass}" data-time-range="${fullTimeRangeForAttribute}" data-start-time="${startTimeDisplay}">
-                    ${startTimeDisplay}
-                    <small>${displayEndHour.toString().padStart(2, '0')}:${endMinutesDisplay}${endTimeSuffix}</small>
-                </div>
-            `);
+            times.push(`<div class="time-slot block ${disabledClass}" data-time-range="${currentTimeSlot}">${currentTimeSlot}</div>`);
+        }
+
+        // if "ночь", add special slot (assuming 00:00 - 08:00 is fixed for night)
+        // this slot should only be added if the selected package is exactly 'ночь'
+        if (bookingData.duration === 'ночь') { // changed to lowercase
+            const nightSlot = '00:00 – 08:00';
+            const isNightSlotOccupied = occupiedSlots.some(occupied => {
+                const [occupiedStartHourStr, occupiedStartMinStr] = occupied.time_range.split(' ')[0].split(':');
+                const occupiedStartTotalMinutes = parseInt(occupiedStartHourStr) * 60 + parseInt(occupiedStartMinStr);
+                
+                // check if the night slot (00:00 - 08:00) overlaps with any existing booking
+                // simplified check: if any booking starts at 00:00 or overlaps significantly
+                return (occupiedStartTotalMinutes < (8 * 60) && (occupiedStartTotalMinutes + (occupied.duration_hours * 60)) > 0);
+            });
+            const nightDisabledClass = isNightSlotOccupied ? 'disabled' : '';
+            times.push(`<div class="time-slot block ${nightDisabledClass}" data-time-range="${nightSlot}">${nightSlot}</div>`);
         }
         
         timeGrid.innerHTML = times.join('');
@@ -606,9 +586,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             slot.addEventListener('click', function() {
                 document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
                 this.classList.add('selected');
-                // Сохраняем только время начала
-                bookingData.time = this.dataset.startTime; // Используем новый data-attribute
-                document.getElementById('toFormPage').disabled = false;
+                bookingData.time = this.dataset.timeRange;
+                document.getElementById('toFormPage').disabled = false; // changed from towheelpage to toformpage
                 updateBreadcrumbs(); // обновляем хлебные крошки
             });
         });
@@ -622,10 +601,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // загрузка данных пользователя из supabase (теперь из таблицы 'users')
     async function loadUserData(telegramId) {
-        if (!supabase || !telegramId) {
-            console.warn("Supabase клиент не инициализирован или отсутствует telegramId. Пропуск загрузки пользовательских данных.");
-            return;
-        }
+        if (!supabase || !telegramId) return;
 
         try {
             // assuming a 'users' table with 'telegram_id' as a unique identifier
@@ -637,7 +613,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error for single())
                 console.error("Ошибка загрузки пользовательских данных из Supabase:", error);
-                console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'users'.");
                 return;
             }
 
@@ -649,32 +624,25 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const phoneInput = document.getElementById('phone');
                 const telegramInput = document.getElementById('telegram');
 
-                if (nameInput && userData.name) nameInput.value = userData.name;
-                // Заполняем поле телефона только последними 4 цифрами
-                if (phoneInput && userData.phone_last_4_digits) {
-                    phoneInput.value = userData.phone_last_4_digits;
-                }
-                if (telegramInput && userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
+                if (userData.name) nameInput.value = userData.name;
+                if (userData.phone) phoneInput.value = userData.phone; // assuming full phone is stored
+                if (userData.telegram_username) telegramInput.value = userData.telegram_username; // assuming telegram_username in db
 
-                // update bookingData
+                // update bookingdata
                 bookingData.name = userData.name || null;
-                bookingData.phone_last_4_digits = userData.phone_last_4_digits || null; // Используем новое название колонки
+                bookingData.phone = userData.phone || null;
                 bookingData.telegram = userData.telegram_username || null; // use telegram_username from webapp
 
                 // check if all required user data is present to potentially skip the form step
-                if (userData.name && userData.phone_last_4_digits && userData.telegram_username) {
+                if (userData.name && userData.phone && userData.telegram_username) {
                     console.log("Пользовательские данные полные, форма предварительно заполнена.");
                 }
             } else {
                 console.log("Существующие пользовательские данные для Telegram ID не найдены:", telegramId);
                 // if no data, ensure form fields are empty or default
-                const nameInput = document.querySelector('#form-step input[type="text"]');
-                const phoneInput = document.getElementById('phone');
-                const telegramInput = document.getElementById('telegram');
-
-                if (nameInput) nameInput.value = '';
-                if (phoneInput) phoneInput.value = ''; // Сбрасываем до пустой строки, так как пользователь вводит только 4 цифры
-                if (telegramInput) telegramInput.value = bookingData.telegram; // pre-fill with telegram username from webapp
+                document.querySelector('#form-step input[type="text"]').value = '';
+                document.getElementById('phone').value = '+7 ';
+                document.getElementById('telegram').value = bookingData.telegram; // pre-fill with telegram username from webapp
             }
         } catch (error) {
             console.error("Ошибка загрузки пользовательских данных:", error);
@@ -690,7 +658,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 telegram_id: bookingData.telegramId, // unique identifier
                 name: bookingData.name,
                 telegram_username: bookingData.telegram, // save telegram username
-                phone_last_4_digits: bookingData.phone_last_4_digits // Используем новое название колонки
+                phone: bookingData.phone // save full phone number
             };
 
             // use upsert to insert or update based on telegram_id
@@ -700,7 +668,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
             if (error) {
                 console.error("Ошибка сохранения пользовательских данных в Supabase:", error);
-                console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'users'.");
             } else {
                 console.log("Пользовательские данные сохранены/обновлены в Supabase:", data);
             }
@@ -713,37 +680,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     function setupForm() {
         const phoneInput = document.getElementById('phone');
         
-        // форматирование номера телефона: пользователь вводит только последние 4 цифры
-        if (phoneInput) {
-            // Устанавливаем атрибуты для ввода только 4 цифр
-            phoneInput.setAttribute('pattern', '\\d{4}');
-            phoneInput.setAttribute('maxlength', '4');
-            phoneInput.setAttribute('placeholder', '1234'); // Подсказка для пользователя
-
-            phoneInput.addEventListener('input', function(e) {
-                let digits = this.value.replace(/\D/g, ''); // Получаем только цифры
-                if (digits.length > 4) {
-                    digits = digits.substring(0, 4); // Ограничиваем до 4 цифр
-                }
-                this.value = digits; // Обновляем поле ввода, чтобы отображались только 4 цифры
-
-                // Сохраняем только последние 4 цифры в bookingData
-                bookingData.phone_last_4_digits = digits;
-            });
-        } else {
-            console.warn("Элемент с id 'phone' не найден. Слушатель событий не добавлен.");
-        }
+        // форматирование номера телефона
+        phoneInput.addEventListener('input', function(e) {
+            let numbers = e.target.value.replace(/\D/g, '');
+            if (numbers.startsWith('7')) numbers = '7' + numbers.substring(1);
+            numbers = numbers.substring(0, 11);
+            
+            let formatted = '+7';
+            if (numbers.length > 1) formatted += ' (' + numbers.substring(1, 4);
+            if (numbers.length > 4) formatted += ') ' + numbers.substring(4, 7);
+            if (numbers.length > 7) formatted += '-' + numbers.substring(7, 9);
+            if (numbers.length > 9) formatted += '-' + numbers.substring(9, 11);
+            
+            e.target.value = formatted;
+            bookingData.phone = formatted; // update bookingdata with formatted phone
+        });
         
         // валидация telegram
-        // Проверяем, что элемент существует, прежде чем добавлять слушатель
-        const telegramInput = document.getElementById('telegram');
-        if (telegramInput) {
-            telegramInput.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
-            });
-        } else {
-            console.warn("Элемент с id 'telegram' не найден. Слушатель событий не добавлен.");
-        }
+        document.getElementById('telegram').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^a-zA-Z0-9_]/g, '');
+        });
     }
 
     // настройка навигации
@@ -770,9 +726,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             // сохраняем данные
             bookingData.name = this.querySelector('input[type="text"]').value;
-            // bookingData.phone_last_4_digits уже обновляется в setupForm при вводе
-            bookingData.telegram = document.querySelector('#telegram') ? document.querySelector('#telegram').value : ''; // Добавлена проверка
-            bookingData.comment = document.querySelector('textarea') ? document.querySelector('textarea').value : ''; // Добавлена проверка
+            // bookingdata.phone уже обновляется в setupform при вводе
+            bookingData.telegram = this.querySelector('#telegram').value;
+            bookingData.comment = this.querySelector('textarea').value;
             
             // сохраняем данные пользователя в базу
             await saveUserData();
@@ -785,7 +741,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // обновление хлебных крошек
     function updateBreadcrumbs() {
         const breadcrumbDiv = document.getElementById('booking-breadcrumb');
-        // check if breadcrumbDiv exists before updating
+        // check if breadcrumbdiv exists before updating
         if (!breadcrumbDiv) {
             console.warn("Элемент хлебных крошек не найден. Обновление хлебных крошек пропущено.");
             return;
@@ -804,10 +760,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             breadcrumbs.push(bookingData.duration);
         }
         if (bookingData.time) {
-            // Для хлебных крошек можно отобразить полный диапазон, если нужно,
-            // но в bookingData.time теперь только время начала.
-            // Если нужно отобразить диапазон, его нужно будет рассчитать здесь.
-            breadcrumbs.push(bookingData.time); 
+            breadcrumbs.push(bookingData.time);
         }
 
         breadcrumbDiv.textContent = breadcrumbs.join(' / ');
@@ -823,7 +776,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             <p><strong>время:</strong> ${bookingData.time}</p>
             <p><strong>симулятор(ы):</strong> ${getSimulatorNames(bookingData.simulator)}</p>
             <p><strong>имя:</strong> ${bookingData.name}</p>
-            <p><strong>телефон:</strong> ${fullPhonePrefix}${bookingData.phone_last_4_digits}</p>
+            <p><strong>телефон:</strong> ${bookingData.phone}</p>
             <p><strong>telegram:</strong> @${bookingData.telegram}</p>
             ${bookingData.comment ? `<p><strong>комментарий:</strong> ${bookingData.comment}</p>` : ''}
         `;
@@ -837,14 +790,14 @@ document.addEventListener('DOMContentLoaded', async function() {
                         user_id: userId, // supabase user id (from auth or uuid)
                         telegram_id: bookingData.telegramId, // telegram user id
                         date: bookingData.date,
-                        time_range: bookingData.time, // Теперь храним только время начала
+                        time_range: bookingData.time, // renamed to time_range in db
                         simulator_ids: bookingData.simulator, // renamed to simulator_ids in db
                         // wheel: bookingData.wheel, // removed as per new flow
                         duration_text: bookingData.duration, // renamed to duration_text in db
                         duration_hours: bookingData.hours, // store hours for easier availability checks
                         price: bookingData.price,
                         name: bookingData.name,
-                        phone_last_4_digits: bookingData.phone_last_4_digits, // Используем новое название колонки
+                        phone: bookingData.phone, // save full phone number
                         telegram_username: bookingData.telegram, // save full telegram username
                         comment: bookingData.comment,
                         status: 'pending', // default status for new bookings
@@ -854,8 +807,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
                 if (error) {
                     console.error("Ошибка сохранения бронирования в Supabase:", error);
-                    console.error("ПОДСКАЗКА: Ошибка 401 (Unauthorized) обычно означает, что ваш Supabase API ключ недействителен или у вас нет правильных политик RLS (Row Level Security) для таблицы 'bookings'.");
-                    console.error("Также проверьте, что колонка 'time_range' в таблице 'bookings' теперь может хранить только время начала (например, 'HH:MM'), а не полный диапазон. И что 'phone_last_4_digits' существует и имеет правильный тип.");
                 } else if (newBooking && newBooking.length > 0) {
                     console.log("Бронирование сохранено в Supabase с ID:", newBooking[0].id);
 
@@ -935,7 +886,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // сбрасываем форму
         document.getElementById('booking-form')?.reset();
-        document.getElementById('phone').value = ''; // Сбрасываем поле телефона до пустой строки
+        document.getElementById('phone').value = '+7 '; // reset phone to default prefix
         
         // снимаем выделения и скрываем крестики
         document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
